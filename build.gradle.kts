@@ -18,8 +18,6 @@ java {
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
-    // MockBukkit repository added in Phase 2
-
 }
 
 dependencies {

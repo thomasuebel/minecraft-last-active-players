@@ -5,7 +5,8 @@ import org.junit.jupiter.api.Test;
 class NoStatisticsTest {
 
     @Test
-    void canBeConstructed() {
-        new NoStatistics();
+    void registerIsNoOp() {
+        final Statistics stats = new NoStatistics();
+        stats.register();
     }
 }

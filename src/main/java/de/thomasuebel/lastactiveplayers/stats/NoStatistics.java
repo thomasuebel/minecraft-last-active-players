@@ -6,4 +6,12 @@ package de.thomasuebel.lastactiveplayers.stats;
  * <p>Used when statistics reporting is unavailable or not configured.
  */
 public final class NoStatistics implements Statistics {
+
+    /** Constructs a no-op statistics sentinel. */
+    public NoStatistics() {
+    }
+
+    @Override
+    public void register() {
+    }
 }
