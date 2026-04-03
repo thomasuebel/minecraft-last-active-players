@@ -10,6 +10,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class StreakMilestonesTest {
 
+    private static final int MILESTONE_THREE = 3;
+    private static final int MILESTONE_SEVEN = 7;
+    private static final int MILESTONE_FOURTEEN = 14;
+    private static final int MILESTONE_THIRTY = 30;
+    private static final int MILESTONE_SIXTY = 60;
+    private static final int BEYOND_MAX = 100;
+
     private Milestones milestones;
 
     @BeforeEach
@@ -24,35 +31,39 @@ class StreakMilestonesTest {
 
     @Test
     void singleMilestoneCrossedExactly() {
-        final List<Integer> crossed = milestones.crossedBy(2, 3);
-        assertEquals(List.of(3), crossed);
+        final List<Integer> crossed = milestones.crossedBy(2, MILESTONE_THREE);
+        assertEquals(List.of(MILESTONE_THREE), crossed);
     }
 
     @Test
     void multipleMilestonesCrossedInOneJump() {
-        final List<Integer> crossed = milestones.crossedBy(0, 7);
-        assertEquals(List.of(3, 7), crossed);
+        final List<Integer> crossed = milestones.crossedBy(0, MILESTONE_SEVEN);
+        assertEquals(List.of(MILESTONE_THREE, MILESTONE_SEVEN), crossed);
     }
 
     @Test
     void previousMilestoneNotIncluded() {
-        final List<Integer> crossed = milestones.crossedBy(3, 7);
-        assertEquals(List.of(7), crossed);
+        final List<Integer> crossed = milestones.crossedBy(MILESTONE_THREE, MILESTONE_SEVEN);
+        assertEquals(List.of(MILESTONE_SEVEN), crossed);
     }
 
     @Test
     void alreadyAtMilestoneNoCrossings() {
-        assertTrue(milestones.crossedBy(7, 7).isEmpty());
+        assertTrue(milestones.crossedBy(MILESTONE_SEVEN, MILESTONE_SEVEN).isEmpty());
     }
 
     @Test
     void allMilestonesReturnedForMaxJump() {
-        final List<Integer> crossed = milestones.crossedBy(0, 60);
-        assertEquals(List.of(3, 7, 14, 30, 60), crossed);
+        final List<Integer> crossed = milestones.crossedBy(0, MILESTONE_SIXTY);
+        assertEquals(
+            List.of(MILESTONE_THREE, MILESTONE_SEVEN, MILESTONE_FOURTEEN,
+                MILESTONE_THIRTY, MILESTONE_SIXTY),
+            crossed
+        );
     }
 
     @Test
     void beyondHighestMilestoneNoCrossings() {
-        assertTrue(milestones.crossedBy(60, 100).isEmpty());
+        assertTrue(milestones.crossedBy(MILESTONE_SIXTY, BEYOND_MAX).isEmpty());
     }
 }
