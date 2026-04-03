@@ -1,5 +1,8 @@
 # LastActivePlayers
 
+[![CI](https://github.com/thomasuebel/minecraft-last-active-players/actions/workflows/ci.yml/badge.svg)](https://github.com/thomasuebel/minecraft-last-active-players/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/thomasuebel/minecraft-last-active-players/graph/badge.svg)](https://codecov.io/gh/thomasuebel/minecraft-last-active-players)
+
 A Paper plugin for Minecraft 1.21.x that tracks player sessions and celebrates the most engaged
 members of your community.
 
