@@ -54,6 +54,17 @@ public final class SqliteLastLeaveLeaderboard implements Leaderboard {
         }
     }
 
+    @Override
+    public List<LeaderboardEntry> topTied(final Set<UUID> exclude) {
+        try (PreparedStatement stmt = this.database.connection().prepareStatement(QUERY)) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                return mapTiedEntries(rs, exclude);
+            }
+        } catch (final SQLException exception) {
+            throw new DatabaseException(exception);
+        }
+    }
+
     private List<LeaderboardEntry> mapEntries(
         final ResultSet rs, final int limit, final Set<UUID> exclude
     ) throws SQLException {
@@ -72,6 +83,36 @@ public final class SqliteLastLeaveLeaderboard implements Leaderboard {
                 rs.getString("username"),
                 rs.getLong("total_seconds"),
                 Optional.of(Instant.parse(lastLeaveStr))
+            ));
+        }
+        return result;
+    }
+
+    private List<LeaderboardEntry> mapTiedEntries(
+        final ResultSet rs, final Set<UUID> exclude
+    ) throws SQLException {
+        final List<LeaderboardEntry> result = new ArrayList<>();
+        Instant topLeave = null;
+        while (rs.next()) {
+            final UUID uuid = UUID.fromString(rs.getString("uuid"));
+            if (exclude.contains(uuid)) {
+                continue;
+            }
+            final String lastLeaveStr = rs.getString("last_leave");
+            if (lastLeaveStr == null) {
+                continue;
+            }
+            final Instant lastLeave = Instant.parse(lastLeaveStr);
+            if (topLeave == null) {
+                topLeave = lastLeave;
+            } else if (!lastLeave.equals(topLeave)) {
+                break;
+            }
+            result.add(new StoredEntry(
+                uuid,
+                rs.getString("username"),
+                rs.getLong("total_seconds"),
+                Optional.of(lastLeave)
             ));
         }
         return result;

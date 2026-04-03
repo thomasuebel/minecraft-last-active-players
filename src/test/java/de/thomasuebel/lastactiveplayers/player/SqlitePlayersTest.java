@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -188,5 +189,42 @@ class SqlitePlayersTest {
         players.purgeInactiveBefore(Instant.now().minus(PURGE_THRESHOLD_DAYS, ChronoUnit.DAYS));
 
         assertTrue(players.withUuid(uuid).exists());
+    }
+
+    @Test
+    void withTopStreakReturnsEmptyWhenNoPlayerHasStreak() {
+        final UUID uuid = UUID.randomUUID();
+        players.upsert(uuid, "Alice");
+
+        assertTrue(players.withTopStreak().isEmpty());
+    }
+
+    @Test
+    void withTopStreakReturnsSingleLeaderWhenUnique() {
+        final UUID aliceUuid = UUID.randomUUID();
+        final UUID bobUuid = UUID.randomUUID();
+        players.upsert(aliceUuid, "Alice");
+        players.upsert(bobUuid, "Bob");
+        players.updateStreak(aliceUuid, SEVEN_DAY_STREAK, Optional.of(STREAK_DATE));
+        players.updateStreak(bobUuid, FIVE_DAY_STREAK, Optional.of(STREAK_DATE));
+
+        final List<Player> top = players.withTopStreak();
+
+        assertEquals(1, top.size());
+        assertEquals(aliceUuid, top.get(0).uuid());
+    }
+
+    @Test
+    void withTopStreakReturnsBothPlayersWhenTied() {
+        final UUID aliceUuid = UUID.randomUUID();
+        final UUID bobUuid = UUID.randomUUID();
+        players.upsert(aliceUuid, "Alice");
+        players.upsert(bobUuid, "Bob");
+        players.updateStreak(aliceUuid, SEVEN_DAY_STREAK, Optional.of(STREAK_DATE));
+        players.updateStreak(bobUuid, SEVEN_DAY_STREAK, Optional.of(STREAK_DATE));
+
+        final List<Player> top = players.withTopStreak();
+
+        assertEquals(2, top.size());
     }
 }

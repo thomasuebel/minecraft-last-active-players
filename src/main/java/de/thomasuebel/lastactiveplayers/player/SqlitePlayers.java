@@ -9,6 +9,8 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,6 +37,12 @@ public final class SqlitePlayers implements Players {
         WHERE streak_days > 0
         ORDER BY streak_days DESC
         LIMIT 1
+        """;
+
+    private static final String SELECT_TOP_STREAK = """
+        SELECT uuid, username, streak_days, streak_last_day FROM players
+        WHERE streak_days = (SELECT MAX(streak_days) FROM players WHERE streak_days > 0)
+        ORDER BY uuid
         """;
 
     private static final String PURGE = """
@@ -123,6 +131,28 @@ public final class SqlitePlayers implements Players {
                     );
                 }
                 return new NoPlayer();
+            }
+        } catch (final SQLException exception) {
+            throw new DatabaseException(exception);
+        }
+    }
+
+    @Override
+    public List<Player> withTopStreak() {
+        try (PreparedStatement stmt =
+                 this.database.connection().prepareStatement(SELECT_TOP_STREAK)) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                final List<Player> result = new ArrayList<>();
+                while (rs.next()) {
+                    final String dateStr = rs.getString("streak_last_day");
+                    result.add(new StoredPlayer(
+                        UUID.fromString(rs.getString("uuid")),
+                        rs.getString("username"),
+                        rs.getInt("streak_days"),
+                        Optional.ofNullable(dateStr).map(LocalDate::parse)
+                    ));
+                }
+                return result;
             }
         } catch (final SQLException exception) {
             throw new DatabaseException(exception);

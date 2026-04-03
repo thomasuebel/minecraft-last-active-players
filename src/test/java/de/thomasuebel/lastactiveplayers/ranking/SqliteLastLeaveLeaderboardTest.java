@@ -122,4 +122,43 @@ class SqliteLastLeaveLeaderboardTest {
 
         assertEquals(1, top.size());
     }
+
+    @Test
+    void topTiedReturnsBothPlayersWhenLastLeavesAreEqual() {
+        final long aliceId = sessions.open(aliceUuid, JOIN_ALICE);
+        sessions.heartbeat(aliceId, LEAVE_ALICE, ONE_HOUR_SECONDS);
+        sessions.close(aliceId, LEAVE_ALICE);
+        final long bobId = sessions.open(bobUuid, JOIN_BOB);
+        sessions.heartbeat(bobId, LEAVE_ALICE, ONE_HOUR_SECONDS);
+        sessions.close(bobId, LEAVE_ALICE);
+
+        final Leaderboard board = new SqliteLastLeaveLeaderboard(this.db);
+        final List<LeaderboardEntry> tied = board.topTied(Set.of());
+
+        assertEquals(2, tied.size());
+    }
+
+    @Test
+    void topTiedReturnsSingleEntryWhenOnlyOneIsLatest() {
+        final long aliceId = sessions.open(aliceUuid, JOIN_ALICE);
+        sessions.heartbeat(aliceId, LEAVE_ALICE, ONE_HOUR_SECONDS);
+        sessions.close(aliceId, LEAVE_ALICE);
+        final long bobId = sessions.open(bobUuid, JOIN_BOB);
+        sessions.heartbeat(bobId, LEAVE_BOB, ONE_HOUR_SECONDS);
+        sessions.close(bobId, LEAVE_BOB);
+
+        final Leaderboard board = new SqliteLastLeaveLeaderboard(this.db);
+        final List<LeaderboardEntry> tied = board.topTied(Set.of());
+
+        assertEquals(1, tied.size());
+        assertEquals(aliceUuid, tied.get(0).uuid());
+    }
+
+    @Test
+    void topTiedReturnsEmptyWhenNoPlayersHaveSessions() {
+        final Leaderboard board = new SqliteLastLeaveLeaderboard(this.db);
+        final List<LeaderboardEntry> tied = board.topTied(Set.of());
+
+        assertTrue(tied.isEmpty());
+    }
 }

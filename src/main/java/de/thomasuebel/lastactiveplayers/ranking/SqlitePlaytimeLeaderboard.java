@@ -76,6 +76,19 @@ public final class SqlitePlaytimeLeaderboard implements Leaderboard {
         }
     }
 
+    @Override
+    public List<LeaderboardEntry> topTied(final Set<UUID> exclude) {
+        final Instant windowStart = Instant.now(this.clock).minus(Duration.ofDays(this.windowDays));
+        try (PreparedStatement stmt = this.database.connection().prepareStatement(QUERY)) {
+            stmt.setString(1, windowStart.toString());
+            try (ResultSet rs = stmt.executeQuery()) {
+                return mapTiedEntries(rs, exclude);
+            }
+        } catch (final SQLException exception) {
+            throw new DatabaseException(exception);
+        }
+    }
+
     private List<LeaderboardEntry> mapEntries(
         final ResultSet rs, final int limit, final Set<UUID> exclude
     ) throws SQLException {
@@ -90,6 +103,33 @@ public final class SqlitePlaytimeLeaderboard implements Leaderboard {
                 uuid,
                 rs.getString("username"),
                 rs.getLong("total_seconds"),
+                Optional.ofNullable(lastLeaveStr).map(Instant::parse)
+            ));
+        }
+        return result;
+    }
+
+    private List<LeaderboardEntry> mapTiedEntries(
+        final ResultSet rs, final Set<UUID> exclude
+    ) throws SQLException {
+        final List<LeaderboardEntry> result = new ArrayList<>();
+        long topScore = -1L;
+        while (rs.next()) {
+            final UUID uuid = UUID.fromString(rs.getString("uuid"));
+            if (exclude.contains(uuid)) {
+                continue;
+            }
+            final long score = rs.getLong("total_seconds");
+            if (topScore < 0) {
+                topScore = score;
+            } else if (score < topScore) {
+                break;
+            }
+            final String lastLeaveStr = rs.getString("last_leave");
+            result.add(new StoredEntry(
+                uuid,
+                rs.getString("username"),
+                score,
                 Optional.ofNullable(lastLeaveStr).map(Instant::parse)
             ));
         }

@@ -181,4 +181,43 @@ class SqlitePlaytimeLeaderboardTest {
 
         assertEquals("Alice", top.get(0).username());
     }
+
+    @Test
+    void topTiedReturnsBothPlayersWhenScoresAreEqual() {
+        final long aliceId = sessions.open(aliceUuid, JOIN_ALICE);
+        sessions.heartbeat(aliceId, LEAVE_ALICE, ONE_HOUR_SECONDS);
+        sessions.close(aliceId, LEAVE_ALICE);
+        final long bobId = sessions.open(bobUuid, JOIN_BOB);
+        sessions.heartbeat(bobId, LEAVE_BOB, ONE_HOUR_SECONDS);
+        sessions.close(bobId, LEAVE_BOB);
+
+        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, CLOCK, THIRTY_DAYS);
+        final List<LeaderboardEntry> tied = board.topTied(Set.of());
+
+        assertEquals(2, tied.size());
+    }
+
+    @Test
+    void topTiedReturnsSingleEntryWhenOnlyOneLeads() {
+        final long aliceId = sessions.open(aliceUuid, JOIN_ALICE);
+        sessions.heartbeat(aliceId, LEAVE_ALICE, TWO_HOURS_SECONDS);
+        sessions.close(aliceId, LEAVE_ALICE);
+        final long bobId = sessions.open(bobUuid, JOIN_BOB);
+        sessions.heartbeat(bobId, LEAVE_BOB, ONE_HOUR_SECONDS);
+        sessions.close(bobId, LEAVE_BOB);
+
+        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, CLOCK, THIRTY_DAYS);
+        final List<LeaderboardEntry> tied = board.topTied(Set.of());
+
+        assertEquals(1, tied.size());
+        assertEquals(aliceUuid, tied.get(0).uuid());
+    }
+
+    @Test
+    void topTiedReturnsEmptyWhenNoQualifyingPlayers() {
+        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, CLOCK, THIRTY_DAYS);
+        final List<LeaderboardEntry> tied = board.topTied(Set.of());
+
+        assertTrue(tied.isEmpty());
+    }
 }

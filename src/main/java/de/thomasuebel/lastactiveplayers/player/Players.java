@@ -2,6 +2,7 @@ package de.thomasuebel.lastactiveplayers.player;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -45,6 +46,17 @@ public interface Players {
      * @return the streak leader; never null
      */
     Player withHighestStreak();
+
+    /**
+     * Returns all players sharing the highest {@code streak_days} value.
+     *
+     * <p>If no player has a streak greater than zero, the returned list is empty.
+     * If exactly one player leads, the list contains that single player.
+     * If two or more players share the maximum streak, all are returned.
+     *
+     * @return all tied streak leaders; never null, may be empty
+     */
+    List<Player> withTopStreak();
 
     /**
      * Deletes players whose last session ended before the given threshold.

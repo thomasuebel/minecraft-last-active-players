@@ -23,4 +23,22 @@ public interface Leaderboard {
      * @return ranked entries; never null, may be empty
      */
     List<LeaderboardEntry> top(int limit, Set<UUID> exclude);
+
+    /**
+     * Returns all entries tied for first place (sharing the highest rank score),
+     * excluding any players whose UUIDs appear in {@code exclude}.
+     *
+     * <p>If no qualifying player exists the returned list is empty.
+     * If exactly one player leads, the list contains that single entry.
+     * If two or more players share the top score, all are returned.
+     *
+     * <p>The default implementation returns only the single top entry (no tie detection).
+     * Implementations that support tie detection should override this method.
+     *
+     * @param exclude UUIDs to omit from the result; never null, may be empty
+     * @return tied top entries; never null, may be empty
+     */
+    default List<LeaderboardEntry> topTied(final Set<UUID> exclude) {
+        return top(1, exclude);
+    }
 }
