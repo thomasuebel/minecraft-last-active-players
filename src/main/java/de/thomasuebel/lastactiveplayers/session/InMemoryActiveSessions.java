@@ -46,7 +46,8 @@ public final class InMemoryActiveSessions implements ActiveSessions {
         final List<HeartbeatEntry> result = new ArrayList<>(this.entries.size());
         for (final Map.Entry<UUID, Entry> mapEntry : this.entries.entrySet()) {
             final Entry entry = mapEntry.getValue();
-            final long elapsed = Duration.between(entry.lastHeartbeat, now).getSeconds();
+            final long elapsed =
+                Math.max(0L, Duration.between(entry.lastHeartbeat, now).getSeconds());
             result.add(new HeartbeatEntry(entry.sessionId, elapsed));
             mapEntry.setValue(new Entry(entry.sessionId, now));
         }

@@ -13,6 +13,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Bukkit event listener that opens and closes database sessions on player join and quit.
@@ -51,10 +52,10 @@ public final class SessionLifecycle implements Listener {
      *
      * @param event the join event; never null
      */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onJoin(final PlayerJoinEvent event) {
         final Instant now = Instant.now();
-        final java.util.UUID uuid = event.getPlayer().getUniqueId();
+        final UUID uuid = event.getPlayer().getUniqueId();
         final String name = event.getPlayer().getName();
         this.players.upsert(uuid, name);
         final long sessionId = this.sessions.open(uuid, now);
@@ -66,16 +67,17 @@ public final class SessionLifecycle implements Listener {
      *
      * @param event the quit event; never null
      */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onQuit(final PlayerQuitEvent event) {
         final Instant now = Instant.now();
-        final java.util.UUID uuid = event.getPlayer().getUniqueId();
+        final UUID uuid = event.getPlayer().getUniqueId();
         final Optional<TrackedSession> tracked = this.activeSessions.stop(uuid);
         if (tracked.isEmpty()) {
             return;
         }
         final TrackedSession session = tracked.get();
-        final long elapsed = Duration.between(session.lastHeartbeat(), now).getSeconds();
+        final long elapsed =
+            Math.max(0L, Duration.between(session.lastHeartbeat(), now).getSeconds());
         this.sessions.heartbeat(session.sessionId(), now, elapsed);
         this.sessions.close(session.sessionId(), now);
     }

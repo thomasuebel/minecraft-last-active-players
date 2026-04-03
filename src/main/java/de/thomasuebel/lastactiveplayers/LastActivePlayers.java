@@ -1,6 +1,7 @@
 package de.thomasuebel.lastactiveplayers;
 
 import de.thomasuebel.lastactiveplayers.db.Database;
+import de.thomasuebel.lastactiveplayers.db.DatabaseException;
 import de.thomasuebel.lastactiveplayers.db.InitialSchema;
 import de.thomasuebel.lastactiveplayers.db.SqliteDatabase;
 import de.thomasuebel.lastactiveplayers.db.SqliteMigrations;
@@ -14,7 +15,9 @@ import de.thomasuebel.lastactiveplayers.session.InMemoryActiveSessions;
 import de.thomasuebel.lastactiveplayers.session.SessionHeartbeat;
 import de.thomasuebel.lastactiveplayers.session.Sessions;
 import de.thomasuebel.lastactiveplayers.session.SqliteSessions;
+import de.thomasuebel.lastactiveplayers.session.TrackedSession;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -28,10 +31,13 @@ import java.time.Instant;
  */
 public final class LastActivePlayers extends JavaPlugin {
 
+    /** Server ticks per minute: 20 ticks/s × 60 s. */
     private static final long TICKS_PER_MINUTE = 1200L;
 
     private Database database;
+    private Sessions sessions;
     private ActiveSessions activeSessions;
+    private BukkitTask heartbeatTask;
 
     @Override
     public void onEnable() {
@@ -51,33 +57,40 @@ public final class LastActivePlayers extends JavaPlugin {
         }
 
         final Players players = new SqlitePlayers(this.database);
-        final Sessions sessions = new SqliteSessions(this.database);
+        this.sessions = new SqliteSessions(this.database);
 
-        sessions.closeOrphans(Instant.now());
+        this.sessions.closeOrphans(Instant.now());
 
         this.activeSessions = new InMemoryActiveSessions();
-        final Heartbeat heartbeat = new SessionHeartbeat(this.activeSessions, sessions);
-        final BukkitHeartbeat task = new BukkitHeartbeat(heartbeat);
-        task.runTaskTimerAsynchronously(
-            this, heartbeatMinutes * TICKS_PER_MINUTE, heartbeatMinutes * TICKS_PER_MINUTE
-        );
+        final Heartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
+        final long intervalTicks = heartbeatMinutes * TICKS_PER_MINUTE;
+        this.heartbeatTask = new BukkitHeartbeat(heartbeat)
+            .runTaskTimer(this, intervalTicks, intervalTicks);
 
         getServer().getPluginManager().registerEvents(
-            new SessionLifecycle(players, sessions, this.activeSessions), this
+            new SessionLifecycle(players, this.sessions, this.activeSessions), this
         );
     }
 
     @Override
     public void onDisable() {
-        if (this.activeSessions != null && this.database != null) {
+        if (this.heartbeatTask != null) {
+            this.heartbeatTask.cancel();
+        }
+        if (this.activeSessions != null && this.sessions != null) {
             final Instant now = Instant.now();
-            final Sessions sessions = new SqliteSessions(this.database);
-            for (final de.thomasuebel.lastactiveplayers.session.TrackedSession tracked
-                : this.activeSessions.all()) {
-                final long elapsed =
-                    Duration.between(tracked.lastHeartbeat(), now).getSeconds();
-                sessions.heartbeat(tracked.sessionId(), now, elapsed);
-                sessions.close(tracked.sessionId(), now);
+            for (final TrackedSession tracked : this.activeSessions.all()) {
+                try {
+                    final long elapsed =
+                        Math.max(0L, Duration.between(tracked.lastHeartbeat(), now).getSeconds());
+                    this.sessions.heartbeat(tracked.sessionId(), now, elapsed);
+                    this.sessions.close(tracked.sessionId(), now);
+                } catch (final DatabaseException exception) {
+                    getLogger().warning(
+                        "Failed to close session " + tracked.sessionId()
+                        + " on shutdown: " + exception.getMessage()
+                    );
+                }
             }
         }
         if (this.database != null) {

@@ -6,7 +6,7 @@ package de.thomasuebel.lastactiveplayers.session;
  * <p>Each entry represents the number of seconds that should be added to a session's
  * {@code duration_seconds} column and the session it belongs to.
  */
-public final class HeartbeatEntry {
+final class HeartbeatEntry {
 
     private final long sessionId;
     private final long additionalSeconds;
@@ -17,7 +17,7 @@ public final class HeartbeatEntry {
      * @param sessionId         the target session ID; positive
      * @param additionalSeconds seconds elapsed since the last heartbeat; non-negative
      */
-    public HeartbeatEntry(final long sessionId, final long additionalSeconds) {
+    HeartbeatEntry(final long sessionId, final long additionalSeconds) {
         this.sessionId = sessionId;
         this.additionalSeconds = additionalSeconds;
     }
@@ -27,7 +27,7 @@ public final class HeartbeatEntry {
      *
      * @return positive session ID
      */
-    public long sessionId() {
+    long sessionId() {
         return this.sessionId;
     }
 
@@ -36,7 +36,7 @@ public final class HeartbeatEntry {
      *
      * @return non-negative additional seconds
      */
-    public long additionalSeconds() {
+    long additionalSeconds() {
         return this.additionalSeconds;
     }
 }
