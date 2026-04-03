@@ -6,6 +6,7 @@ import de.thomasuebel.lastactiveplayers.ranking.LeaderboardEntry;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -27,7 +28,8 @@ public final class LeaderboardJoinMessage implements JoinMessage {
      *
      * @param leaderboard the leaderboard to query; never null
      * @param size        maximum number of entries to show; positive
-     * @param template    entry template with {n}, {player}, {date}, {duration} tokens; never null
+     * @param template    entry template with {n} (1-based position in the filtered list),
+     *                    {player}, {date}, {duration} tokens; never null
      * @param formatter   date formatter applied to each entry's last-leave instant; never null
      * @param zone        server time zone used to convert leave instants to local dates; never null
      */
@@ -54,6 +56,6 @@ public final class LeaderboardJoinMessage implements JoinMessage {
                 entries.get(i), i + 1, this.template, this.formatter, this.zone
             ).text());
         }
-        return result;
+        return Collections.unmodifiableList(result);
     }
 }

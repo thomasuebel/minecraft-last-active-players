@@ -4,10 +4,12 @@ package de.thomasuebel.lastactiveplayers.display;
  * Package-private value object that formats a duration given in seconds as a
  * human-readable string.
  *
- * <p>Format rules:
+ * <p>Format rules (seconds are always omitted when hours are non-zero):
  * <ul>
- *   <li>Hours present: {@code "Xh"} or {@code "Xh Ym"} (seconds omitted for brevity).</li>
- *   <li>Minutes only: {@code "Xm"} or {@code "Xm Ys"}.</li>
+ *   <li>Hours and minutes: {@code "Xh Ym"}.</li>
+ *   <li>Hours only (minutes = 0): {@code "Xh"}.</li>
+ *   <li>Minutes and seconds: {@code "Xm Ys"}.</li>
+ *   <li>Minutes only (seconds = 0): {@code "Xm"}.</li>
  *   <li>Seconds only (including zero): {@code "Xs"}.</li>
  * </ul>
  */
@@ -18,6 +20,9 @@ final class HumanDuration {
 
     private final long seconds;
 
+    /**
+     * @param seconds non-negative duration in seconds
+     */
     HumanDuration(final long seconds) {
         this.seconds = seconds;
     }

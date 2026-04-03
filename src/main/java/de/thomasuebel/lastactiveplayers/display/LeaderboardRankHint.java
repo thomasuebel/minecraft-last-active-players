@@ -18,7 +18,8 @@ import java.util.UUID;
  */
 public final class LeaderboardRankHint implements RankHint {
 
-    private static final int MAX_SEARCH_RANK = 1000;
+    // No artificial cap: every registered player must be reachable so the rank is correct.
+    private static final int MAX_SEARCH_RANK = Integer.MAX_VALUE;
     private static final long SECONDS_PER_MINUTE = 60L;
     private static final String TOKEN_RANK = "{rank}";
     private static final String TOKEN_NEXT_RANK = "{next_rank}";
@@ -40,6 +41,7 @@ public final class LeaderboardRankHint implements RankHint {
 
     @Override
     public Optional<String> text(final UUID playerUuid, final Set<UUID> onlinePlayers) {
+        // Copy defensively so we can mutate the set without affecting the caller.
         final Set<UUID> excludeOthers = new HashSet<>(onlinePlayers);
         excludeOthers.remove(playerUuid);
         final List<LeaderboardEntry> ranked =

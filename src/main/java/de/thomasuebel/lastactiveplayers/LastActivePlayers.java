@@ -8,6 +8,7 @@ import de.thomasuebel.lastactiveplayers.db.SqliteMigrations;
 import de.thomasuebel.lastactiveplayers.display.JoinMessage;
 import de.thomasuebel.lastactiveplayers.display.LeaderboardJoinMessage;
 import de.thomasuebel.lastactiveplayers.display.LeaderboardRankHint;
+import de.thomasuebel.lastactiveplayers.display.NoRankHint;
 import de.thomasuebel.lastactiveplayers.display.RankHint;
 import de.thomasuebel.lastactiveplayers.listener.AwardLifecycle;
 import de.thomasuebel.lastactiveplayers.listener.JoinBroadcast;
@@ -83,6 +84,16 @@ public final class LastActivePlayers extends JavaPlugin {
             "You are rank #{rank}. {minutes} more minutes to reach #{next_rank}."
         );
 
+        final DateTimeFormatter dateFormatter;
+        try {
+            dateFormatter = DateTimeFormatter.ofPattern(dateFormat);
+        } catch (final IllegalArgumentException exception) {
+            getLogger().severe("Invalid display.date-format '" + dateFormat
+                + "': " + exception.getMessage());
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         try {
             this.database = new SqliteDatabase(
                 getDataFolder().toPath().resolve("lastactiveplayers.db"),
@@ -128,11 +139,13 @@ public final class LastActivePlayers extends JavaPlugin {
         final Leaderboard displayBoard = SORT_PLAYTIME.equals(sortMode)
             ? mvpBoard
             : new SqliteLastLeaveLeaderboard(this.database);
-        final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(dateFormat);
         final JoinMessage joinMessage = new LeaderboardJoinMessage(
             displayBoard, listSize, entryTemplate, dateFormatter, ZoneId.systemDefault()
         );
-        final RankHint rankHint = new LeaderboardRankHint(displayBoard, rankHintTemplate);
+        // Rank hint uses minutes-of-playtime arithmetic; only meaningful for playtime sort.
+        final RankHint rankHint = SORT_PLAYTIME.equals(sortMode)
+            ? new LeaderboardRankHint(displayBoard, rankHintTemplate)
+            : new NoRankHint();
         getServer().getPluginManager().registerEvents(
             new JoinBroadcast(joinMessage, rankHint),
             this

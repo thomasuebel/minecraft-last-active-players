@@ -85,6 +85,18 @@ class LeaderboardRankHintTest {
     }
 
     @Test
+    void showsZeroMinutesWhenTiedWithRankAbove() {
+        // When delta is 0 seconds, ceiling(0/60) = 0 minutes shown.
+        final RankHint hint = new LeaderboardRankHint(
+            (l, e) -> List.of(entry(BOB, ONE_HOUR_SECONDS), entry(ALICE, ONE_HOUR_SECONDS)),
+            TEMPLATE
+        );
+        final Optional<String> text = hint.text(ALICE, Set.of());
+        assertTrue(text.isPresent());
+        assertEquals("Rank #2. 0m to #1.", text.get());
+    }
+
+    @Test
     void excludesOtherOnlinePlayersButNotJoiner() {
         final UUID carol = UUID.randomUUID();
         // Carol is online (should be excluded); Alice is the joiner (should not be excluded)

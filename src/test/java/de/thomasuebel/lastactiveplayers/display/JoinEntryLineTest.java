@@ -46,9 +46,18 @@ class JoinEntryLineTest {
     void replacesAllTokens() {
         final LeaderboardEntry e = entry("Alice", ONE_HOUR_SECONDS, Optional.of(LAST_LEAVE));
         final String line = new JoinEntryLine(
-            e, RANK_ONE, "{n}. {player} — {date} ({duration})", DATE_FMT, ZoneOffset.UTC
+            e, RANK_ONE, "{n}. {player} - {date} ({duration})", DATE_FMT, ZoneOffset.UTC
         ).text();
-        assertEquals("1. Alice — 2026-03-10 (1h)", line);
+        assertEquals("1. Alice - 2026-03-10 (1h)", line);
+    }
+
+    @Test
+    void partialTokenTemplate() {
+        final LeaderboardEntry e = entry("Dave", ONE_HOUR_SECONDS, Optional.of(LAST_LEAVE));
+        final String line = new JoinEntryLine(
+            e, RANK_ONE, "Hello {player}!", DATE_FMT, ZoneOffset.UTC
+        ).text();
+        assertEquals("Hello Dave!", line);
     }
 
     @Test

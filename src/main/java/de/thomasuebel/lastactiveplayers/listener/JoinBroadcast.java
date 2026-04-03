@@ -41,7 +41,7 @@ public final class JoinBroadcast implements Listener {
      *
      * @param event the join event; never null
      */
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(final PlayerJoinEvent event) {
         final Player player = event.getPlayer();
         final Set<UUID> online = new HashSet<>();
