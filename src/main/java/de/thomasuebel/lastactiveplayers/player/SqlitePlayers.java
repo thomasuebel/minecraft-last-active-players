@@ -30,6 +30,13 @@ public final class SqlitePlayers implements Players {
         SELECT uuid, username, streak_days, streak_last_day FROM players WHERE uuid = ?
         """;
 
+    private static final String SELECT_HIGHEST_STREAK = """
+        SELECT uuid, username, streak_days, streak_last_day FROM players
+        WHERE streak_days > 0
+        ORDER BY streak_days DESC
+        LIMIT 1
+        """;
+
     private static final String PURGE = """
         DELETE FROM players
         WHERE uuid NOT IN (
@@ -84,6 +91,27 @@ public final class SqlitePlayers implements Players {
     public Player withUuid(final UUID uuid) {
         try (PreparedStatement stmt = this.database.connection().prepareStatement(SELECT_BY_UUID)) {
             stmt.setString(1, uuid.toString());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    final String dateStr = rs.getString("streak_last_day");
+                    return new StoredPlayer(
+                        UUID.fromString(rs.getString("uuid")),
+                        rs.getString("username"),
+                        rs.getInt("streak_days"),
+                        Optional.ofNullable(dateStr).map(LocalDate::parse)
+                    );
+                }
+                return new NoPlayer();
+            }
+        } catch (final SQLException exception) {
+            throw new DatabaseException(exception);
+        }
+    }
+
+    @Override
+    public Player withHighestStreak() {
+        try (PreparedStatement stmt =
+                 this.database.connection().prepareStatement(SELECT_HIGHEST_STREAK)) {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     final String dateStr = rs.getString("streak_last_day");

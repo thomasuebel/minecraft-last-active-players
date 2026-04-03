@@ -6,6 +6,8 @@ import de.thomasuebel.lastactiveplayers.db.DatabaseException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +16,12 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * SQLite-backed {@link Leaderboard} sorted by total accumulated play time in a
- * rolling window, descending.
+ * SQLite-backed {@link Leaderboard} sorted by total accumulated play time in a rolling
+ * window, descending.
+ *
+ * <p>The window start is computed fresh on each call to {@link #top} using the injected
+ * {@link Clock}, so the rolling window always covers the most recent {@code windowDays}
+ * days regardless of how long the plugin has been running.
  *
  * <p>Only closed sessions (those with a {@code leave_time}) whose {@code leave_time}
  * falls at or after the window start are counted. This ensures sessions that started
@@ -39,24 +45,29 @@ public final class SqlitePlaytimeLeaderboard implements Leaderboard {
         """;
 
     private final Database database;
-    private final Instant windowStart;
+    private final Clock clock;
+    private final long windowDays;
 
     /**
-     * Constructs a leaderboard for the given database and window.
+     * Constructs a leaderboard for the given database, clock, and rolling window length.
      *
-     * @param database    the open database; never null
-     * @param windowStart sessions whose leave time is before this instant are excluded;
-     *                    never null
+     * @param database   the open database; never null
+     * @param clock      the clock used to compute the window start on each query; never null
+     * @param windowDays the number of days in the rolling window; positive
      */
-    public SqlitePlaytimeLeaderboard(final Database database, final Instant windowStart) {
+    public SqlitePlaytimeLeaderboard(
+        final Database database, final Clock clock, final long windowDays
+    ) {
         this.database = database;
-        this.windowStart = windowStart;
+        this.clock = clock;
+        this.windowDays = windowDays;
     }
 
     @Override
     public List<LeaderboardEntry> top(final int limit, final Set<UUID> exclude) {
+        final Instant windowStart = Instant.now(this.clock).minus(Duration.ofDays(this.windowDays));
         try (PreparedStatement stmt = this.database.connection().prepareStatement(QUERY)) {
-            stmt.setString(1, this.windowStart.toString());
+            stmt.setString(1, windowStart.toString());
             try (ResultSet rs = stmt.executeQuery()) {
                 return mapEntries(rs, limit, exclude);
             }
