@@ -44,6 +44,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -63,6 +64,7 @@ public final class LastActivePlayers extends JavaPlugin {
     private static final int DEFAULT_LIST_SIZE = 3;
     private static final String SORT_PLAYTIME = "playtime";
     private static final int BSTATS_PLUGIN_ID = 30553;
+    private static final int DEFAULT_PURGE_DAYS = 60;
 
     private Statistics statistics;
     private Database database;
@@ -125,6 +127,11 @@ public final class LastActivePlayers extends JavaPlugin {
         this.sessions = new SqliteSessions(this.database);
 
         this.sessions.closeOrphans(Instant.now());
+
+        final int purgeInactiveDays =
+            getConfig().getInt("data.purge-inactive-days", DEFAULT_PURGE_DAYS);
+        players.purgeInactiveBefore(Instant.now().minus(purgeInactiveDays, ChronoUnit.DAYS));
+        getLogger().info("Purged players inactive for more than " + purgeInactiveDays + " days.");
 
         this.activeSessions = new InMemoryActiveSessions();
         final Heartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
