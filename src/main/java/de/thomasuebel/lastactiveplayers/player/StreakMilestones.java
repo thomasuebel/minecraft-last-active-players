@@ -14,6 +14,12 @@ public final class StreakMilestones implements Milestones {
 
     private static final List<Integer> THRESHOLDS = List.of(3, 7, 14, 30, 60);
 
+    /**
+     * Constructs the standard milestone set.
+     */
+    public StreakMilestones() {
+    }
+
     @Override
     public List<Integer> crossedBy(final int previousDays, final int newDays) {
         final List<Integer> result = new ArrayList<>();

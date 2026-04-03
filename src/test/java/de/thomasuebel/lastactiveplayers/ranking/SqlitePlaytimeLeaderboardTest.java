@@ -36,6 +36,8 @@ class SqlitePlaytimeLeaderboardTest {
     private static final Instant LEAVE_BOB = Instant.parse("2026-03-11T11:00:00Z");
     private static final Instant OLD_JOIN = Instant.parse("2026-02-01T10:00:00Z");
     private static final Instant OLD_LEAVE = Instant.parse("2026-02-01T11:00:00Z");
+    private static final Instant PRE_WINDOW_JOIN = Instant.parse("2026-03-01T23:00:00Z");
+    private static final Instant POST_WINDOW_LEAVE = Instant.parse("2026-03-02T01:00:00Z");
 
     private Database db;
     private Players players;
@@ -91,7 +93,7 @@ class SqlitePlaytimeLeaderboardTest {
     }
 
     @Test
-    void excludesSessionsBeforeWindowStart() {
+    void excludesSessionsThatEndedBeforeWindowStart() {
         final long oldId = sessions.open(aliceUuid, OLD_JOIN);
         sessions.heartbeat(oldId, OLD_LEAVE, ONE_HOUR_SECONDS);
         sessions.close(oldId, OLD_LEAVE);
@@ -100,6 +102,21 @@ class SqlitePlaytimeLeaderboardTest {
         final List<LeaderboardEntry> top = board.top(10, Set.of());
 
         assertTrue(top.isEmpty());
+    }
+
+    @Test
+    void includesSessionThatStartedBeforeWindowButEndedAfter() {
+        // Session spans the window boundary: join before, leave after window start.
+        // Should be included because leave_time >= windowStart.
+        final long crossId = sessions.open(aliceUuid, PRE_WINDOW_JOIN);
+        sessions.heartbeat(crossId, POST_WINDOW_LEAVE, ONE_HOUR_SECONDS);
+        sessions.close(crossId, POST_WINDOW_LEAVE);
+
+        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, WINDOW_START);
+        final List<LeaderboardEntry> top = board.top(10, Set.of());
+
+        assertEquals(1, top.size());
+        assertEquals(ONE_HOUR_SECONDS, top.get(0).totalSeconds());
     }
 
     @Test

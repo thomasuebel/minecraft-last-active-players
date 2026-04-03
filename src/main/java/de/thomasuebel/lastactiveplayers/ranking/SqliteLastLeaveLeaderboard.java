@@ -54,7 +54,7 @@ public final class SqliteLastLeaveLeaderboard implements Leaderboard {
         }
     }
 
-    private static List<LeaderboardEntry> mapEntries(
+    private List<LeaderboardEntry> mapEntries(
         final ResultSet rs, final int limit, final Set<UUID> exclude
     ) throws SQLException {
         final List<LeaderboardEntry> result = new ArrayList<>();
@@ -63,11 +63,15 @@ public final class SqliteLastLeaveLeaderboard implements Leaderboard {
             if (exclude.contains(uuid)) {
                 continue;
             }
+            final String lastLeaveStr = rs.getString("last_leave");
+            if (lastLeaveStr == null) {
+                continue;
+            }
             result.add(new StoredEntry(
                 uuid,
                 rs.getString("username"),
                 rs.getLong("total_seconds"),
-                Optional.of(Instant.parse(rs.getString("last_leave")))
+                Optional.of(Instant.parse(lastLeaveStr))
             ));
         }
         return result;

@@ -17,9 +17,11 @@ import java.util.UUID;
  * SQLite-backed {@link Leaderboard} sorted by total accumulated play time in a
  * rolling window, descending.
  *
- * <p>Only closed sessions (those with a {@code leave_time}) whose {@code join_time}
- * falls at or after the window start are counted. Open sessions are excluded because
- * their accumulated time may not yet be fully flushed to {@code duration_seconds}.
+ * <p>Only closed sessions (those with a {@code leave_time}) whose {@code leave_time}
+ * falls at or after the window start are counted. This ensures sessions that started
+ * before the window but ended inside it are included in the total.
+ * Open sessions are excluded because their accumulated time may not yet be fully
+ * flushed to {@code duration_seconds}.
  * Online-player exclusion is applied in Java after the query.
  */
 public final class SqlitePlaytimeLeaderboard implements Leaderboard {
@@ -30,8 +32,7 @@ public final class SqlitePlaytimeLeaderboard implements Leaderboard {
                MAX(s.leave_time) AS last_leave
         FROM players p
         JOIN sessions s ON s.player_uuid = p.uuid
-        WHERE s.join_time >= ?
-          AND s.leave_time IS NOT NULL
+        WHERE s.leave_time >= ?
         GROUP BY p.uuid, p.username
         HAVING total_seconds > 0
         ORDER BY total_seconds DESC
@@ -44,7 +45,7 @@ public final class SqlitePlaytimeLeaderboard implements Leaderboard {
      * Constructs a leaderboard for the given database and window.
      *
      * @param database    the open database; never null
-     * @param windowStart sessions whose join time is before this instant are excluded;
+     * @param windowStart sessions whose leave time is before this instant are excluded;
      *                    never null
      */
     public SqlitePlaytimeLeaderboard(final Database database, final Instant windowStart) {
@@ -64,7 +65,7 @@ public final class SqlitePlaytimeLeaderboard implements Leaderboard {
         }
     }
 
-    private static List<LeaderboardEntry> mapEntries(
+    private List<LeaderboardEntry> mapEntries(
         final ResultSet rs, final int limit, final Set<UUID> exclude
     ) throws SQLException {
         final List<LeaderboardEntry> result = new ArrayList<>();
