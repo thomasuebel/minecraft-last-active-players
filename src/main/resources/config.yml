@@ -1,0 +1,34 @@
+display:
+  # Number of last-active players listed on join and via /lastactive.
+  list-size: 3
+  # Sort order for the player list. Options: playtime, last_leave
+  sort: playtime
+  # Date format for {date} token. Uses Java DateTimeFormatter patterns.
+  date-format: "yyyy-MM-dd"
+
+messages:
+  # Template for each player entry in the last-active list.
+  # Tokens: {n}, {player}, {date}, {duration}
+  join-entry: "Last Active players: {n}. {player} was here on {date} for {duration}"
+  # MVP broadcast message. Token: {player}
+  mvp: "👑 Most active player (last 30 days): {player}"
+  # Streak broadcast message. Tokens: {player}, {streak}
+  streak: "🔥 Longest daily login streak: {player} ({streak} days)"
+  # Private rank hint sent to the joining player. Tokens: {rank}, {minutes}, {next_rank}
+  rank-hint: "You are rank #{rank}. {minutes} more minutes to reach #{next_rank}."
+  # Milestone streak broadcast. Tokens: {player}, {streak}
+  streak-milestone: "🔥 {player} has reached a {streak}-day login streak!"
+
+prefix:
+  # Display name prefix applied to the current MVP.
+  mvp: "👑 "
+  # Display name prefix applied to the current streak leader.
+  streak: "🔥 "
+
+session:
+  # How often (in minutes) active session time is flushed to the database.
+  heartbeat-interval-minutes: 10
+
+data:
+  # Players inactive for this many days will have their data purged on startup.
+  purge-inactive-days: 60

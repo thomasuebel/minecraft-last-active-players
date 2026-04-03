@@ -1,0 +1,40 @@
+name: LastActivePlayers
+version: '${version}'
+main: de.thomasuebel.lastactiveplayers.LastActivePlayers
+api-version: '1.21'
+description: Tracks player activity and highlights the most active players on join.
+authors:
+  - thomasuebel
+website: https://github.com/thomasuebel/minecraft-last-active-players
+
+commands:
+  lastactive:
+    description: List last active players, current MVP, and streak leader.
+    usage: /lastactive [test]
+    permission: lastactiveplayers.use
+
+permissions:
+  lastactiveplayers.use:
+    description: Allows using the /lastactive command.
+    default: true
+  lastactiveplayers.admin:
+    description: Allows admin subcommands such as /lastactive test.
+    default: op
+  lastactiveplayers.mvp:
+    description: Granted to the current MVP (highest playtime in 30 days).
+    default: false
+  lastactiveplayers.streak.3:
+    description: Granted to players with a 3-day consecutive login streak.
+    default: false
+  lastactiveplayers.streak.7:
+    description: Granted to players with a 7-day consecutive login streak.
+    default: false
+  lastactiveplayers.streak.14:
+    description: Granted to players with a 14-day consecutive login streak.
+    default: false
+  lastactiveplayers.streak.30:
+    description: Granted to players with a 30-day consecutive login streak.
+    default: false
+  lastactiveplayers.streak.60:
+    description: Granted to players with a 60-day consecutive login streak.
+    default: false
