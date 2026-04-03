@@ -12,8 +12,6 @@ import java.util.UUID;
  */
 public final class NoPlayer implements Player {
 
-    private static final UUID NULL_UUID = new UUID(0L, 0L);
-
     @Override
     public boolean exists() {
         return false;
@@ -21,7 +19,7 @@ public final class NoPlayer implements Player {
 
     @Override
     public UUID uuid() {
-        return NULL_UUID;
+        return new UUID(0L, 0L);
     }
 
     @Override

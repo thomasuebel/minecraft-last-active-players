@@ -34,7 +34,7 @@ public final class SqliteSessions implements Sessions {
     private static final String ACTIVE_IN_WINDOW = """
         SELECT id, player_uuid, join_time, leave_time, last_heartbeat, duration_seconds
         FROM sessions
-        WHERE join_time <= ? AND (leave_time >= ? OR leave_time IS NULL)
+        WHERE join_time < ? AND (leave_time > ? OR leave_time IS NULL)
         """;
 
     private static final String ORPHANED = """

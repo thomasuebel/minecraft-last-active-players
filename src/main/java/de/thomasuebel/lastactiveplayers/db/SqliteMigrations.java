@@ -46,8 +46,17 @@ public final class SqliteMigrations implements Migrations {
         final int current = currentVersion(connection);
         for (final Migration migration : this.migrations) {
             if (migration.version() > current) {
-                migration.applyTo(connection);
-                setVersion(connection, migration.version());
+                connection.setAutoCommit(false);
+                try {
+                    migration.applyTo(connection);
+                    setVersion(connection, migration.version());
+                    connection.commit();
+                } catch (final SQLException exception) {
+                    connection.rollback();
+                    throw exception;
+                } finally {
+                    connection.setAutoCommit(true);
+                }
             }
         }
     }

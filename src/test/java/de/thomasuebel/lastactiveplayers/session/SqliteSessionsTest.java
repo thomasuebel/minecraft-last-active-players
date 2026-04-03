@@ -144,6 +144,16 @@ class SqliteSessionsTest {
     }
 
     @Test
+    void activeInWindowExcludesSessionEndingBeforeWindowStart() {
+        // Session ends at MARCH_LEAVE; window starts at WINDOW_APR -- must not be returned
+        final long id = sessions.open(playerUuid, MARCH_JOIN);
+        sessions.close(id, MARCH_LEAVE);
+
+        final List<Session> found = sessions.activeInWindow(WINDOW_APR, Instant.now());
+        assertTrue(found.isEmpty());
+    }
+
+    @Test
     void closeOrphansDoesNotAffectAlreadyClosedSessions() {
         final long closedId = sessions.open(playerUuid, MARCH_JOIN);
         sessions.close(closedId, MARCH_LEAVE);
