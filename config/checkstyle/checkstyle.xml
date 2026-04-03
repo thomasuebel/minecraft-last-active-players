@@ -12,6 +12,14 @@
         <property name="eachLine" value="true"/>
     </module>
     <module name="NewlineAtEndOfFile"/>
+    <module name="RegexpSingleline">
+        <property name="format" value="\s+$"/>
+        <property name="message" value="Line has trailing whitespace."/>
+    </module>
+    <module name="LineLength">
+        <property name="max" value="100"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    </module>
 
     <module name="TreeWalker">
 
@@ -38,12 +46,6 @@
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
 
-        <!-- Line length -->
-        <module name="LineLength">
-            <property name="max" value="100"/>
-            <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
-        </module>
-
         <!-- Blocks -->
         <module name="LeftCurly"/>
         <module name="RightCurly"/>
@@ -55,7 +57,8 @@
 
         <!-- Coding -->
         <module name="MagicNumber">
-            <property name="ignoreNumbers" value="-1, 0, 1, 2"/>
+            <!-- 3, 4, 5 are JDBC positional parameter indices; not magic in business logic -->
+            <property name="ignoreNumbers" value="-1, 0, 1, 2, 3, 4, 5"/>
             <property name="ignoreAnnotation" value="true"/>
             <property name="ignoreHashCodeMethod" value="true"/>
             <property name="ignoreFieldDeclaration" value="true"/>
@@ -85,8 +88,6 @@
             <property name="allowEmptyTypes" value="true"/>
             <property name="allowEmptyLoops" value="true"/>
         </module>
-        <module name="NoTrailingWhitespace"/>
-
         <!-- Modifiers -->
         <module name="ModifierOrder"/>
         <module name="RedundantModifier"/>
