@@ -6,6 +6,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -17,6 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SqliteDatabaseTest {
 
     private static final int SCHEMA_VERSION_ONE = 1;
+    private static final int SYNCHRONOUS_NORMAL = 1;
+    private static final int FOREIGN_KEYS_ON = 1;
 
     private static Database openTestDb(final Path dir) throws IOException {
         return new SqliteDatabase(
@@ -73,6 +76,59 @@ class SqliteDatabaseTest {
         final Connection conn = db.connection();
         db.close();
         assertTrue(conn.isClosed());
+    }
+
+    @Test
+    void configuresWalJournalMode(@TempDir final Path dir) throws IOException, SQLException {
+        try (Database db = openTestDb(dir)) {
+            final ResultSet rs = db.connection().createStatement()
+                .executeQuery("PRAGMA journal_mode");
+            assertTrue(rs.next());
+            assertEquals("wal", rs.getString(1));
+        }
+    }
+
+    @Test
+    void configuresNormalSynchronous(@TempDir final Path dir) throws IOException, SQLException {
+        try (Database db = openTestDb(dir)) {
+            final ResultSet rs = db.connection().createStatement()
+                .executeQuery("PRAGMA synchronous");
+            assertTrue(rs.next());
+            assertEquals(SYNCHRONOUS_NORMAL, rs.getInt(1));
+        }
+    }
+
+    @Test
+    void enforcesForeignKeys(@TempDir final Path dir) throws IOException, SQLException {
+        try (Database db = openTestDb(dir)) {
+            final ResultSet rs = db.connection().createStatement()
+                .executeQuery("PRAGMA foreign_keys");
+            assertTrue(rs.next());
+            assertEquals(FOREIGN_KEYS_ON, rs.getInt(1));
+        }
+    }
+
+    @Test
+    void appliesMigrationExactlyOnce(@TempDir final Path dir) throws IOException {
+        final Path file = dir.resolve("once.db");
+        final int[] count = {0};
+        final Migration counting = new Migration() {
+            @Override
+            public int version() {
+                return 1;
+            }
+            @Override
+            public void applyTo(final Connection conn) {
+                count[0]++;
+            }
+        };
+        try (Database db = new SqliteDatabase(file, new SqliteMigrations(counting))) {
+            assertNotNull(db.connection());
+        }
+        try (Database db = new SqliteDatabase(file, new SqliteMigrations(counting))) {
+            assertNotNull(db.connection());
+        }
+        assertEquals(1, count[0]);
     }
 
     @Test

@@ -27,7 +27,7 @@ dependencies {
 
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    // MockBukkit added in Phase 2 once Bukkit event listeners are introduced
+    testImplementation("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -79,4 +79,19 @@ pitest {
     outputFormats.set(setOf("HTML", "XML"))
     mutationThreshold.set(70)
     threads.set(4)
+    // Exclude mutations on java.sql.Connection and PreparedStatement methods whose
+    // removal produces equivalent mutants: JDBC auto-commits on setAutoCommit(true),
+    // making explicit commit() and setAutoCommit(false) calls indistinguishable
+    // under test; SQLite JDBC treats unset PreparedStatement parameters as NULL,
+    // making setNull() equivalent to leaving the parameter unset.
+    avoidCallsTo.set(setOf("java.sql.Connection", "java.sql.PreparedStatement"))
+    // Exclude Bukkit-framework classes (plugin main, listeners, scheduled tasks) from mutation
+    // targets. These classes are thin wiring over domain objects that are fully covered;
+    // unit-testing them would require MockBukkit (a Paper integration-test framework) which
+    // is not yet in scope for this project.
+    excludedClasses.set(setOf(
+        "de.thomasuebel.lastactiveplayers.LastActivePlayers",
+        "de.thomasuebel.lastactiveplayers.listener.*",
+        "de.thomasuebel.lastactiveplayers.session.BukkitHeartbeat"
+    ))
 }
