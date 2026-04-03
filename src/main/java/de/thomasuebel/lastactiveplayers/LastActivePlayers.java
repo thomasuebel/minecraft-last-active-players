@@ -85,8 +85,16 @@ public final class LastActivePlayers extends JavaPlugin {
         final String mvpTemplate = getConfig().getString(
             "messages.mvp", "\uD83D\uDC51 Most active player (last 30 days): {player}"
         );
+        final String mvpTieTemplate = getConfig().getString(
+            "messages.mvp-tie",
+            "\uD83D\uDC51 {players} are tied for MVP (last 30 days)!"
+        );
         final String streakTemplate = getConfig().getString(
             "messages.streak", "\uD83D\uDD25 Longest daily login streak: {player} ({streak} days)"
+        );
+        final String streakTieTemplate = getConfig().getString(
+            "messages.streak-tie",
+            "\uD83D\uDD25 {players} are tied for longest daily login streak ({streak} days)!"
         );
         final String mvpPrefix = getConfig().getString("prefix.mvp", "\uD83D\uDC51 ");
         final String streakPrefix = getConfig().getString("prefix.streak", "\uD83D\uDD25 ");
@@ -141,10 +149,6 @@ public final class LastActivePlayers extends JavaPlugin {
         }
 
         this.activeSessions = new InMemoryActiveSessions();
-        final Heartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
-        final long intervalTicks = heartbeatMinutes * TICKS_PER_MINUTE;
-        this.heartbeatTask = new BukkitHeartbeat(heartbeat)
-            .runTaskTimer(this, intervalTicks, intervalTicks);
 
         final StreakMilestones milestones = new StreakMilestones();
         getServer().getPluginManager().registerEvents(
@@ -158,13 +162,16 @@ public final class LastActivePlayers extends JavaPlugin {
         final Leaderboard mvpBoard = new SqlitePlaytimeLeaderboard(
             this.database, Clock.systemUTC(), THIRTY_DAYS
         );
-        getServer().getPluginManager().registerEvents(
-            new AwardLifecycle(
-                mvpBoard, players, milestones, this,
-                mvpPrefix, streakPrefix, mvpTemplate, streakTemplate
-            ),
-            this
+        final AwardLifecycle awardLifecycle = new AwardLifecycle(
+            mvpBoard, players, milestones, this,
+            mvpPrefix, streakPrefix, mvpTemplate, mvpTieTemplate, streakTemplate, streakTieTemplate
         );
+        getServer().getPluginManager().registerEvents(awardLifecycle, this);
+
+        final Heartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
+        final long intervalTicks = heartbeatMinutes * TICKS_PER_MINUTE;
+        this.heartbeatTask = new BukkitHeartbeat(heartbeat, awardLifecycle::broadcastIfChanged)
+            .runTaskTimer(this, intervalTicks, intervalTicks);
 
         final Leaderboard displayBoard = SORT_PLAYTIME.equals(sortMode)
             ? mvpBoard

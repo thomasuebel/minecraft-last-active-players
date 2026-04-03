@@ -112,6 +112,10 @@ class LastActiveLinesTest {
                 return leader;
             }
             @Override
+            public List<Player> withTopStreak() {
+                return List.of();
+            }
+            @Override
             public void purgeInactiveBefore(final Instant threshold) {
             }
         };
