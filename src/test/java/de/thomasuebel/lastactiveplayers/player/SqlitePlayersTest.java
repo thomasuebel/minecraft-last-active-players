@@ -152,6 +152,16 @@ class SqlitePlayersTest {
     }
 
     @Test
+    void purgesPlayerWhoNeverHadSessions() {
+        final UUID uuid = UUID.randomUUID();
+        players.upsert(uuid, "Frank");
+
+        players.purgeInactiveBefore(Instant.now().minus(PURGE_THRESHOLD_DAYS, ChronoUnit.DAYS));
+
+        assertFalse(players.withUuid(uuid).exists());
+    }
+
+    @Test
     void doesNotPurgePlayersWithOpenSessions() {
         final UUID uuid = UUID.randomUUID();
         players.upsert(uuid, "Eve");
