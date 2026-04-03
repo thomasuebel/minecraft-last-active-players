@@ -18,7 +18,8 @@ java {
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://repo.seeseemelk.nl/repository/maven-public/")
+    // MockBukkit repository added in Phase 2
+
 }
 
 dependencies {
@@ -28,7 +29,7 @@ dependencies {
 
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("be.seeseemelk:MockBukkit-v1.21:3.133.0")
+    // MockBukkit added in Phase 2 once Bukkit event listeners are introduced
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
