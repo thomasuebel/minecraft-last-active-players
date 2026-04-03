@@ -18,11 +18,9 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Bukkit event listener that manages MVP and Streak Leader permissions, display name
@@ -49,8 +47,6 @@ public final class AwardLifecycle implements Listener {
     private final String mvpTemplate;
     private final String streakTemplate;
     private final Map<UUID, PermissionAttachment> attachments;
-    private final AtomicReference<UUID> previousMvpUuid;
-    private final AtomicReference<UUID> previousStreakUuid;
 
     /**
      * Constructs the award lifecycle listener.
@@ -84,8 +80,6 @@ public final class AwardLifecycle implements Listener {
         this.mvpTemplate = mvpTemplate;
         this.streakTemplate = streakTemplate;
         this.attachments = new ConcurrentHashMap<>();
-        this.previousMvpUuid = new AtomicReference<>();
-        this.previousStreakUuid = new AtomicReference<>();
     }
 
     /**
@@ -164,14 +158,10 @@ public final class AwardLifecycle implements Listener {
         final Nomination mvp,
         final Nomination streakLeader
     ) {
-        final UUID newMvpUuid = mvp.exists() ? mvp.uuid() : null;
-        if (!Objects.equals(newMvpUuid, this.previousMvpUuid.getAndSet(newMvpUuid))
-            && mvp.exists()) {
+        if (mvp.exists()) {
             server.broadcastMessage(this.mvpTemplate.replace("{player}", mvp.username()));
         }
-        final UUID newStreakUuid = streakLeader.exists() ? streakLeader.uuid() : null;
-        if (!Objects.equals(newStreakUuid, this.previousStreakUuid.getAndSet(newStreakUuid))
-            && streakLeader.exists()) {
+        if (streakLeader.exists()) {
             server.broadcastMessage(
                 this.streakTemplate
                     .replace("{player}", streakLeader.username())
