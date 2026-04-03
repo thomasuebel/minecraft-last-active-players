@@ -23,10 +23,22 @@ class LeaderboardJoinMessageTest {
 
     private static LeaderboardEntry entry(final String username, final long seconds) {
         return new LeaderboardEntry() {
-            @Override public UUID uuid() { return UUID.randomUUID(); }
-            @Override public String username() { return username; }
-            @Override public long totalSeconds() { return seconds; }
-            @Override public Optional<Instant> lastLeave() { return Optional.of(LAST_LEAVE); }
+            @Override
+            public UUID uuid() {
+                return UUID.randomUUID();
+            }
+            @Override
+            public String username() {
+                return username;
+            }
+            @Override
+            public long totalSeconds() {
+                return seconds;
+            }
+            @Override
+            public Optional<Instant> lastLeave() {
+                return Optional.of(LAST_LEAVE);
+            }
         };
     }
 

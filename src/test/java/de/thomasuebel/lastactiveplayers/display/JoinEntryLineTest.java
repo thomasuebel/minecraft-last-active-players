@@ -23,10 +23,22 @@ class JoinEntryLineTest {
         final String username, final long seconds, final Optional<Instant> leave
     ) {
         return new LeaderboardEntry() {
-            @Override public UUID uuid() { return UUID.randomUUID(); }
-            @Override public String username() { return username; }
-            @Override public long totalSeconds() { return seconds; }
-            @Override public Optional<Instant> lastLeave() { return leave; }
+            @Override
+            public UUID uuid() {
+                return UUID.randomUUID();
+            }
+            @Override
+            public String username() {
+                return username;
+            }
+            @Override
+            public long totalSeconds() {
+                return seconds;
+            }
+            @Override
+            public Optional<Instant> lastLeave() {
+                return leave;
+            }
         };
     }
 

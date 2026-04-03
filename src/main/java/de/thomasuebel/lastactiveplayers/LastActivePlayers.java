@@ -5,12 +5,18 @@ import de.thomasuebel.lastactiveplayers.db.DatabaseException;
 import de.thomasuebel.lastactiveplayers.db.InitialSchema;
 import de.thomasuebel.lastactiveplayers.db.SqliteDatabase;
 import de.thomasuebel.lastactiveplayers.db.SqliteMigrations;
+import de.thomasuebel.lastactiveplayers.display.JoinMessage;
+import de.thomasuebel.lastactiveplayers.display.LeaderboardJoinMessage;
+import de.thomasuebel.lastactiveplayers.display.LeaderboardRankHint;
+import de.thomasuebel.lastactiveplayers.display.RankHint;
 import de.thomasuebel.lastactiveplayers.listener.AwardLifecycle;
+import de.thomasuebel.lastactiveplayers.listener.JoinBroadcast;
 import de.thomasuebel.lastactiveplayers.listener.SessionLifecycle;
 import de.thomasuebel.lastactiveplayers.player.Players;
 import de.thomasuebel.lastactiveplayers.player.SqlitePlayers;
 import de.thomasuebel.lastactiveplayers.player.StreakMilestones;
 import de.thomasuebel.lastactiveplayers.ranking.Leaderboard;
+import de.thomasuebel.lastactiveplayers.ranking.SqliteLastLeaveLeaderboard;
 import de.thomasuebel.lastactiveplayers.ranking.SqlitePlaytimeLeaderboard;
 import de.thomasuebel.lastactiveplayers.session.ActiveSessions;
 import de.thomasuebel.lastactiveplayers.session.BukkitHeartbeat;
@@ -28,6 +34,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Main plugin class for LastActivePlayers.
@@ -40,6 +47,8 @@ public final class LastActivePlayers extends JavaPlugin {
     /** Server ticks per minute: 20 ticks/s x 60 s. */
     private static final long TICKS_PER_MINUTE = 1200L;
     private static final int THIRTY_DAYS = 30;
+    private static final int DEFAULT_LIST_SIZE = 3;
+    private static final String SORT_PLAYTIME = "playtime";
 
     private Database database;
     private Sessions sessions;
@@ -62,6 +71,17 @@ public final class LastActivePlayers extends JavaPlugin {
         );
         final String mvpPrefix = getConfig().getString("prefix.mvp", "\uD83D\uDC51 ");
         final String streakPrefix = getConfig().getString("prefix.streak", "\uD83D\uDD25 ");
+        final int listSize = getConfig().getInt("display.list-size", DEFAULT_LIST_SIZE);
+        final String sortMode = getConfig().getString("display.sort", SORT_PLAYTIME);
+        final String dateFormat = getConfig().getString("display.date-format", "yyyy-MM-dd");
+        final String entryTemplate = getConfig().getString(
+            "messages.join-entry",
+            "Last Active: {n}. {player} was here on {date} for {duration}"
+        );
+        final String rankHintTemplate = getConfig().getString(
+            "messages.rank-hint",
+            "You are rank #{rank}. {minutes} more minutes to reach #{next_rank}."
+        );
 
         try {
             this.database = new SqliteDatabase(
@@ -102,6 +122,19 @@ public final class LastActivePlayers extends JavaPlugin {
                 mvpBoard, players, milestones, this,
                 mvpPrefix, streakPrefix, mvpTemplate, streakTemplate
             ),
+            this
+        );
+
+        final Leaderboard displayBoard = SORT_PLAYTIME.equals(sortMode)
+            ? mvpBoard
+            : new SqliteLastLeaveLeaderboard(this.database);
+        final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(dateFormat);
+        final JoinMessage joinMessage = new LeaderboardJoinMessage(
+            displayBoard, listSize, entryTemplate, dateFormatter, ZoneId.systemDefault()
+        );
+        final RankHint rankHint = new LeaderboardRankHint(displayBoard, rankHintTemplate);
+        getServer().getPluginManager().registerEvents(
+            new JoinBroadcast(joinMessage, rankHint),
             this
         );
     }
