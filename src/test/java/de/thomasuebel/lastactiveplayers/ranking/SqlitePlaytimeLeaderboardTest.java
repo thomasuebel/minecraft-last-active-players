@@ -15,7 +15,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -28,8 +30,12 @@ class SqlitePlaytimeLeaderboardTest {
     private static final long TWO_HOURS_SECONDS = 7200L;
     private static final long ONE_HOUR_SECONDS = 3600L;
     private static final int SIXTY_SECONDS = 60;
+    private static final long THIRTY_DAYS = 30L;
 
-    private static final Instant WINDOW_START = Instant.parse("2026-03-02T00:00:00Z");
+    // "now" is April 1; window start = now - 30 days = March 2
+    private static final Instant NOW = Instant.parse("2026-04-01T00:00:00Z");
+    private static final Clock CLOCK = Clock.fixed(NOW, ZoneOffset.UTC);
+
     private static final Instant JOIN_ALICE = Instant.parse("2026-03-10T10:00:00Z");
     private static final Instant LEAVE_ALICE = Instant.parse("2026-03-10T12:00:00Z");
     private static final Instant JOIN_BOB = Instant.parse("2026-03-11T10:00:00Z");
@@ -72,7 +78,7 @@ class SqlitePlaytimeLeaderboardTest {
         sessions.heartbeat(bobId, LEAVE_BOB, ONE_HOUR_SECONDS);
         sessions.close(bobId, LEAVE_BOB);
 
-        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, WINDOW_START);
+        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, CLOCK, THIRTY_DAYS);
         final List<LeaderboardEntry> top = board.top(10, Set.of());
 
         assertEquals(2, top.size());
@@ -86,7 +92,7 @@ class SqlitePlaytimeLeaderboardTest {
         sessions.heartbeat(aliceId, LEAVE_ALICE, TWO_HOURS_SECONDS);
         sessions.close(aliceId, LEAVE_ALICE);
 
-        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, WINDOW_START);
+        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, CLOCK, THIRTY_DAYS);
         final List<LeaderboardEntry> top = board.top(10, Set.of());
 
         assertEquals(TWO_HOURS_SECONDS, top.get(0).totalSeconds());
@@ -98,7 +104,7 @@ class SqlitePlaytimeLeaderboardTest {
         sessions.heartbeat(oldId, OLD_LEAVE, ONE_HOUR_SECONDS);
         sessions.close(oldId, OLD_LEAVE);
 
-        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, WINDOW_START);
+        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, CLOCK, THIRTY_DAYS);
         final List<LeaderboardEntry> top = board.top(10, Set.of());
 
         assertTrue(top.isEmpty());
@@ -112,7 +118,7 @@ class SqlitePlaytimeLeaderboardTest {
         sessions.heartbeat(crossId, POST_WINDOW_LEAVE, ONE_HOUR_SECONDS);
         sessions.close(crossId, POST_WINDOW_LEAVE);
 
-        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, WINDOW_START);
+        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, CLOCK, THIRTY_DAYS);
         final List<LeaderboardEntry> top = board.top(10, Set.of());
 
         assertEquals(1, top.size());
@@ -125,7 +131,7 @@ class SqlitePlaytimeLeaderboardTest {
         sessions.heartbeat(aliceId, LEAVE_ALICE, TWO_HOURS_SECONDS);
         sessions.close(aliceId, LEAVE_ALICE);
 
-        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, WINDOW_START);
+        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, CLOCK, THIRTY_DAYS);
         final List<LeaderboardEntry> top = board.top(10, Set.of(aliceUuid));
 
         assertTrue(top.isEmpty());
@@ -140,7 +146,7 @@ class SqlitePlaytimeLeaderboardTest {
         sessions.heartbeat(bobId, LEAVE_BOB, ONE_HOUR_SECONDS);
         sessions.close(bobId, LEAVE_BOB);
 
-        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, WINDOW_START);
+        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, CLOCK, THIRTY_DAYS);
         final List<LeaderboardEntry> top = board.top(1, Set.of());
 
         assertEquals(1, top.size());
@@ -157,7 +163,7 @@ class SqlitePlaytimeLeaderboardTest {
         sessions.heartbeat(session2, leave2, ONE_HOUR_SECONDS);
         sessions.close(session2, leave2);
 
-        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, WINDOW_START);
+        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, CLOCK, THIRTY_DAYS);
         final List<LeaderboardEntry> top = board.top(10, Set.of());
 
         assertEquals(1, top.size());

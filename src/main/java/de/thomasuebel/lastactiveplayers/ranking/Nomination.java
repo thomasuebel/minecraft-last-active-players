@@ -30,4 +30,12 @@ public interface Nomination {
      * @return username; never null, empty for {@link NoNomination}
      */
     String username();
+
+    /**
+     * Returns the title holder's current streak day count, or {@code 0} if not applicable
+     * (e.g. an MVP nomination, or a {@link NoNomination}).
+     *
+     * @return non-negative streak days
+     */
+    int streakDays();
 }

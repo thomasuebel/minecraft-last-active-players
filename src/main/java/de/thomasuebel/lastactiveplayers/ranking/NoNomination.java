@@ -30,4 +30,9 @@ public final class NoNomination implements Nomination {
     public String username() {
         return "";
     }
+
+    @Override
+    public int streakDays() {
+        return 0;
+    }
 }

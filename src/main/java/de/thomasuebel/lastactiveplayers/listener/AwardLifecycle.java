@@ -16,11 +16,13 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.Plugin;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Bukkit event listener that manages MVP and Streak Leader permissions, display name
@@ -47,6 +49,8 @@ public final class AwardLifecycle implements Listener {
     private final String mvpTemplate;
     private final String streakTemplate;
     private final Map<UUID, PermissionAttachment> attachments;
+    private final AtomicReference<UUID> previousMvpUuid;
+    private final AtomicReference<UUID> previousStreakUuid;
 
     /**
      * Constructs the award lifecycle listener.
@@ -79,7 +83,9 @@ public final class AwardLifecycle implements Listener {
         this.streakPrefix = streakPrefix;
         this.mvpTemplate = mvpTemplate;
         this.streakTemplate = streakTemplate;
-        this.attachments = new HashMap<>();
+        this.attachments = new ConcurrentHashMap<>();
+        this.previousMvpUuid = new AtomicReference<>();
+        this.previousStreakUuid = new AtomicReference<>();
     }
 
     /**
@@ -113,7 +119,7 @@ public final class AwardLifecycle implements Listener {
             return new NoNomination();
         }
         final LeaderboardEntry entry = top.get(0);
-        return new StoredNomination(entry.uuid(), entry.username());
+        return new StoredNomination(entry.uuid(), entry.username(), 0);
     }
 
     private Nomination electStreakLeader() {
@@ -121,7 +127,7 @@ public final class AwardLifecycle implements Listener {
         if (!leader.exists()) {
             return new NoNomination();
         }
-        return new StoredNomination(leader.uuid(), leader.username());
+        return new StoredNomination(leader.uuid(), leader.username(), leader.streakDays());
     }
 
     private void refreshAttachments(
@@ -129,7 +135,7 @@ public final class AwardLifecycle implements Listener {
         final Nomination mvp,
         final Nomination streakLeader
     ) {
-        server.getOnlinePlayers().forEach(bukkit -> {
+        for (final org.bukkit.entity.Player bukkit : server.getOnlinePlayers()) {
             removeAttachment(bukkit.getUniqueId());
             resetDisplayName(bukkit);
 
@@ -142,16 +148,15 @@ public final class AwardLifecycle implements Listener {
                 bukkit.setDisplayName(this.mvpPrefix + bukkit.getName());
             }
             if (streakLeader.exists() && uuid.equals(streakLeader.uuid())) {
-                final Player stored = this.players.withUuid(uuid);
                 final List<Integer> crossed =
-                    this.milestones.crossedBy(0, stored.streakDays());
+                    this.milestones.crossedBy(0, streakLeader.streakDays());
                 if (!crossed.isEmpty()) {
                     final int highest = crossed.get(crossed.size() - 1);
                     attachment.setPermission(STREAK_PERMISSION_PREFIX + highest, true);
+                    bukkit.setDisplayName(this.streakPrefix + bukkit.getName());
                 }
-                bukkit.setDisplayName(this.streakPrefix + bukkit.getName());
             }
-        });
+        }
     }
 
     private void broadcast(
@@ -159,17 +164,18 @@ public final class AwardLifecycle implements Listener {
         final Nomination mvp,
         final Nomination streakLeader
     ) {
-        if (mvp.exists()) {
-            server.broadcastMessage(
-                this.mvpTemplate.replace("{player}", mvp.username())
-            );
+        final UUID newMvpUuid = mvp.exists() ? mvp.uuid() : null;
+        if (!Objects.equals(newMvpUuid, this.previousMvpUuid.getAndSet(newMvpUuid))
+            && mvp.exists()) {
+            server.broadcastMessage(this.mvpTemplate.replace("{player}", mvp.username()));
         }
-        if (streakLeader.exists()) {
-            final Player leader = this.players.withUuid(streakLeader.uuid());
+        final UUID newStreakUuid = streakLeader.exists() ? streakLeader.uuid() : null;
+        if (!Objects.equals(newStreakUuid, this.previousStreakUuid.getAndSet(newStreakUuid))
+            && streakLeader.exists()) {
             server.broadcastMessage(
                 this.streakTemplate
                     .replace("{player}", streakLeader.username())
-                    .replace("{streak}", String.valueOf(leader.streakDays()))
+                    .replace("{streak}", String.valueOf(streakLeader.streakDays()))
             );
         }
     }

@@ -24,6 +24,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -94,8 +95,7 @@ public final class LastActivePlayers extends JavaPlugin {
         );
 
         final Leaderboard mvpBoard = new SqlitePlaytimeLeaderboard(
-            this.database,
-            Instant.now().minus(Duration.ofDays(THIRTY_DAYS))
+            this.database, Clock.systemUTC(), THIRTY_DAYS
         );
         getServer().getPluginManager().registerEvents(
             new AwardLifecycle(
