@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,7 +34,7 @@ class SessionHeartbeatTest {
     @Test
     void pulseOnEmptyActiveSessionsWritesNoHeartbeats() {
         heartbeat.pulse(FLUSH);
-        assertTrue(fakeSessions.heartbeatCalls.isEmpty());
+        assertTrue(fakeSessions.heartbeatCalls().isEmpty());
     }
 
     @Test
@@ -43,35 +42,41 @@ class SessionHeartbeatTest {
         activeSessions.start(UUID.randomUUID(), SESSION_A, JOIN);
         activeSessions.start(UUID.randomUUID(), SESSION_B, JOIN);
         heartbeat.pulse(FLUSH);
-        assertEquals(2, fakeSessions.heartbeatCalls.size());
+        assertEquals(2, fakeSessions.heartbeatCalls().size());
     }
 
     @Test
     void pulseWritesCorrectSessionId() {
         activeSessions.start(UUID.randomUUID(), SESSION_A, JOIN);
         heartbeat.pulse(FLUSH);
-        assertEquals(SESSION_A, fakeSessions.heartbeatCalls.get(0).sessionId);
+        assertEquals(SESSION_A, fakeSessions.heartbeatCalls().get(0).sessionId());
     }
 
     @Test
     void pulseWritesElapsedSeconds() {
         activeSessions.start(UUID.randomUUID(), SESSION_A, JOIN);
         heartbeat.pulse(FLUSH);
-        assertEquals(HEARTBEAT_INTERVAL_SECONDS, fakeSessions.heartbeatCalls.get(0).additionalSeconds);
+        assertEquals(
+            HEARTBEAT_INTERVAL_SECONDS, fakeSessions.heartbeatCalls().get(0).additionalSeconds()
+        );
     }
 
     @Test
     void pulseWritesNowAsHeartbeatTimestamp() {
         activeSessions.start(UUID.randomUUID(), SESSION_A, JOIN);
         heartbeat.pulse(FLUSH);
-        assertEquals(FLUSH, fakeSessions.heartbeatCalls.get(0).now);
+        assertEquals(FLUSH, fakeSessions.heartbeatCalls().get(0).now());
     }
 
     // ---- Test double ----
 
     static final class FakeSessions implements Sessions {
 
-        final List<HeartbeatCall> heartbeatCalls = new ArrayList<>();
+        private final List<HeartbeatCall> heartbeatCalls = new ArrayList<>();
+
+        List<HeartbeatCall> heartbeatCalls() {
+            return this.heartbeatCalls;
+        }
 
         @Override
         public long open(final UUID playerUuid, final Instant joinTime) {
@@ -104,14 +109,29 @@ class SessionHeartbeatTest {
         }
 
         static final class HeartbeatCall {
-            final long sessionId;
-            final Instant now;
-            final long additionalSeconds;
 
-            HeartbeatCall(final long sessionId, final Instant now, final long additionalSeconds) {
+            private final long sessionId;
+            private final Instant now;
+            private final long additionalSeconds;
+
+            HeartbeatCall(
+                final long sessionId, final Instant now, final long additionalSeconds
+            ) {
                 this.sessionId = sessionId;
                 this.now = now;
                 this.additionalSeconds = additionalSeconds;
+            }
+
+            long sessionId() {
+                return this.sessionId;
+            }
+
+            Instant now() {
+                return this.now;
+            }
+
+            long additionalSeconds() {
+                return this.additionalSeconds;
             }
         }
     }
