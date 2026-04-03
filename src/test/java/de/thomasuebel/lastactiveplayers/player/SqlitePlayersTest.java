@@ -131,6 +131,27 @@ class SqlitePlayersTest {
     }
 
     @Test
+    void withHighestStreakReturnsNoPlayerWhenNoneHaveStreak() {
+        final UUID uuid = UUID.randomUUID();
+        players.upsert(uuid, "Alice");
+        assertFalse(players.withHighestStreak().exists());
+    }
+
+    @Test
+    void withHighestStreakReturnsPlayerWithMostDays() {
+        final UUID aliceUuid = UUID.randomUUID();
+        final UUID bobUuid = UUID.randomUUID();
+        players.upsert(aliceUuid, "Alice");
+        players.upsert(bobUuid, "Bob");
+        players.updateStreak(aliceUuid, FIVE_DAY_STREAK, Optional.of(STREAK_DATE));
+        players.updateStreak(bobUuid, SEVEN_DAY_STREAK, Optional.of(STREAK_DATE));
+        final Player leader = players.withHighestStreak();
+        assertTrue(leader.exists());
+        assertEquals(bobUuid, leader.uuid());
+        assertEquals(SEVEN_DAY_STREAK, leader.streakDays());
+    }
+
+    @Test
     void doesNotPurgePlayersWithOpenSessions() {
         final UUID uuid = UUID.randomUUID();
         players.upsert(uuid, "Eve");

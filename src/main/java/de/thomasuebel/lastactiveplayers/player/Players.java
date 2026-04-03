@@ -39,6 +39,14 @@ public interface Players {
     Player withUuid(UUID uuid);
 
     /**
+     * Returns the player with the highest {@code streak_days}, or {@link NoPlayer} if
+     * no player has a streak greater than zero.
+     *
+     * @return the streak leader; never null
+     */
+    Player withHighestStreak();
+
+    /**
      * Deletes players whose last session ended before the given threshold.
      *
      * <p>Players with open sessions (currently online) are never purged.
