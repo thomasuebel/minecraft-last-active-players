@@ -41,8 +41,12 @@ public final class SqliteMigrations implements Migrations {
 
     @Override
     public void applyTo(final Connection connection) throws SQLException {
-        connection.createStatement().execute(CREATE_VERSION_TABLE);
-        connection.createStatement().execute(ENSURE_VERSION_ROW);
+        try (var stmt = connection.createStatement()) {
+            stmt.execute(CREATE_VERSION_TABLE);
+        }
+        try (var stmt = connection.createStatement()) {
+            stmt.execute(ENSURE_VERSION_ROW);
+        }
         final int current = currentVersion(connection);
         for (final Migration migration : this.migrations) {
             if (migration.version() > current) {
