@@ -130,8 +130,15 @@ public final class LastActivePlayers extends JavaPlugin {
 
         final int purgeInactiveDays =
             getConfig().getInt("data.purge-inactive-days", DEFAULT_PURGE_DAYS);
-        players.purgeInactiveBefore(Instant.now().minus(purgeInactiveDays, ChronoUnit.DAYS));
-        getLogger().info("Purged players inactive for more than " + purgeInactiveDays + " days.");
+        try {
+            players.purgeInactiveBefore(Instant.now().minus(purgeInactiveDays, ChronoUnit.DAYS));
+            getLogger().info(
+                "Startup purge complete: removed players inactive for more than "
+                + purgeInactiveDays + " days."
+            );
+        } catch (final DatabaseException exception) {
+            getLogger().warning("Startup purge failed: " + exception.getMessage());
+        }
 
         this.activeSessions = new InMemoryActiveSessions();
         final Heartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
