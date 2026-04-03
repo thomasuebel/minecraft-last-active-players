@@ -169,4 +169,16 @@ class SqlitePlaytimeLeaderboardTest {
         assertEquals(1, top.size());
         assertEquals(TWO_HOURS_SECONDS, top.get(0).totalSeconds());
     }
+
+    @Test
+    void entryUsernameMatchesPlayerRecord() {
+        final long aliceId = sessions.open(aliceUuid, JOIN_ALICE);
+        sessions.heartbeat(aliceId, LEAVE_ALICE, ONE_HOUR_SECONDS);
+        sessions.close(aliceId, LEAVE_ALICE);
+
+        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, CLOCK, THIRTY_DAYS);
+        final List<LeaderboardEntry> top = board.top(10, Set.of());
+
+        assertEquals("Alice", top.get(0).username());
+    }
 }

@@ -154,6 +154,23 @@ class SqliteSessionsTest {
     }
 
     @Test
+    void sessionJoinTimeMatchesOpenCall() {
+        final long id = sessions.open(playerUuid, MARCH_JOIN);
+        final List<Session> found = sessions.activeInWindow(WINDOW_FEB, WINDOW_APR);
+        assertEquals(1, found.size());
+        assertEquals(MARCH_JOIN, found.get(0).joinTime());
+    }
+
+    @Test
+    void sessionPlayerUuidMatchesOpenCall() {
+        final long id = sessions.open(playerUuid, MARCH_JOIN);
+        sessions.close(id, MARCH_LEAVE);
+        final List<Session> found = sessions.activeInWindow(WINDOW_FEB, WINDOW_APR);
+        assertEquals(1, found.size());
+        assertEquals(playerUuid, found.get(0).playerUuid());
+    }
+
+    @Test
     void closeOrphansDoesNotAffectAlreadyClosedSessions() {
         final long closedId = sessions.open(playerUuid, MARCH_JOIN);
         sessions.close(closedId, MARCH_LEAVE);

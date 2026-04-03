@@ -10,13 +10,13 @@ value objects, no static state, constructor injection throughout.
 
 ```
 +----------------------------+
-|  Bukkit event listeners    |  PlayerJoinListener, PlayerQuitListener
+|  Bukkit event listeners    |  SessionLifecycle, AwardLifecycle, JoinBroadcast
 |  Command executor          |  LastActiveCommand
 +----------------------------+
             |
 +----------------------------+
-|  Domain objects            |  ActiveSessions, Leaderboard, Streak, ...
-|  Value objects             |  HumanDuration, FormattedMessage, RankHint, ...
+|  Domain objects            |  ActiveSessions, Leaderboard, Players, Statistics ...
+|  Display objects           |  JoinMessage, RankHint, CommandLines, HumanDuration ...
 +----------------------------+
             |
 +----------------------------+
@@ -30,10 +30,13 @@ value objects, no static state, constructor injection throughout.
 | Interface | Responsibility |
 |-----------|----------------|
 | `Sessions` | Open, close, and query player sessions |
-| `Players` | Upsert and query player records |
-| `Leaderboard` | Ranked list of players by playtime within a window |
-| `Streak` | Current consecutive daily login streak for a player |
+| `Players` | Upsert and query player records (streak included) |
+| `Leaderboard` | Ranked list of players by playtime within a rolling window |
 | `ActiveSessions` | In-memory map of currently open sessions; snapshotted for heartbeat flush |
+| `JoinMessage` | Builds the last-active player list shown on join and via `/lastactive` |
+| `RankHint` | Private message showing a player their rank and minutes to next rank |
+| `CommandLines` | Lines to send in response to a `/lastactive` subcommand invocation |
+| `Statistics` | Registers the plugin with an external metrics platform (bStats) |
 
 ## Persistence
 
@@ -44,9 +47,9 @@ The schema is versioned; migrations run on plugin enable.
 
 ```sql
 CREATE TABLE players (
-    uuid           TEXT PRIMARY KEY,
-    username       TEXT NOT NULL,
-    streak_days    INTEGER NOT NULL DEFAULT 0,
+    uuid            TEXT PRIMARY KEY,
+    username        TEXT NOT NULL,
+    streak_days     INTEGER NOT NULL DEFAULT 0,
     streak_last_day TEXT
 );
 
@@ -66,10 +69,11 @@ See `docs/adr/002-heartbeat-session-model.md` for full detail.
 
 ```
 Player joins  --> open session row (leave_time NULL)
-Every N min   --> heartbeat: update last_heartbeat + duration_seconds (async, batched transaction)
+Every N min   --> heartbeat: update last_heartbeat + duration_seconds (timer task, main thread)
 Player leaves --> final flush: set leave_time = NOW
 Server stops  --> flush all open sessions (synchronous, onDisable)
 Server starts --> orphan recovery: close sessions with NULL leave_time at last_heartbeat
+              --> startup purge: delete players inactive beyond data.purge-inactive-days
 ```
 
 ## MVP and streak election
@@ -84,12 +88,13 @@ On each player join:
 
 ## Configuration
 
-A single `PluginConfig` object wraps Bukkit's `FileConfiguration`. It is injected into all
-objects that need configuration values. Reloading replaces the `PluginConfig` instance.
+All configuration is read directly from Bukkit's `FileConfiguration` in `LastActivePlayers.onEnable()`.
+There is no separate config-wrapper object; values are read once at startup and injected via
+constructors into the objects that need them.
 
 ## Thread model
 
-- All Bukkit event callbacks run on the main thread.
-- SQLite writes (heartbeat flush) run on an async `BukkitRunnable`.
-- The async task takes a snapshot of the active session map on the main thread before writing.
-- `onDisable` flushes synchronously on the main thread.
+- All Bukkit event callbacks and the heartbeat timer run on the main server thread.
+- SQLite writes run on the main thread (connection is not thread-safe).
+- `onDisable` flushes all open sessions synchronously on the main thread.
+- The heartbeat timer (`BukkitHeartbeat`) uses `runTaskTimer` (not async) for the same reason.

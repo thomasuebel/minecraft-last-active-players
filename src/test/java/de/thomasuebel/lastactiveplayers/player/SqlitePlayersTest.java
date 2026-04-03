@@ -59,6 +59,11 @@ class SqlitePlayersTest {
     }
 
     @Test
+    void noPlayerUuidReturnsZeroUuid() {
+        assertEquals(new UUID(0L, 0L), players.withUuid(UUID.randomUUID()).uuid());
+    }
+
+    @Test
     void upsertCreatesPlayerRecord() {
         final UUID uuid = UUID.randomUUID();
         players.upsert(uuid, "Alice");
