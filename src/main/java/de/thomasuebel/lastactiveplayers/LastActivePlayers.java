@@ -5,6 +5,10 @@ import de.thomasuebel.lastactiveplayers.db.DatabaseException;
 import de.thomasuebel.lastactiveplayers.db.InitialSchema;
 import de.thomasuebel.lastactiveplayers.db.SqliteDatabase;
 import de.thomasuebel.lastactiveplayers.db.SqliteMigrations;
+import de.thomasuebel.lastactiveplayers.command.AwardPreviewLines;
+import de.thomasuebel.lastactiveplayers.command.CommandLines;
+import de.thomasuebel.lastactiveplayers.command.LastActiveCommand;
+import de.thomasuebel.lastactiveplayers.command.LastActiveLines;
 import de.thomasuebel.lastactiveplayers.display.JoinMessage;
 import de.thomasuebel.lastactiveplayers.display.LeaderboardJoinMessage;
 import de.thomasuebel.lastactiveplayers.display.LeaderboardRankHint;
@@ -27,6 +31,7 @@ import de.thomasuebel.lastactiveplayers.session.SessionHeartbeat;
 import de.thomasuebel.lastactiveplayers.session.Sessions;
 import de.thomasuebel.lastactiveplayers.session.SqliteSessions;
 import de.thomasuebel.lastactiveplayers.session.TrackedSession;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -150,6 +155,19 @@ public final class LastActivePlayers extends JavaPlugin {
             new JoinBroadcast(joinMessage, rankHint),
             this
         );
+
+        final CommandLines list = new LastActiveLines(
+            joinMessage, mvpBoard, players, mvpTemplate, streakTemplate
+        );
+        final CommandLines preview = new AwardPreviewLines(
+            mvpBoard, players, mvpPrefix, streakPrefix
+        );
+        final PluginCommand lastActive = getCommand("lastactive");
+        if (lastActive != null) {
+            lastActive.setExecutor(new LastActiveCommand(list, preview));
+        } else {
+            getLogger().warning("/lastactive command not found in plugin.yml");
+        }
     }
 
     @Override

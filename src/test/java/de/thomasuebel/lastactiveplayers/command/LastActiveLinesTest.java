@@ -1,6 +1,5 @@
 package de.thomasuebel.lastactiveplayers.command;
 
-import de.thomasuebel.lastactiveplayers.display.JoinMessage;
 import de.thomasuebel.lastactiveplayers.player.Player;
 import de.thomasuebel.lastactiveplayers.player.Players;
 import de.thomasuebel.lastactiveplayers.ranking.LeaderboardEntry;
