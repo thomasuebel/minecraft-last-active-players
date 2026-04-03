@@ -175,6 +175,20 @@ class LastActiveLinesTest {
     }
 
     @Test
+    void mvpNotExcludedByOnlineSet() {
+        final UUID onlineUuid = UUID.randomUUID();
+        final CommandLines lines = new LastActiveLines(
+            (exclude) -> List.of(),
+            (limit, exclude) -> exclude.isEmpty()
+                ? List.of(leaderboardEntry("Alice"))
+                : List.of(),
+            withStreakLeader(noPlayer()),
+            MVP_TEMPLATE, STREAK_TEMPLATE
+        );
+        assertTrue(lines.lines(Set.of(onlineUuid)).contains("MVP: Alice"));
+    }
+
+    @Test
     void passesOnlinePlayersToJoinMessage() {
         final UUID online = UUID.randomUUID();
         final CommandLines lines = new LastActiveLines(

@@ -151,6 +151,20 @@ class AwardPreviewLinesTest {
     }
 
     @Test
+    void ignoresOnlinePlayersParameter() {
+        final UUID onlineUuid = UUID.randomUUID();
+        final CommandLines preview = new AwardPreviewLines(
+            (limit, exclude) -> List.of(leaderboardEntry("Alice")),
+            withStreakLeader(existingPlayer("Bob", SEVEN_DAYS)),
+            MVP_PREFIX, STREAK_PREFIX
+        );
+        final List<String> lines = preview.lines(Set.of(onlineUuid));
+        assertEquals(2, lines.size());
+        assertEquals("[MVP] Alice", lines.get(0));
+        assertEquals("[Streak] Bob (7 days)", lines.get(1));
+    }
+
+    @Test
     void emptyWhenNeitherExists() {
         final CommandLines preview = new AwardPreviewLines(
             (limit, exclude) -> List.of(),

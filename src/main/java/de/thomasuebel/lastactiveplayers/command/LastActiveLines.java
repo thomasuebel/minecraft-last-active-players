@@ -56,6 +56,8 @@ public final class LastActiveLines implements CommandLines {
     @Override
     public List<String> lines(final Set<UUID> onlinePlayers) {
         final List<String> result = new ArrayList<>(this.joinMessage.lines(onlinePlayers));
+        // MVP election intentionally uses an empty exclude set: online players are still
+        // eligible, consistent with how AwardLifecycle elects the MVP on join.
         final List<LeaderboardEntry> top = this.mvpBoard.top(1, Set.of());
         if (!top.isEmpty()) {
             result.add(this.mvpTemplate.replace(TOKEN_PLAYER, top.get(0).username()));

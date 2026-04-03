@@ -3,18 +3,20 @@ package de.thomasuebel.lastactiveplayers.command;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * Handles the {@code /lastactive} command and its {@code test} subcommand.
  *
- * <p>The base command is available to any player and shows the last-active player list
- * plus the current MVP and streak leader. The {@code test} subcommand requires the
- * {@code lastactiveplayers.admin} permission and previews the award display name prefixes.
+ * <p>The base command is available to any {@link CommandSender} (players and console) and
+ * shows the last-active player list plus the current MVP and streak leader. The {@code test}
+ * subcommand is gated behind the {@code lastactiveplayers.admin} permission (which defaults to
+ * op in {@code plugin.yml}); using a named permission node rather than a literal {@link
+ * CommandSender#isOp()} check allows server operators to delegate the permission via a
+ * permissions plugin if desired.
  */
 public final class LastActiveCommand implements CommandExecutor {
 
@@ -23,18 +25,32 @@ public final class LastActiveCommand implements CommandExecutor {
 
     private final CommandLines list;
     private final CommandLines preview;
+    private final Supplier<Set<UUID>> online;
 
     /**
      * Constructs the command handler.
      *
      * @param list    the lines to show for the base command; never null
      * @param preview the lines to show for the {@code test} subcommand; never null
+     * @param online  supplies the current set of online player UUIDs on each invocation; never null
      */
-    public LastActiveCommand(final CommandLines list, final CommandLines preview) {
+    public LastActiveCommand(
+        final CommandLines list, final CommandLines preview, final Supplier<Set<UUID>> online
+    ) {
         this.list = list;
         this.preview = preview;
+        this.online = online;
     }
 
+    /**
+     * Handles the command invocation.
+     *
+     * @param sender  the entity that executed the command; never null
+     * @param command the command that was triggered; never null
+     * @param label   the alias used; never null
+     * @param args    the arguments supplied after the command label; never null
+     * @return {@code true} always
+     */
     @Override
     public boolean onCommand(
         final CommandSender sender,
@@ -42,14 +58,6 @@ public final class LastActiveCommand implements CommandExecutor {
         final String label,
         final String[] args
     ) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage("This command can only be used by players.");
-            return true;
-        }
-        final Set<UUID> online = new HashSet<>();
-        for (final Player p : player.getServer().getOnlinePlayers()) {
-            online.add(p.getUniqueId());
-        }
         final CommandLines response;
         if (args.length > 0 && SUBCOMMAND_TEST.equals(args[0])) {
             if (!sender.hasPermission(PERM_ADMIN)) {
@@ -60,8 +68,8 @@ public final class LastActiveCommand implements CommandExecutor {
         } else {
             response = this.list;
         }
-        for (final String line : response.lines(online)) {
-            player.sendMessage(line);
+        for (final String line : response.lines(this.online.get())) {
+            sender.sendMessage(line);
         }
         return true;
     }

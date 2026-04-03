@@ -46,6 +46,10 @@ public final class AwardPreviewLines implements CommandLines {
 
     @Override
     public List<String> lines(final Set<UUID> onlinePlayers) {
+        // onlinePlayers is intentionally unused: preview shows actual award state regardless of
+        // who is online. The format is also intentionally hardcoded (prefix + name) rather than
+        // using the broadcast template, so operators can see the display name as it will appear
+        // in chat, not the template text.
         final List<String> result = new ArrayList<>();
         final List<LeaderboardEntry> top = this.mvpBoard.top(1, Set.of());
         if (!top.isEmpty()) {

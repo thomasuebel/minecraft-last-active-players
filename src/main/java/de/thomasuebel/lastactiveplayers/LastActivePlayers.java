@@ -32,6 +32,7 @@ import de.thomasuebel.lastactiveplayers.session.Sessions;
 import de.thomasuebel.lastactiveplayers.session.SqliteSessions;
 import de.thomasuebel.lastactiveplayers.session.TrackedSession;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -41,6 +42,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * Main plugin class for LastActivePlayers.
@@ -162,11 +167,19 @@ public final class LastActivePlayers extends JavaPlugin {
         final CommandLines preview = new AwardPreviewLines(
             mvpBoard, players, mvpPrefix, streakPrefix
         );
+        final Supplier<Set<UUID>> online = () -> {
+            final Set<UUID> uuids = new HashSet<>();
+            for (final Player p : getServer().getOnlinePlayers()) {
+                uuids.add(p.getUniqueId());
+            }
+            return uuids;
+        };
         final PluginCommand lastActive = getCommand("lastactive");
         if (lastActive != null) {
-            lastActive.setExecutor(new LastActiveCommand(list, preview));
+            lastActive.setExecutor(new LastActiveCommand(list, preview, online));
         } else {
-            getLogger().warning("/lastactive command not found in plugin.yml");
+            getLogger().severe("/lastactive command not found in plugin.yml");
+            getServer().getPluginManager().disablePlugin(this);
         }
     }
 

@@ -12,7 +12,8 @@ public interface CommandLines {
     /**
      * Returns the lines to send to the command sender.
      *
-     * @param onlinePlayers UUIDs of all currently online players; never null
+     * @param onlinePlayers UUIDs of all currently online players; used as an exclusion set where
+     *                      applicable (e.g. the join-message list omits online players); never null
      * @return ordered list of chat lines; never null, may be empty
      */
     List<String> lines(Set<UUID> onlinePlayers);
