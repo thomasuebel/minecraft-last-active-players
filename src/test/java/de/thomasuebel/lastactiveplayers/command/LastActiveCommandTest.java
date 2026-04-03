@@ -17,7 +17,6 @@ class LastActiveCommandTest {
 
     private static final String PERM_ADMIN = "lastactiveplayers.admin";
 
-    @SuppressWarnings("unchecked")
     private static CommandSender stubSender(
         final boolean admin, final List<String> captured
     ) {

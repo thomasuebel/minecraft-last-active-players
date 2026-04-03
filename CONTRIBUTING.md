@@ -43,7 +43,7 @@ All feature work follows the TDD cycle:
 2. Write a failing test (red).
 3. Implement the minimum code to make the test pass (green).
 4. Commit atomically: one commit per meaningful unit of behaviour.
-5. Open a pull request against `main`.
+5. Open a pull request against `master`.
 6. All CI checks (build, test, checkstyle, coverage) must pass.
 7. A code review pass is required before merge.
 

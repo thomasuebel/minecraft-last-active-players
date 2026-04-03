@@ -18,4 +18,14 @@ class NoNominationTest {
     void uuidReturnsZeroUuid() {
         assertEquals(new UUID(0L, 0L), new NoNomination().uuid());
     }
+
+    @Test
+    void usernameReturnsEmpty() {
+        assertEquals("", new NoNomination().username());
+    }
+
+    @Test
+    void streakDaysReturnsZero() {
+        assertEquals(0, new NoNomination().streakDays());
+    }
 }
