@@ -31,6 +31,7 @@ import de.thomasuebel.lastactiveplayers.session.SessionHeartbeat;
 import de.thomasuebel.lastactiveplayers.session.Sessions;
 import de.thomasuebel.lastactiveplayers.session.SqliteSessions;
 import de.thomasuebel.lastactiveplayers.session.TrackedSession;
+import de.thomasuebel.lastactiveplayers.stats.BStatsStatistics;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -60,6 +61,7 @@ public final class LastActivePlayers extends JavaPlugin {
     private static final int THIRTY_DAYS = 30;
     private static final int DEFAULT_LIST_SIZE = 3;
     private static final String SORT_PLAYTIME = "playtime";
+    private static final int BSTATS_PLUGIN_ID = 30553;
 
     private Database database;
     private Sessions sessions;
@@ -68,6 +70,7 @@ public final class LastActivePlayers extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        new BStatsStatistics(this, BSTATS_PLUGIN_ID);
         saveDefaultConfig();
         final long heartbeatMinutes =
             getConfig().getLong("session.heartbeat-interval-minutes", 10L);
