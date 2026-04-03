@@ -45,6 +45,15 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Verify version is not a snapshot
+        run: |
+          VERSION=$(grep '^version = ' build.gradle.kts | perl -pe 's/version = ["'"'"'](.*)["'"'"']/\1/')
+          if [[ "$VERSION" == *SNAPSHOT* ]]; then
+            echo "ERROR: refusing to release a SNAPSHOT version: $VERSION"
+            echo "Use .github/do-release.sh to cut a release correctly."
+            exit 1
+          fi
+
       - name: Build release package
         run: |
           chmod +x .github/release.sh
