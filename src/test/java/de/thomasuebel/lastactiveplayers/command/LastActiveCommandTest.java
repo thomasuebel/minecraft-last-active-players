@@ -182,10 +182,12 @@ class LastActiveCommandTest {
             sender -> reloadCalled.set(true),
             Set::of
         );
-        cmd.onCommand(
+        final boolean result = cmd.onCommand(
             stubSender(true, captured), stubCommand(), "lastactive", new String[]{"reload"}
         );
+        assertTrue(result);
         assertTrue(reloadCalled.get());
+        assertTrue(captured.isEmpty());
     }
 
     @Test
@@ -200,9 +202,10 @@ class LastActiveCommandTest {
             sender -> reloadCalled.set(true),
             Set::of
         );
-        cmd.onCommand(
+        final boolean result = cmd.onCommand(
             stubSender(false, captured), stubCommand(), "lastactive", new String[]{"reload"}
         );
+        assertTrue(result);
         assertFalse(reloadCalled.get());
         assertEquals(1, captured.size());
         assertTrue(captured.get(0).contains("permission"));
