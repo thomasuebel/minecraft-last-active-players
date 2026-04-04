@@ -168,6 +168,9 @@ public final class SessionLifecycle implements Listener {
             );
         }
 
+        // Schedule delayed milestone broadcasts. No isOnline() guard needed because
+        // broadcastMessage goes through the server, not the player reference, so it
+        // is safe to call even if the player disconnects before the delay fires.
         for (final int milestone : newMilestones) {
             final String message = this.milestoneTemplate
                 .replace("{player}", name)
