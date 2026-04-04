@@ -39,8 +39,8 @@ not justified given the flush duration on real workloads.
 
 **Single transaction per flush** -- all session updates for a given heartbeat are wrapped in one
 `BEGIN`/`COMMIT`. SQLite performs one fsync per transaction (with `PRAGMA synchronous=NORMAL`),
-not one per row. On a busy server with 100 concurrent players this is approximately 5ms of I/O,
-off the main thread, every 10 minutes.
+not one per row. On a busy server with 100 concurrent players this is approximately 5ms of I/O
+on the main thread, every 10 minutes.
 
 **WAL mode** (see ADR-001) -- concurrent reads (join-message queries, `/lastactive`) are not
 blocked during the heartbeat write because WAL allows readers and a single writer to proceed
