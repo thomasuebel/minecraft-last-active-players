@@ -66,7 +66,8 @@ public final class SqliteMigrations implements Migrations {
     }
 
     private int currentVersion(final Connection connection) throws SQLException {
-        try (ResultSet rs = connection.createStatement().executeQuery(GET_VERSION)) {
+        try (var stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(GET_VERSION)) {
             return rs.next() ? rs.getInt("version") : 0;
         }
     }
