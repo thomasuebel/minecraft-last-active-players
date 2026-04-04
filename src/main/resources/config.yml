@@ -14,8 +14,12 @@ messages:
   join-entry: "Last Active players: {n}. {player} was here on {date} for {duration}"
   # MVP broadcast message. Token: {player}
   mvp: "👑 Most active player (last 30 days): {player}"
+  # MVP tie broadcast message. Token: {players} (comma-separated list)
+  mvp-tie: "👑 {players} are tied for MVP (last 30 days)!"
   # Streak broadcast message. Tokens: {player}, {streak}
   streak: "🔥 Longest daily login streak: {player} ({streak} days)"
+  # Streak tie broadcast message. Tokens: {players} (comma-separated list), {streak}
+  streak-tie: "🔥 {players} are tied for longest daily login streak ({streak} days)!"
   # Private rank hint sent to the joining player. Tokens: {rank}, {minutes}, {next_rank}
   rank-hint: "You are rank #{rank}. {minutes} more minutes to reach #{next_rank}."
   # Milestone streak broadcast. Tokens: {player}, {streak}
