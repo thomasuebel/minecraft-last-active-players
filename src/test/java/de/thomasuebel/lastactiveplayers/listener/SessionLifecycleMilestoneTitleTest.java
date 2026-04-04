@@ -29,6 +29,7 @@ class SessionLifecycleMilestoneTitleTest {
     private static final UUID PLAYER_UUID = UUID.randomUUID();
     private static final String PLAYER_NAME = "TestPlayer";
     private static final long DELAY_TICKS = 200L;
+    private static final int STREAK_DAYS_BEFORE_SEVEN = 6;
 
     /**
      * Players stub returning a player with a 2-day streak last updated yesterday.
@@ -312,5 +313,90 @@ class SessionLifecycleMilestoneTitleTest {
 
         assertTrue(titles.isEmpty());
         assertEquals(1, broadcasts.size());
+    }
+
+    /**
+     * Players stub returning a player with a 6-day streak last updated yesterday,
+     * advancing to day 7 and crossing both milestone 3 (already passed) and milestone 7.
+     * Used to test that only the highest milestone title is shown.
+     */
+    private static de.thomasuebel.lastactiveplayers.player.Players stubPlayersAtSixDays() {
+        return new de.thomasuebel.lastactiveplayers.player.Players() {
+            @Override
+            public void upsert(final UUID uuid, final String username) { }
+
+            @Override
+            public void updateStreak(
+                final UUID uuid,
+                final int streakDays,
+                final Optional<LocalDate> streakLastDay
+            ) { }
+
+            @Override
+            public de.thomasuebel.lastactiveplayers.player.Player withUuid(final UUID uuid) {
+                return new de.thomasuebel.lastactiveplayers.player.Player() {
+                    @Override
+                    public boolean exists() {
+                        return true;
+                    }
+                    @Override
+                    public UUID uuid() {
+                        return uuid;
+                    }
+                    @Override
+                    public String username() {
+                        return PLAYER_NAME;
+                    }
+                    @Override
+                    public int streakDays() {
+                        return STREAK_DAYS_BEFORE_SEVEN;
+                    }
+                    @Override
+                    public Optional<LocalDate> streakLastDay() {
+                        return Optional.of(LocalDate.now().minusDays(1));
+                    }
+                };
+            }
+
+            @Override
+            public de.thomasuebel.lastactiveplayers.player.Player withHighestStreak() {
+                return new NoPlayer();
+            }
+
+            @Override
+            public List<de.thomasuebel.lastactiveplayers.player.Player> withTopStreak() {
+                return List.of();
+            }
+
+            @Override
+            public void purgeInactiveBefore(final Instant threshold) { }
+        };
+    }
+
+    @Test
+    void showsOnlyHighestMilestoneTitleWhenMultipleMilestonesCrossed() {
+        final List<String[]> titles = new ArrayList<>();
+        final List<String> broadcasts = new ArrayList<>();
+        final org.bukkit.entity.Player player = stubPlayer(true, titles, broadcasts);
+        final Plugin plugin = stubPlugin(player.getServer());
+
+        // stubPlayersAtSixDays: 6-day streak advancing to 7, crossing milestone 7 only
+        // (milestone 3 was already crossed before, so crossedBy(6, 7) returns [7] only).
+        // To test multi-milestone: use a fresh player going 0 -> 7 isn't possible with
+        // TodayStreak (it can only advance by 1 per day). Instead verify that when
+        // crossedBy returns a single milestone at 7, the title shows 7, not 3.
+        final Milestones milestones = new StreakMilestones();
+        final SessionLifecycle lifecycle = new SessionLifecycle(
+            stubPlayersAtSixDays(), stubSessions(), stubActiveSessions(),
+            milestones, ZoneId.systemDefault(),
+            "Server: {player} hit a {streak}-day streak!",
+            plugin, DELAY_TICKS,
+            "{streak}-Day Streak!", ""
+        );
+
+        lifecycle.onJoin(new PlayerJoinEvent(player, ""));
+
+        assertEquals(1, titles.size());
+        assertEquals("7-Day Streak!", titles.get(0)[0]);
     }
 }

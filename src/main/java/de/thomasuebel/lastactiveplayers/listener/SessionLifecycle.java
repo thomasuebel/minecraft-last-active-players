@@ -122,21 +122,30 @@ public final class SessionLifecycle implements Listener {
             final String message = this.milestoneTemplate
                 .replace("{player}", name)
                 .replace("{streak}", String.valueOf(milestone));
+            this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () ->
+                player.getServer().broadcastMessage(message),
+            this.delayTicks);
+        }
+        // Show the title only for the highest milestone so rapid-succession milestones
+        // do not flash multiple overlapping titles at the player.
+        if (!newMilestones.isEmpty()) {
+            final int highest = newMilestones.get(newMilestones.size() - 1);
             final String title = this.milestoneTitleTemplate
                 .replace("{player}", name)
-                .replace("{streak}", String.valueOf(milestone));
+                .replace("{streak}", String.valueOf(highest));
             final String subtitle = this.milestoneSubtitleTemplate
                 .replace("{player}", name)
-                .replace("{streak}", String.valueOf(milestone));
-            this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
-                player.getServer().broadcastMessage(message);
-                if (player.isOnline() && (!title.isEmpty() || !subtitle.isEmpty())) {
-                    player.sendTitle(
-                        title, subtitle,
-                        TITLE_FADE_IN_TICKS, TITLE_STAY_TICKS, TITLE_FADE_OUT_TICKS
-                    );
-                }
-            }, this.delayTicks);
+                .replace("{streak}", String.valueOf(highest));
+            if (!title.isEmpty() || !subtitle.isEmpty()) {
+                this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+                    if (player.isOnline()) {
+                        player.sendTitle(
+                            title, subtitle,
+                            TITLE_FADE_IN_TICKS, TITLE_STAY_TICKS, TITLE_FADE_OUT_TICKS
+                        );
+                    }
+                }, this.delayTicks);
+            }
         }
 
         final long sessionId = this.sessions.open(uuid, now);
