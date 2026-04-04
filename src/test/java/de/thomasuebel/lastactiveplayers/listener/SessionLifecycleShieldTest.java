@@ -43,7 +43,7 @@ class SessionLifecycleShieldTest {
      * @param streakDays   current streak days for the player
      * @param lastDayDelta days before today for streakLastDay (1 = yesterday, 2 = 2 days ago)
      * @param initialShields starting shield count
-     * @param shieldsStore   mutable holder tracking the latest setShields value
+     * @param shieldsStore   mutable holder tracking the latest storeShields value
      */
     private static de.thomasuebel.lastactiveplayers.player.Players stubPlayers(
         final int streakDays,
@@ -96,7 +96,7 @@ class SessionLifecycleShieldTest {
             }
 
             @Override
-            public void setShields(final UUID uuid, final int count) {
+            public void storeShields(final UUID uuid, final int count) {
                 shieldsStore.set(count);
             }
         };

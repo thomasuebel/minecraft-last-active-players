@@ -238,19 +238,19 @@ class SqlitePlayersTest {
     }
 
     @Test
-    void setShieldsPersistsCount() {
+    void storeShieldsPersistsCount() {
         final UUID uuid = UUID.randomUUID();
         players.upsert(uuid, "Alice");
-        players.setShields(uuid, 2);
+        players.storeShields(uuid, 2);
         assertEquals(2, players.shields(uuid));
     }
 
     @Test
-    void setShieldsOverwritesPreviousValue() {
+    void storeShieldsOverwritesPreviousValue() {
         final UUID uuid = UUID.randomUUID();
         players.upsert(uuid, "Alice");
-        players.setShields(uuid, 3);
-        players.setShields(uuid, 1);
+        players.storeShields(uuid, 3);
+        players.storeShields(uuid, 1);
         assertEquals(1, players.shields(uuid));
     }
 

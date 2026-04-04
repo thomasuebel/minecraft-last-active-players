@@ -189,7 +189,7 @@ public final class SqlitePlayers implements Players {
     }
 
     @Override
-    public void setShields(final UUID uuid, final int count) {
+    public void storeShields(final UUID uuid, final int count) {
         try (PreparedStatement stmt =
                  this.database.connection().prepareStatement(UPDATE_SHIELDS)) {
             stmt.setInt(1, count);

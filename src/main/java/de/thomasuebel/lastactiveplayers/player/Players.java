@@ -83,5 +83,5 @@ public interface Players {
      * @param uuid  the player's unique identifier; never null
      * @param count the new shield count; non-negative
      */
-    void setShields(UUID uuid, int count);
+    void storeShields(UUID uuid, int count);
 }

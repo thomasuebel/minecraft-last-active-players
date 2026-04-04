@@ -86,7 +86,7 @@ class StreakLinesTest {
             }
 
             @Override
-            public void setShields(final UUID uuid, final int count) {
+            public void storeShields(final UUID uuid, final int count) {
             }
 
             private Player noPlayer() {
