@@ -34,8 +34,9 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * <p>On every player join ({@link EventPriority#MONITOR} so streak and session writes
  * are already complete), this listener re-elects the current MVP and Streak Leader,
- * refreshes their permission attachments, updates display name prefixes, and broadcasts
- * both results unconditionally.
+ * refreshes their permission attachments and display name prefixes immediately, then
+ * broadcasts both results after a configurable delay so the message appears after the
+ * initial join noise has settled.
  *
  * <p>On quit, and after each heartbeat flush (via {@link #broadcastIfChanged}), the
  * election is repeated and the results are broadcast only when the set of leaders changed.
