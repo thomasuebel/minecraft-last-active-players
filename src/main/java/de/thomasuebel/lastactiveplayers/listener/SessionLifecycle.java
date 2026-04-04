@@ -136,8 +136,9 @@ public final class SessionLifecycle implements Listener {
         boolean shieldConsumed = false;
         if (stored.exists() && stored.streakDays() > 0 && stored.streakLastDay().isPresent()) {
             final long gap = today.toEpochDay() - stored.streakLastDay().get().toEpochDay();
-            if (gap == SHIELD_BRIDGE_GAP && this.players.shields(uuid) > 0) {
-                this.players.setShields(uuid, this.players.shields(uuid) - 1);
+            final int currentShields = this.players.shields(uuid);
+            if (gap == SHIELD_BRIDGE_GAP && currentShields > 0) {
+                this.players.setShields(uuid, currentShields - 1);
                 playerForStreak = new ShieldedPlayer(stored, today.minusDays(1));
                 shieldConsumed = true;
             }
