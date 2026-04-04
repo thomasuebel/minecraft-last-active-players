@@ -93,10 +93,13 @@ public final class SqlitePlaytimeLeaderboard implements Leaderboard {
         final ResultSet rs, final int limit, final Set<UUID> exclude
     ) throws SQLException {
         final List<LeaderboardEntry> result = new ArrayList<>();
-        while (rs.next() && result.size() < limit) {
+        while (rs.next()) {
             final UUID uuid = UUID.fromString(rs.getString("uuid"));
             if (exclude.contains(uuid)) {
                 continue;
+            }
+            if (result.size() >= limit) {
+                break;
             }
             final String lastLeaveStr = rs.getString("last_leave");
             result.add(new StoredEntry(
