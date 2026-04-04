@@ -161,7 +161,10 @@ public final class SessionLifecycle implements Listener {
             }
         }
 
-        // Notify the player immediately when a shield was consumed.
+        // Notify the player immediately when a shield was consumed. The remaining count
+        // is read after the milestone award block so the message reflects the net balance:
+        // if the player simultaneously hits a new milestone and earns a replacement shield,
+        // {shields_remaining} correctly shows the post-award value.
         if (shieldConsumed) {
             final int remaining = this.players.shields(uuid);
             player.sendMessage(
