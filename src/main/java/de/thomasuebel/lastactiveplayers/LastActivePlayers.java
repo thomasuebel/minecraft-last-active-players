@@ -9,6 +9,8 @@ import de.thomasuebel.lastactiveplayers.command.AwardPreviewLines;
 import de.thomasuebel.lastactiveplayers.command.CommandLines;
 import de.thomasuebel.lastactiveplayers.command.LastActiveCommand;
 import de.thomasuebel.lastactiveplayers.command.LastActiveLines;
+import de.thomasuebel.lastactiveplayers.command.MvpLines;
+import de.thomasuebel.lastactiveplayers.command.StreakLines;
 import de.thomasuebel.lastactiveplayers.display.JoinMessage;
 import de.thomasuebel.lastactiveplayers.display.LeaderboardJoinMessage;
 import de.thomasuebel.lastactiveplayers.display.LeaderboardRankHint;
@@ -202,6 +204,10 @@ public final class LastActivePlayers extends JavaPlugin {
         final CommandLines list = new LastActiveLines(
             joinMessage, mvpBoard, players, mvpTemplate, streakTemplate
         );
+        final CommandLines mvpLines = new MvpLines(mvpBoard, mvpTemplate, mvpTieTemplate);
+        final CommandLines streakLines = new StreakLines(
+            players, streakTemplate, streakTieTemplate
+        );
         final CommandLines preview = new AwardPreviewLines(
             mvpBoard, players, mvpPrefix, streakPrefix
         );
@@ -214,7 +220,9 @@ public final class LastActivePlayers extends JavaPlugin {
         };
         final PluginCommand lastActive = getCommand("lastactive");
         if (lastActive != null) {
-            lastActive.setExecutor(new LastActiveCommand(list, preview, online));
+            lastActive.setExecutor(
+                new LastActiveCommand(list, mvpLines, streakLines, preview, online)
+            );
         } else {
             getLogger().severe("/lastactive command not found in plugin.yml");
             getServer().getPluginManager().disablePlugin(this);
