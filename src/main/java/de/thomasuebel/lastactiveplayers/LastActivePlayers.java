@@ -90,6 +90,7 @@ public final class LastActivePlayers extends JavaPlugin {
     private Leaderboard mvpBoard;
     private StreakMilestones milestones;
     private BukkitTask heartbeatTask;
+    private AwardLifecycle awardLifecycle;
 
     @Override
     public void onEnable() {
@@ -206,6 +207,9 @@ public final class LastActivePlayers extends JavaPlugin {
         if (this.heartbeatTask != null) {
             this.heartbeatTask.cancel();
         }
+        if (this.awardLifecycle != null) {
+            this.awardLifecycle.cleanup();
+        }
         HandlerList.unregisterAll(this);
         if (configure(dateFormatter)) {
             sender.sendMessage(MSG_RELOADED);
@@ -277,16 +281,16 @@ public final class LastActivePlayers extends JavaPlugin {
             this
         );
 
-        final AwardLifecycle awardLifecycle = new AwardLifecycle(
+        this.awardLifecycle = new AwardLifecycle(
             this.mvpBoard, this.players, this.milestones, this,
             mvpPrefix, streakPrefix, mvpTemplate, mvpTieTemplate, streakTemplate, streakTieTemplate,
             joinDelayTicks * AWARD_BROADCAST_DELAY_MULTIPLIER
         );
-        getServer().getPluginManager().registerEvents(awardLifecycle, this);
+        getServer().getPluginManager().registerEvents(this.awardLifecycle, this);
 
         final Heartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
         final long intervalTicks = heartbeatMinutes * TICKS_PER_MINUTE;
-        this.heartbeatTask = new BukkitHeartbeat(heartbeat, awardLifecycle::broadcastIfChanged)
+        this.heartbeatTask = new BukkitHeartbeat(heartbeat, this.awardLifecycle::broadcastIfChanged)
             .runTaskTimer(this, intervalTicks, intervalTicks);
 
         final Leaderboard displayBoard = SORT_PLAYTIME.equals(sortMode)
