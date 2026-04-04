@@ -29,12 +29,18 @@ messages:
   streak-milestone-title: "🔥 {streak}-Day Streak!"
   # Subtitle shown below the milestone title. Tokens: {player}, {streak}. Set to "" to disable.
   streak-milestone-subtitle: "A new personal best!"
+  # Private message sent to a player when a streak shield is consumed. Tokens: {streak}, {shields_remaining}
+  streak-shield-used: "🛡 Streak protected! ({streak} days) Shields remaining: {shields_remaining}"
 
 prefix:
   # Display name prefix applied to the current MVP.
   mvp: "👑 "
   # Display name prefix applied to the current streak leader.
   streak: "🔥 "
+
+streak:
+  # Maximum number of streak shields a player can accumulate (awarded at milestones).
+  max-shields: 3
 
 session:
   # How often (in minutes) active session time is flushed to the database.
