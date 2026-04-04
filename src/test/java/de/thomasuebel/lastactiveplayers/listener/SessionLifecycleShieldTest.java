@@ -262,8 +262,7 @@ class SessionLifecycleShieldTest {
         lifecycle(players, plugin).onJoin(new PlayerJoinEvent(player, ""));
 
         assertEquals(1, messages.size());
-        assertTrue(messages.get(0).contains("6"));
-        assertTrue(messages.get(0).contains("1"));
+        assertEquals("Shield used! Streak: 6. Remaining: 1", messages.get(0));
     }
 
     @Test
