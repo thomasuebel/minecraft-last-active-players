@@ -90,6 +90,7 @@ public final class LastActivePlayers extends JavaPlugin {
     private Leaderboard mvpBoard;
     private StreakMilestones milestones;
     private BukkitTask heartbeatTask;
+    private AwardLifecycle awardLifecycle;
 
     @Override
     public void onEnable() {
@@ -206,6 +207,9 @@ public final class LastActivePlayers extends JavaPlugin {
         if (this.heartbeatTask != null) {
             this.heartbeatTask.cancel();
         }
+        if (this.awardLifecycle != null) {
+            this.awardLifecycle.cleanup();
+        }
         HandlerList.unregisterAll(this);
         if (configure(dateFormatter)) {
             sender.sendMessage(MSG_RELOADED);
@@ -223,35 +227,39 @@ public final class LastActivePlayers extends JavaPlugin {
         final long heartbeatMinutes =
             getConfig().getLong("session.heartbeat-interval-minutes", 10L);
         final String milestoneTemplate = getConfig().getString(
-            "messages.streak-milestone", "\uD83D\uDD25 {player} has reached a {streak}-day streak!"
+            "messages.streak-milestone", "[Fire] {player} has reached a {streak}-day login streak!"
         );
         final String milestoneTitleTemplate = getConfig().getString(
-            "messages.streak-milestone-title", "\uD83D\uDD25 {streak}-Day Streak!"
+            "messages.streak-milestone-title", "{streak}-Day Streak!"
         );
         final String milestoneSubtitleTemplate = getConfig().getString(
-            "messages.streak-milestone-subtitle", "A new personal best!"
+            "messages.streak-milestone-subtitle", "A new milestone reached!"
         );
         final int maxShields = getConfig().getInt("streak.max-shields", DEFAULT_MAX_SHIELDS);
         final String shieldUsedTemplate = getConfig().getString(
             "messages.streak-shield-used",
-            "\uD83D\uDEE1 Streak protected! ({streak} days) Shields remaining: {shields_remaining}"
+            "[Shield] Streak protected! ({streak} days) Shields remaining: {shields_remaining}"
+        );
+        final String shieldEarnedTemplate = getConfig().getString(
+            "messages.streak-shield-earned",
+            "[Shield] You earned a streak shield! Total shields: {shields}"
         );
         final String mvpTemplate = getConfig().getString(
-            "messages.mvp", "\uD83D\uDC51 Most active player (last 30 days): {player}"
+            "messages.mvp", "[Crown] Most active player (last 30 days): {player}"
         );
         final String mvpTieTemplate = getConfig().getString(
             "messages.mvp-tie",
-            "\uD83D\uDC51 {players} are tied for MVP (last 30 days)!"
+            "[Crown] {players} are tied for MVP (last 30 days)!"
         );
         final String streakTemplate = getConfig().getString(
-            "messages.streak", "\uD83D\uDD25 Longest daily login streak: {player} ({streak} days)"
+            "messages.streak", "[Fire] Longest daily login streak: {player} ({streak} days)"
         );
         final String streakTieTemplate = getConfig().getString(
             "messages.streak-tie",
-            "\uD83D\uDD25 {players} are tied for longest daily login streak ({streak} days)!"
+            "[Fire] {players} are tied for longest daily login streak ({streak} days)!"
         );
-        final String mvpPrefix = getConfig().getString("prefix.mvp", "\uD83D\uDC51 ");
-        final String streakPrefix = getConfig().getString("prefix.streak", "\uD83D\uDD25 ");
+        final String mvpPrefix = getConfig().getString("prefix.mvp", "[Crown] ");
+        final String streakPrefix = getConfig().getString("prefix.streak", "[Fire] ");
         final int listSize = getConfig().getInt("display.list-size", DEFAULT_LIST_SIZE);
         final String sortMode = getConfig().getString("display.sort", SORT_PLAYTIME);
         final String entryTemplate = getConfig().getString(
@@ -272,21 +280,21 @@ public final class LastActivePlayers extends JavaPlugin {
                 this.milestones, ZoneId.systemDefault(), milestoneTemplate,
                 this, joinDelayTicks * MILESTONE_BROADCAST_DELAY_MULTIPLIER,
                 milestoneTitleTemplate, milestoneSubtitleTemplate,
-                maxShields, shieldUsedTemplate
+                maxShields, shieldUsedTemplate, shieldEarnedTemplate
             ),
             this
         );
 
-        final AwardLifecycle awardLifecycle = new AwardLifecycle(
+        this.awardLifecycle = new AwardLifecycle(
             this.mvpBoard, this.players, this.milestones, this,
             mvpPrefix, streakPrefix, mvpTemplate, mvpTieTemplate, streakTemplate, streakTieTemplate,
             joinDelayTicks * AWARD_BROADCAST_DELAY_MULTIPLIER
         );
-        getServer().getPluginManager().registerEvents(awardLifecycle, this);
+        getServer().getPluginManager().registerEvents(this.awardLifecycle, this);
 
         final Heartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
         final long intervalTicks = heartbeatMinutes * TICKS_PER_MINUTE;
-        this.heartbeatTask = new BukkitHeartbeat(heartbeat, awardLifecycle::broadcastIfChanged)
+        this.heartbeatTask = new BukkitHeartbeat(heartbeat, this.awardLifecycle::broadcastIfChanged)
             .runTaskTimer(this, intervalTicks, intervalTicks);
 
         final Leaderboard displayBoard = SORT_PLAYTIME.equals(sortMode)

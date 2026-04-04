@@ -27,8 +27,8 @@ public final class FrozenAwards implements AwardSnapshot {
         final List<Nomination> mvpCandidates,
         final List<Nomination> streakCandidates
     ) {
-        this.mvpCandidates = mvpCandidates;
-        this.streakCandidates = streakCandidates;
+        this.mvpCandidates = List.copyOf(mvpCandidates);
+        this.streakCandidates = List.copyOf(streakCandidates);
     }
 
     @Override

@@ -60,7 +60,7 @@ A milestone broadcast fires to all online players when a streak is newly reached
 ## Schema (high level)
 
 ```
-players  (uuid PK, username, display_name_prefix, mvp_since, streak_days, streak_last_day)
+players  (uuid PK, username, streak_days, streak_last_day, streak_shields)
 sessions (id PK, player_uuid FK, join_time, leave_time NULLABLE, last_heartbeat, duration_seconds)
 ```
 

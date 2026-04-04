@@ -13,33 +13,40 @@ messages:
   # Tokens: {n}, {player}, {date}, {duration}
   join-entry: "Last Active players: {n}. {player} was here on {date} for {duration}"
   # MVP broadcast message. Token: {player}
-  mvp: "👑 Most active player (last 30 days): {player}"
+  # Tip: add an emoji prefix, e.g. "[Crown] Most active player (last 30 days): {player}"
+  mvp: "[Crown] Most active player (last 30 days): {player}"
   # MVP tie broadcast message. Token: {players} (comma-separated list)
-  mvp-tie: "👑 {players} are tied for MVP (last 30 days)!"
+  mvp-tie: "[Crown] {players} are tied for MVP (last 30 days)!"
   # Streak broadcast message. Tokens: {player}, {streak}
-  streak: "🔥 Longest daily login streak: {player} ({streak} days)"
+  streak: "[Fire] Longest daily login streak: {player} ({streak} days)"
   # Streak tie broadcast message. Tokens: {players} (comma-separated list), {streak}
-  streak-tie: "🔥 {players} are tied for longest daily login streak ({streak} days)!"
+  streak-tie: "[Fire] {players} are tied for longest daily login streak ({streak} days)!"
   # Private rank hint sent to the joining player. Tokens: {rank}, {minutes}, {next_rank}
+  # Only shown when display.sort is playtime. Online players are excluded from the ranking.
   rank-hint: "You are rank #{rank}. {minutes} more minutes to reach #{next_rank}."
   # Milestone streak broadcast. Tokens: {player}, {streak}
-  streak-milestone: "🔥 {player} has reached a {streak}-day login streak!"
+  streak-milestone: "[Fire] {player} has reached a {streak}-day login streak!"
   # Full-screen title shown to the achieving player on a streak milestone. Tokens: {player}, {streak}
   # Set to "" to disable.
-  streak-milestone-title: "🔥 {streak}-Day Streak!"
+  streak-milestone-title: "{streak}-Day Streak!"
   # Subtitle shown below the milestone title. Tokens: {player}, {streak}. Set to "" to disable.
-  streak-milestone-subtitle: "A new personal best!"
+  streak-milestone-subtitle: "A new milestone reached!"
   # Private message sent to a player when a streak shield is consumed. Tokens: {streak}, {shields_remaining}
-  streak-shield-used: "🛡 Streak protected! ({streak} days) Shields remaining: {shields_remaining}"
+  streak-shield-used: "[Shield] Streak protected! ({streak} days) Shields remaining: {shields_remaining}"
+  # Private message sent to a player when streak shields are awarded at a milestone. Token: {shields} (total after award).
+  # Set to "" to disable.
+  streak-shield-earned: "[Shield] You earned a streak shield! Total shields: {shields}"
 
 prefix:
-  # Display name prefix applied to the current MVP.
-  mvp: "👑 "
-  # Display name prefix applied to the current streak leader.
-  streak: "🔥 "
+  # Display name prefix applied to the current MVP. Tip: use "👑 " for a crown emoji.
+  mvp: "[Crown] "
+  # Display name prefix applied to the current streak leader. Tip: use "🔥 " for a fire emoji.
+  streak: "[Fire] "
 
 streak:
-  # Maximum number of streak shields a player can accumulate (awarded at milestones).
+  # Maximum number of streak shields a player can hold at once.
+  # Shields are awarded when a new milestone (3, 7, 14, 30, or 60 days) is reached.
+  # A shield bridges exactly one missed calendar day without breaking the streak.
   max-shields: 3
 
 session:

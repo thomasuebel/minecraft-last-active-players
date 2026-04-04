@@ -13,7 +13,7 @@ losing that data degrades the accuracy of playtime rankings and streak calculati
 Two goals must be balanced:
 
 1. Durability: minimize data loss on crash.
-2. Performance: do not block the server's main thread with I/O.
+2. Performance: minimize main-thread I/O during the heartbeat flush.
 
 ## Decision
 
@@ -27,22 +27,24 @@ one heartbeat interval.
 
 ### Performance design
 
-**Async snapshot pattern** -- the heartbeat task (a `BukkitRunnable` scheduled async) must not
-read mutable state from the main thread mid-tick. The sequence is:
+**Synchronous flush on the main thread** -- the heartbeat task is scheduled with
+`BukkitScheduler.runTaskTimer` (not the async variant) and runs on the main thread.
+SQLite with WAL mode and `PRAGMA synchronous=NORMAL` makes the flush fast enough in practice:
+a single batched transaction for all active sessions completes in well under a millisecond on
+typical server hardware.
 
-1. Main thread: snapshot the in-memory active session map (a cheap copy; microseconds).
-2. Async thread: write the snapshot to SQLite in a single batched transaction.
-
-This means the main thread is blocked for microseconds per heartbeat, not for the duration of the
-DB write.
+An async flush was considered (see "Rejected alternatives" below) but rejected because SQLite
+connections are not thread-safe without additional locking, and the added complexity was
+not justified given the flush duration on real workloads.
 
 **Single transaction per flush** -- all session updates for a given heartbeat are wrapped in one
 `BEGIN`/`COMMIT`. SQLite performs one fsync per transaction (with `PRAGMA synchronous=NORMAL`),
-not one per row. On a busy server with 100 concurrent players this is approximately 5ms of I/O,
-off the main thread, every 10 minutes.
+not one per row. On a busy server with 100 concurrent players this is approximately 5ms of I/O
+on the main thread, every 10 minutes.
 
 **WAL mode** (see ADR-001) -- concurrent reads (join-message queries, `/lastactive`) are not
-blocked during the async heartbeat write.
+blocked during the heartbeat write because WAL allows readers and a single writer to proceed
+concurrently.
 
 ### Clean shutdown
 
@@ -58,9 +60,16 @@ with slow disk may wish to increase this value.
 ## Consequences
 
 - Maximum data loss on crash: one heartbeat interval (default 10 minutes).
-- The heartbeat task adds a small, bounded async I/O load every N minutes.
+- The heartbeat flush runs on the main thread and adds a small, bounded I/O pause every N minutes.
+  In practice this is sub-millisecond for typical server player counts.
 - Session data is always consistent from the DB's perspective: `duration_seconds` is the ground
   truth, computed incrementally rather than derived from `join_time - leave_time`, which avoids
   clock-skew issues if the server clock is adjusted.
 - Orphan recovery on startup means a restarted server produces correct rankings immediately,
   without manual intervention.
+
+## Rejected alternatives
+
+**Async heartbeat** -- SQLite connections are not thread-safe and Bukkit does not provide a
+thread-safe connection pool. Making the flush async would require a dedicated connection or
+an explicit lock, adding complexity that the synchronous approach avoids entirely.

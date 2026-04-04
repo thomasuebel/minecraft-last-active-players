@@ -149,6 +149,23 @@ public final class AwardLifecycle implements Listener {
     }
 
     /**
+     * Removes all permission attachments held by this instance from every online player.
+     * Must be called before this listener is unregistered (e.g. on {@code /lastactive reload})
+     * so that attachment objects do not leak from players who remain online after the old
+     * listener is replaced by a new one.
+     */
+    public void cleanup() {
+        final Server server = this.plugin.getServer();
+        for (final org.bukkit.entity.Player bukkit : server.getOnlinePlayers()) {
+            final PermissionAttachment attachment = this.attachments.remove(bukkit.getUniqueId());
+            if (attachment != null) {
+                attachment.remove();
+            }
+            bukkit.setDisplayName(bukkit.getName());
+        }
+    }
+
+    /**
      * Re-elects MVP and Streak Leader and broadcasts only when the set of leaders has
      * changed since the last election. Intended to be called after each heartbeat flush.
      */
