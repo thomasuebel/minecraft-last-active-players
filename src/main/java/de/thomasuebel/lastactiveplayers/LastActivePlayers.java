@@ -170,7 +170,8 @@ public final class LastActivePlayers extends JavaPlugin {
         );
         final AwardLifecycle awardLifecycle = new AwardLifecycle(
             mvpBoard, players, milestones, this,
-            mvpPrefix, streakPrefix, mvpTemplate, mvpTieTemplate, streakTemplate, streakTieTemplate
+            mvpPrefix, streakPrefix, mvpTemplate, mvpTieTemplate, streakTemplate, streakTieTemplate,
+            joinDelayTicks
         );
         getServer().getPluginManager().registerEvents(awardLifecycle, this);
 
@@ -190,7 +191,7 @@ public final class LastActivePlayers extends JavaPlugin {
             ? new LeaderboardRankHint(displayBoard, rankHintTemplate)
             : new NoRankHint();
         getServer().getPluginManager().registerEvents(
-            new JoinBroadcast(joinMessage, rankHint, this, joinDelayTicks),
+            new JoinBroadcast(joinMessage, rankHint, this, joinDelayTicks * 2),
             this
         );
 

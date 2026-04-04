@@ -57,6 +57,7 @@ public final class AwardLifecycle implements Listener {
     private final String mvpTieTemplate;
     private final String streakTemplate;
     private final String streakTieTemplate;
+    private final long delayTicks;
     private final Map<UUID, PermissionAttachment> attachments;
     private final AtomicReference<AwardSnapshot> previousSnapshot;
 
@@ -75,6 +76,8 @@ public final class AwardLifecycle implements Listener {
      *                          use {player} and {streak}; never null
      * @param streakTieTemplate broadcast template for tied streak leaders;
      *                          use {players} and {streak}; never null
+     * @param delayTicks        server ticks to wait before broadcasting on join
+     *                          (0 schedules for the next tick)
      */
     public AwardLifecycle(
         final Leaderboard mvpBoard,
@@ -86,7 +89,8 @@ public final class AwardLifecycle implements Listener {
         final String mvpTemplate,
         final String mvpTieTemplate,
         final String streakTemplate,
-        final String streakTieTemplate
+        final String streakTieTemplate,
+        final long delayTicks
     ) {
         this.mvpBoard = mvpBoard;
         this.players = players;
@@ -98,6 +102,7 @@ public final class AwardLifecycle implements Listener {
         this.mvpTieTemplate = mvpTieTemplate;
         this.streakTemplate = streakTemplate;
         this.streakTieTemplate = streakTieTemplate;
+        this.delayTicks = delayTicks;
         this.attachments = new ConcurrentHashMap<>();
         this.previousSnapshot = new AtomicReference<>(new NoAwards());
     }
@@ -115,8 +120,10 @@ public final class AwardLifecycle implements Listener {
         this.previousSnapshot.set(current);
         final Server server = this.plugin.getServer();
         refreshAttachments(server, current);
-        broadcastMvp(server, mvp);
-        broadcastStreak(server, streak);
+        this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+            broadcastMvp(server, mvp);
+            broadcastStreak(server, streak);
+        }, this.delayTicks);
     }
 
     /**
