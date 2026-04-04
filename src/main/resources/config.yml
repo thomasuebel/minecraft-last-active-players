@@ -5,6 +5,8 @@ display:
   sort: playtime
   # Date format for {date} token. Uses Java DateTimeFormatter patterns.
   date-format: "yyyy-MM-dd"
+  # Delay in seconds before the join message is sent to the joining player (0 = next tick).
+  join-delay-seconds: 10
 
 messages:
   # Template for each player entry in the last-active list.

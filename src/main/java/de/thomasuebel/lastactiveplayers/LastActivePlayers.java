@@ -58,6 +58,8 @@ import java.util.function.Supplier;
  */
 public final class LastActivePlayers extends JavaPlugin {
 
+    /** Server ticks per second. */
+    private static final long TICKS_PER_SECOND = 20L;
     /** Server ticks per minute: 20 ticks/s x 60 s. */
     private static final long TICKS_PER_MINUTE = 1200L;
     private static final int THIRTY_DAYS = 30;
@@ -65,6 +67,7 @@ public final class LastActivePlayers extends JavaPlugin {
     private static final String SORT_PLAYTIME = "playtime";
     private static final int BSTATS_PLUGIN_ID = 30553;
     private static final int DEFAULT_PURGE_DAYS = 60;
+    private static final int DEFAULT_JOIN_DELAY_SECONDS = 10;
 
     private Statistics statistics;
     private Database database;
@@ -109,6 +112,9 @@ public final class LastActivePlayers extends JavaPlugin {
             "messages.rank-hint",
             "You are rank #{rank}. {minutes} more minutes to reach #{next_rank}."
         );
+        final int joinDelaySeconds =
+            getConfig().getInt("display.join-delay-seconds", DEFAULT_JOIN_DELAY_SECONDS);
+        final long joinDelayTicks = (long) joinDelaySeconds * TICKS_PER_SECOND;
 
         final DateTimeFormatter dateFormatter;
         try {
@@ -184,7 +190,7 @@ public final class LastActivePlayers extends JavaPlugin {
             ? new LeaderboardRankHint(displayBoard, rankHintTemplate)
             : new NoRankHint();
         getServer().getPluginManager().registerEvents(
-            new JoinBroadcast(joinMessage, rankHint),
+            new JoinBroadcast(joinMessage, rankHint, this, joinDelayTicks),
             this
         );
 
