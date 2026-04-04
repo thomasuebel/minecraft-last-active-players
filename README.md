@@ -14,8 +14,14 @@ members of your community.
 - Broadcasts the **Streak Leader** -- the player with the longest consecutive daily login streak.
 - Grants permission nodes to the MVP and streak leaders at milestone thresholds (3, 7, 14, 30, 60
   days) so operators can hook into any rewards plugin.
-- Applies a configurable display name prefix (crown / fire emoji) to the MVP and streak leader.
+- Applies a configurable display name prefix (crown / fire emoji by default) to the MVP and streak
+  leader.
+- **Streak shields** -- players earn a shield on each streak milestone. A shield automatically
+  bridges exactly one missed calendar day, keeping the streak alive.
+- **Streak milestone broadcasts** -- a server-wide message and a personal full-screen title are
+  shown when a player reaches a new streak milestone.
 - `/lastactive` command available to all players; admin subcommand `/lastactive test` for operators.
+- Reload configuration without restarting: `/lastactive reload` (ops only).
 - bStats integration (plugin ID 30553).
 
 ## Requirements
@@ -33,7 +39,7 @@ members of your community.
 ## Configuration
 
 Edit `plugins/LastActivePlayers/config.yml`. The file is created with defaults on first start.
-Reload by restarting the server (the plugin does not support `/reload`).
+Apply changes without restarting by running `/lastactive reload` (requires `lastactiveplayers.admin`).
 
 ### Display
 
@@ -42,7 +48,7 @@ Reload by restarting the server (the plugin does not support `/reload`).
 | `display.list-size` | `3` | Number of offline players listed on join and via `/lastactive` |
 | `display.sort` | `playtime` | Sort order: `playtime` (30-day total, descending) or `last_leave` (most recent first) |
 | `display.date-format` | `yyyy-MM-dd` | Date format for `{date}` token; any [Java DateTimeFormatter](https://docs.oracle.com/en/java/docs/api/java.base/java/time/format/DateTimeFormatter.html) pattern |
-| `display.join-delay-seconds` | `10` | Controls the join message cadence. The MVP/streak broadcast fires after this many seconds; the last-active list fires after twice this delay. With the default of `10`, awards appear at ~10 s and the player list at ~20 s. Set to `0` to send both on the next server tick. |
+| `display.join-delay-seconds` | `10` | Stagger delay in seconds. Milestone broadcasts fire at 1x this value, MVP/streak at 2x, and the last-active list at 3x. Set to `0` for next-tick delivery. |
 
 ### Messages
 
@@ -53,8 +59,12 @@ Reload by restarting the server (the plugin does not support `/reload`).
 | `messages.mvp-tie` | `{players}` | Broadcast when two or more players are tied for MVP |
 | `messages.streak` | `{player}`, `{streak}` | Broadcast when a single streak leader is elected on join |
 | `messages.streak-tie` | `{players}`, `{streak}` | Broadcast when two or more players are tied for streak leader |
-| `messages.rank-hint` | `{rank}`, `{next_rank}`, `{minutes}` | Private hint sent only to the joining player (only shown when `display.sort` is `playtime`) |
+| `messages.rank-hint` | `{rank}`, `{next_rank}`, `{minutes}` | Private hint sent only to the joining player (only shown when `display.sort` is `playtime`; online players are excluded from the ranking) |
 | `messages.streak-milestone` | `{player}`, `{streak}` | Broadcast to all players when a streak milestone (3/7/14/30/60 days) is newly reached |
+| `messages.streak-milestone-title` | `{player}`, `{streak}` | Full-screen title shown to the achieving player at a new milestone. Set to `""` to disable. |
+| `messages.streak-milestone-subtitle` | `{player}`, `{streak}` | Subtitle shown below the milestone title. Set to `""` to disable. |
+| `messages.streak-shield-used` | `{streak}`, `{shields_remaining}` | Private message sent when a shield is consumed to bridge a missed day |
+| `messages.streak-shield-earned` | `{shields}` | Private message sent when a shield is awarded at a milestone. Set to `""` to disable. |
 
 ### Prefixes
 
@@ -62,8 +72,14 @@ Display name prefixes are applied to the current MVP and streak leader while the
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `prefix.mvp` | `"👑 "` | Prepended to the MVP's display name |
-| `prefix.streak` | `"🔥 "` | Prepended to the streak leader's display name |
+| `prefix.mvp` | `"[Crown] "` | Prepended to the MVP's display name |
+| `prefix.streak` | `"[Fire] "` | Prepended to the streak leader's display name |
+
+### Streak shields
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `streak.max-shields` | `3` | Maximum shields a player can hold. Players earn one shield per newly reached milestone (3, 7, 14, 30, 60 days), up to this cap. A shield bridges one missed calendar day without breaking the streak. |
 
 ### Session and data
 
@@ -80,13 +96,14 @@ Display name prefixes are applied to the current MVP and streak leader while the
 | `/lastactive mvp` | Everyone | Shows the current MVP (or tied MVPs) |
 | `/lastactive streak` | Everyone | Shows the current streak leader(s) |
 | `/lastactive test` | Ops (`lastactiveplayers.admin`) | Previews how MVP and streak leader display names look in chat |
+| `/lastactive reload` | Ops (`lastactiveplayers.admin`) | Reloads `config.yml` without restarting the server |
 
 ## Permissions
 
 | Node | Default | Description |
 |------|---------|-------------|
 | `lastactiveplayers.use` | true | Use `/lastactive` and its player subcommands |
-| `lastactiveplayers.admin` | op | Use `/lastactive test` |
+| `lastactiveplayers.admin` | op | Use `/lastactive test` and `/lastactive reload` |
 | `lastactiveplayers.mvp` | false | Dynamically granted to the current MVP(s) |
 | `lastactiveplayers.streak.3` | false | Dynamically granted at a 3-day consecutive login streak |
 | `lastactiveplayers.streak.7` | false | Dynamically granted at a 7-day streak |
@@ -97,6 +114,10 @@ Display name prefixes are applied to the current MVP and streak leader while the
 Award permissions (`lastactiveplayers.mvp`, `lastactiveplayers.streak.*`) are in-memory only:
 they are granted when the player joins and removed when they leave or are dethroned. They are
 never written to your permissions plugin's storage.
+
+**Note on streak permissions:** only the highest milestone reached is granted. A player with a
+30-day streak holds `lastactiveplayers.streak.30` but not the lower milestones. If your rewards
+plugin checks a specific tier, check the appropriate node for that tier.
 
 ## Integrating with a rewards plugin
 
