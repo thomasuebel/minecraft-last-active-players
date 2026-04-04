@@ -121,6 +121,11 @@ public final class AwardLifecycle implements Listener {
         this.previousSnapshot.set(current);
         final Server server = this.plugin.getServer();
         refreshAttachments(server, current);
+        // Broadcasts are deferred so they arrive after the initial join noise. No
+        // isOnline() guard is needed: broadcastMessage targets all currently online
+        // players at dispatch time, so a disconnect before the delay expires simply
+        // means the departed player no longer receives it -- which is the desired
+        // behaviour.
         this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
             broadcastMvp(server, mvp);
             broadcastStreak(server, streak);
