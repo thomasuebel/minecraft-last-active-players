@@ -204,8 +204,9 @@ public final class LastActivePlayers extends JavaPlugin {
             this.heartbeatTask.cancel();
         }
         HandlerList.unregisterAll(this);
-        configure(dateFormatter);
-        sender.sendMessage(MSG_RELOADED);
+        if (configure(dateFormatter)) {
+            sender.sendMessage(MSG_RELOADED);
+        }
     }
 
     /**
@@ -213,8 +214,9 @@ public final class LastActivePlayers extends JavaPlugin {
      * command executor. Called on first enable and on each successful reload.
      *
      * @param dateFormatter pre-validated formatter for the {@code display.date-format} value
+     * @return {@code true} if wiring succeeded; {@code false} if the plugin was disabled
      */
-    private void configure(final DateTimeFormatter dateFormatter) {
+    private boolean configure(final DateTimeFormatter dateFormatter) {
         final long heartbeatMinutes =
             getConfig().getLong("session.heartbeat-interval-minutes", 10L);
         final String milestoneTemplate = getConfig().getString(
@@ -308,9 +310,11 @@ public final class LastActivePlayers extends JavaPlugin {
             lastActive.setExecutor(
                 new LastActiveCommand(list, mvpLines, streakLines, preview, this::reload, online)
             );
+            return true;
         } else {
             getLogger().severe("/lastactive command not found in plugin.yml");
             getServer().getPluginManager().disablePlugin(this);
+            return false;
         }
     }
 }
