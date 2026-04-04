@@ -31,6 +31,7 @@ class SessionLifecycleShieldTest {
     private static final long DELAY_TICKS = 200L;
     private static final int MAX_SHIELDS = 3;
     private static final int TWO_DAYS = 2;
+    private static final int THREE_DAYS_AGO = 3;
 
     // -------------------------------------------------------------------------
     // Players stubs
@@ -282,11 +283,11 @@ class SessionLifecycleShieldTest {
     }
 
     @Test
-    void shieldNotConsumedWhenGapIsTwoDays() {
-        // last = 3 days ago = 2-day gap; shield should not apply
+    void shieldNotConsumedWhenGapIsThreeDays() {
+        // last = 3 days ago → epoch gap of 3; shield only bridges a gap of 2 (one missed day)
         final AtomicInteger shields = new AtomicInteger();
         final de.thomasuebel.lastactiveplayers.player.Players players =
-            stubPlayers(5, 3, 2, shields);
+            stubPlayers(5, THREE_DAYS_AGO, 2, shields);
         final List<String> messages = new ArrayList<>();
         final org.bukkit.entity.Player player = stubBukkitPlayer(messages);
         final Plugin plugin = stubPlugin(player.getServer());
