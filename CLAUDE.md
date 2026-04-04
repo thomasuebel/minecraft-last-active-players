@@ -37,6 +37,10 @@ A milestone broadcast fires to all online players when a streak is newly reached
 | `data.purge-inactive-days` | `60` | Days of inactivity before a player record is purged |
 | `prefix.mvp` | `"[Crown] "` | Display name prefix for current MVP |
 | `prefix.streak` | `"[Fire] "` | Display name prefix for streak leader |
+| `streak.max-shields` | `3` | Maximum streak shields a player can hold |
+| `messages.streak-milestone-title` | `"[Fire] {streak}-Day Streak!"` | Full-screen title when a milestone is crossed; tokens: {player}, {streak} |
+| `messages.streak-milestone-subtitle` | `"A new personal best!"` | Subtitle alongside the milestone title; tokens: {player}, {streak} |
+| `messages.streak-shield-used` | `"[Shield] Streak protected! ({streak} days) Shields remaining: {shields_remaining}"` | Private message when a shield is consumed; tokens: {streak}, {shields_remaining} |
 
 ## /lastactive Command
 
