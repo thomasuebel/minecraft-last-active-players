@@ -43,6 +43,8 @@ public final class MvpLines implements CommandLines {
 
     @Override
     public List<String> lines(final Set<UUID> onlinePlayers) {
+        // MVP election intentionally uses an empty exclude set: online players remain
+        // eligible, consistent with how AwardLifecycle elects the MVP on join.
         final List<LeaderboardEntry> candidates = this.mvpBoard.topTied(Set.of());
         if (candidates.isEmpty()) {
             return Collections.emptyList();
