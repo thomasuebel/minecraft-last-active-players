@@ -255,7 +255,7 @@ class SessionLifecycleMilestoneTitleTest {
             milestones, ZoneId.systemDefault(),
             "Server: {player} hit a {streak}-day streak!",
             plugin, DELAY_TICKS,
-            "{streak}-Day Streak!", "{player} did it!", 3, ""
+            "{streak}-Day Streak!", "{player} did it!", 3, "", ""
         );
 
         lifecycle.onJoin(new PlayerJoinEvent(player, ""));
@@ -278,7 +278,7 @@ class SessionLifecycleMilestoneTitleTest {
             milestones, ZoneId.systemDefault(),
             "Server: {player} hit a {streak}-day streak!",
             plugin, DELAY_TICKS,
-            "", "", 3, ""
+            "", "", 3, "", ""
         );
 
         lifecycle.onJoin(new PlayerJoinEvent(player, ""));
@@ -299,7 +299,7 @@ class SessionLifecycleMilestoneTitleTest {
             milestones, ZoneId.systemDefault(),
             "Server: {player} hit a {streak}-day streak!",
             plugin, DELAY_TICKS,
-            "{streak}-Day Streak!", "", 3, ""
+            "{streak}-Day Streak!", "", 3, "", ""
         );
 
         lifecycle.onJoin(new PlayerJoinEvent(player, ""));
@@ -322,7 +322,7 @@ class SessionLifecycleMilestoneTitleTest {
             milestones, ZoneId.systemDefault(),
             "Server: {player} hit a {streak}-day streak!",
             plugin, DELAY_TICKS,
-            "{streak}-Day Streak!", "You did it!", 3, ""
+            "{streak}-Day Streak!", "You did it!", 3, "", ""
         );
 
         lifecycle.onJoin(new PlayerJoinEvent(player, ""));
@@ -416,7 +416,7 @@ class SessionLifecycleMilestoneTitleTest {
             milestones, ZoneId.systemDefault(),
             "Server: {player} hit a {streak}-day streak!",
             plugin, DELAY_TICKS,
-            "{streak}-Day Streak!", "", 3, ""
+            "{streak}-Day Streak!", "", 3, "", ""
         );
 
         lifecycle.onJoin(new PlayerJoinEvent(player, ""));

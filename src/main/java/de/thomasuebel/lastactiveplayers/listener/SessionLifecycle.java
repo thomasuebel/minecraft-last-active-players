@@ -64,6 +64,7 @@ public final class SessionLifecycle implements Listener {
     private final String milestoneSubtitleTemplate;
     private final int maxShields;
     private final String shieldUsedTemplate;
+    private final String shieldEarnedTemplate;
 
     /**
      * Constructs the lifecycle listener.
@@ -88,6 +89,10 @@ public final class SessionLifecycle implements Listener {
      * @param shieldUsedTemplate        private message sent to the player when a shield is
      *                                  consumed; tokens {streak} and {shields_remaining};
      *                                  never null
+     * @param shieldEarnedTemplate      private message sent to the player when shields are
+     *                                  awarded at a streak milestone; token {shields} (total
+     *                                  shields after award); empty string suppresses the
+     *                                  message; never null
      */
     public SessionLifecycle(
         final Players players,
@@ -101,7 +106,8 @@ public final class SessionLifecycle implements Listener {
         final String milestoneTitleTemplate,
         final String milestoneSubtitleTemplate,
         final int maxShields,
-        final String shieldUsedTemplate
+        final String shieldUsedTemplate,
+        final String shieldEarnedTemplate
     ) {
         this.players = players;
         this.sessions = sessions;
@@ -115,6 +121,7 @@ public final class SessionLifecycle implements Listener {
         this.milestoneSubtitleTemplate = milestoneSubtitleTemplate;
         this.maxShields = maxShields;
         this.shieldUsedTemplate = shieldUsedTemplate;
+        this.shieldEarnedTemplate = shieldEarnedTemplate;
     }
 
     /**
@@ -134,14 +141,19 @@ public final class SessionLifecycle implements Listener {
         final Player stored = this.players.withUuid(uuid);
         final LocalDate today = LocalDate.now(this.serverZone);
 
+        // Read shield count once. Players with no existing streak cannot consume or earn
+        // shields so the read is skipped for them to avoid an unnecessary DB round-trip.
+        int shieldCount = (stored.exists() && stored.streakDays() > 0)
+            ? this.players.shields(uuid) : 0;
+
         // Consume a shield if the player missed exactly one day and has shields available.
         Player playerForStreak = stored;
         boolean shieldConsumed = false;
         if (stored.exists() && stored.streakDays() > 0 && stored.streakLastDay().isPresent()) {
             final long gap = today.toEpochDay() - stored.streakLastDay().get().toEpochDay();
-            final int currentShields = this.players.shields(uuid);
-            if (gap == SHIELD_BRIDGE_GAP && currentShields > 0) {
-                this.players.storeShields(uuid, currentShields - 1);
+            if (gap == SHIELD_BRIDGE_GAP && shieldCount > 0) {
+                shieldCount--;
+                this.players.storeShields(uuid, shieldCount);
                 playerForStreak = new ShieldedPlayer(stored, today.minusDays(1));
                 shieldConsumed = true;
             }
@@ -153,24 +165,31 @@ public final class SessionLifecycle implements Listener {
         this.players.updateStreak(uuid, streak.days(), Optional.of(streak.lastDay()));
 
         // Award one shield per newly crossed milestone, up to the configured cap.
+        // shieldCount already reflects any consumption above, so no additional DB read needed.
+        int shieldsEarned = 0;
         if (!newMilestones.isEmpty()) {
-            final int current = this.players.shields(uuid);
-            final int awarded = Math.min(current + newMilestones.size(), this.maxShields);
-            if (awarded > current) {
-                this.players.storeShields(uuid, awarded);
+            final int awarded = Math.min(shieldCount + newMilestones.size(), this.maxShields);
+            shieldsEarned = awarded - shieldCount;
+            if (shieldsEarned > 0) {
+                shieldCount = awarded;
+                this.players.storeShields(uuid, shieldCount);
             }
         }
 
-        // Notify the player immediately when a shield was consumed. The remaining count
-        // is read after the milestone award block so the message reflects the net balance:
-        // if the player simultaneously hits a new milestone and earns a replacement shield,
-        // {shields_remaining} correctly shows the post-award value.
+        // Notify the player when a shield was consumed. shieldCount now reflects the net
+        // balance after any simultaneous milestone award, so no extra DB read is needed.
         if (shieldConsumed) {
-            final int remaining = this.players.shields(uuid);
             player.sendMessage(
                 this.shieldUsedTemplate
                     .replace("{streak}", String.valueOf(streak.days()))
-                    .replace("{shields_remaining}", String.valueOf(remaining))
+                    .replace("{shields_remaining}", String.valueOf(shieldCount))
+            );
+        }
+        // Notify the player when shields are earned at a new milestone.
+        if (shieldsEarned > 0 && !this.shieldEarnedTemplate.isEmpty()) {
+            player.sendMessage(
+                this.shieldEarnedTemplate
+                    .replace("{shields}", String.valueOf(shieldCount))
             );
         }
 

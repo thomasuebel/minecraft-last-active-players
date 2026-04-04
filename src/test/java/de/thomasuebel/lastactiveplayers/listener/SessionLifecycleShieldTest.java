@@ -227,7 +227,8 @@ class SessionLifecycleShieldTest {
             plugin, DELAY_TICKS,
             "", "",
             MAX_SHIELDS,
-            "Shield used! Streak: {streak}. Remaining: {shields_remaining}"
+            "Shield used! Streak: {streak}. Remaining: {shields_remaining}",
+            "Shield earned! Total: {shields}"
         );
     }
 
@@ -330,8 +331,9 @@ class SessionLifecycleShieldTest {
         lifecycle(players, plugin).onJoin(new PlayerJoinEvent(player, ""));
 
         assertEquals(1, shields.get());
-        assertEquals(1, messages.size());
+        assertEquals(2, messages.size());
         assertEquals("Shield used! Streak: 7. Remaining: 1", messages.get(0));
+        assertEquals("Shield earned! Total: 1", messages.get(1));
     }
 
     @Test

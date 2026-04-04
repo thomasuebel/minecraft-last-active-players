@@ -31,6 +31,9 @@ messages:
   streak-milestone-subtitle: "A new personal best!"
   # Private message sent to a player when a streak shield is consumed. Tokens: {streak}, {shields_remaining}
   streak-shield-used: "🛡 Streak protected! ({streak} days) Shields remaining: {shields_remaining}"
+  # Private message sent to a player when streak shields are awarded at a milestone. Token: {shields} (total after award).
+  # Set to "" to disable.
+  streak-shield-earned: "🛡 You earned a streak shield! Total shields: {shields}"
 
 prefix:
   # Display name prefix applied to the current MVP.

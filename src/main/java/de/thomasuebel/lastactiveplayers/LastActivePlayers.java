@@ -240,6 +240,10 @@ public final class LastActivePlayers extends JavaPlugin {
             "messages.streak-shield-used",
             "\uD83D\uDEE1 Streak protected! ({streak} days) Shields remaining: {shields_remaining}"
         );
+        final String shieldEarnedTemplate = getConfig().getString(
+            "messages.streak-shield-earned",
+            "\uD83D\uDEE1 You earned a streak shield! Total shields: {shields}"
+        );
         final String mvpTemplate = getConfig().getString(
             "messages.mvp", "\uD83D\uDC51 Most active player (last 30 days): {player}"
         );
@@ -276,7 +280,7 @@ public final class LastActivePlayers extends JavaPlugin {
                 this.milestones, ZoneId.systemDefault(), milestoneTemplate,
                 this, joinDelayTicks * MILESTONE_BROADCAST_DELAY_MULTIPLIER,
                 milestoneTitleTemplate, milestoneSubtitleTemplate,
-                maxShields, shieldUsedTemplate
+                maxShields, shieldUsedTemplate, shieldEarnedTemplate
             ),
             this
         );
