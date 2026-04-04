@@ -42,7 +42,7 @@ Reload by restarting the server (the plugin does not support `/reload`).
 | `display.list-size` | `3` | Number of offline players listed on join and via `/lastactive` |
 | `display.sort` | `playtime` | Sort order: `playtime` (30-day total, descending) or `last_leave` (most recent first) |
 | `display.date-format` | `yyyy-MM-dd` | Date format for `{date}` token; any [Java DateTimeFormatter](https://docs.oracle.com/en/java/docs/api/java.base/java/time/format/DateTimeFormatter.html) pattern |
-| `display.join-delay-seconds` | `10` | Seconds after joining before the first message is sent; `0` means next server tick |
+| `display.join-delay-seconds` | `10` | Controls the join message cadence. The MVP/streak broadcast fires after this many seconds; the last-active list fires after twice this delay. With the default of `10`, awards appear at ~10 s and the player list at ~20 s. Set to `0` to send both on the next server tick. |
 
 ### Messages
 
