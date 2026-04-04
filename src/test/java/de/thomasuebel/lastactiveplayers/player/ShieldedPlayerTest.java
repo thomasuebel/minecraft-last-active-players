@@ -19,10 +19,26 @@ class ShieldedPlayerTest {
 
     private static Player basePlayer() {
         return new Player() {
-            @Override public boolean exists() { return true; }
-            @Override public UUID uuid() { return PLAYER_UUID; }
-            @Override public String username() { return "Alice"; }
-            @Override public int streakDays() { return STREAK_DAYS; }
+            @Override
+            public boolean exists() {
+                return true;
+            }
+
+            @Override
+            public UUID uuid() {
+                return PLAYER_UUID;
+            }
+
+            @Override
+            public String username() {
+                return "Alice";
+            }
+
+            @Override
+            public int streakDays() {
+                return STREAK_DAYS;
+            }
+
             @Override
             public Optional<LocalDate> streakLastDay() {
                 return Optional.of(ORIGINAL_LAST_DAY);

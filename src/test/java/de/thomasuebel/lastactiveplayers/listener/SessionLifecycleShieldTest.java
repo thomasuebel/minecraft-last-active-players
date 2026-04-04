@@ -1,6 +1,5 @@
 package de.thomasuebel.lastactiveplayers.listener;
 
-import de.thomasuebel.lastactiveplayers.player.Milestones;
 import de.thomasuebel.lastactiveplayers.player.NoPlayer;
 import de.thomasuebel.lastactiveplayers.player.StreakMilestones;
 import de.thomasuebel.lastactiveplayers.session.ActiveSessions;
@@ -66,10 +65,26 @@ class SessionLifecycleShieldTest {
             @Override
             public de.thomasuebel.lastactiveplayers.player.Player withUuid(final UUID uuid) {
                 return new de.thomasuebel.lastactiveplayers.player.Player() {
-                    @Override public boolean exists() { return true; }
-                    @Override public UUID uuid() { return uuid; }
-                    @Override public String username() { return PLAYER_NAME; }
-                    @Override public int streakDays() { return streakDays; }
+                    @Override
+                    public boolean exists() {
+                        return true;
+                    }
+
+                    @Override
+                    public UUID uuid() {
+                        return uuid;
+                    }
+
+                    @Override
+                    public String username() {
+                        return PLAYER_NAME;
+                    }
+
+                    @Override
+                    public int streakDays() {
+                        return streakDays;
+                    }
+
                     @Override
                     public Optional<LocalDate> streakLastDay() {
                         return Optional.of(LocalDate.now().minusDays(lastDayDelta));

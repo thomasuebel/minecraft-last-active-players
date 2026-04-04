@@ -47,7 +47,8 @@ class SqliteSessionsTest {
     @BeforeEach
     void setUp(@TempDir final Path dir) throws IOException {
         this.db = new SqliteDatabase(
-            dir.resolve("test.db"), new SqliteMigrations(new InitialSchema(), new AddShieldsColumn())
+            dir.resolve("test.db"),
+            new SqliteMigrations(new InitialSchema(), new AddShieldsColumn())
         );
         this.players = new SqlitePlayers(this.db);
         this.sessions = new SqliteSessions(this.db);
