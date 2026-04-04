@@ -140,7 +140,7 @@ any breaking changes between versions.
 
 **The plugin disables itself on startup**
 
-Check the server log for a `[LastActivePlayers] SEVERE` line. Common causes:
+Check the server log for a line containing `SEVERE` and `[LastActivePlayers]`. In Paper the format is `[HH:MM:SS SEVERE]: [LastActivePlayers] ...`. Common causes:
 
 - `display.date-format` contains an invalid Java DateTimeFormatter pattern -- fix the value in
   `config.yml` and restart.
