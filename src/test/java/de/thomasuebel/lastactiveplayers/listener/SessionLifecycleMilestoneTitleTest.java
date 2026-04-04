@@ -5,6 +5,8 @@ import de.thomasuebel.lastactiveplayers.player.NoPlayer;
 import de.thomasuebel.lastactiveplayers.player.StreakMilestones;
 import de.thomasuebel.lastactiveplayers.session.ActiveSessions;
 import de.thomasuebel.lastactiveplayers.session.Sessions;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.title.Title;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -127,7 +129,7 @@ class SessionLifecycleMilestoneTitleTest {
      * Title calls are captured as String[]{title, subtitle}, broadcasts as strings.
      *
      * @param online           value returned by {@code isOnline()} when the scheduled task runs
-     * @param titlesCapture    receives one entry per {@code sendTitle} call
+     * @param titlesCapture    receives one String[]{title, subtitle} per {@code showTitle} call
      * @param broadcastsCapture receives one entry per {@code broadcastMessage} call
      */
     private static org.bukkit.entity.Player stubPlayer(
@@ -190,9 +192,14 @@ class SessionLifecycleMilestoneTitleTest {
                 case "getName": return PLAYER_NAME;
                 case "getServer": return serverProxy;
                 case "isOnline": return online;
-                case "sendTitle":
-                    if (args != null && args.length >= 2) {
-                        titlesCapture.add(new String[]{(String) args[0], (String) args[1]});
+                case "showTitle":
+                    if (args != null && args.length == 1 && args[0] instanceof Title) {
+                        final Title t = (Title) args[0];
+                        final String titleText = t.title() instanceof TextComponent
+                            ? ((TextComponent) t.title()).content() : "";
+                        final String subtitleText = t.subtitle() instanceof TextComponent
+                            ? ((TextComponent) t.subtitle()).content() : "";
+                        titlesCapture.add(new String[]{titleText, subtitleText});
                     }
                     return null;
                 default:

@@ -8,6 +8,8 @@ import de.thomasuebel.lastactiveplayers.player.TodayStreak;
 import de.thomasuebel.lastactiveplayers.session.ActiveSessions;
 import de.thomasuebel.lastactiveplayers.session.Sessions;
 import de.thomasuebel.lastactiveplayers.session.TrackedSession;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -38,6 +40,7 @@ import java.util.UUID;
  */
 public final class SessionLifecycle implements Listener {
 
+    private static final long MILLIS_PER_TICK = 50L;
     private static final int TITLE_FADE_IN_TICKS = 10;
     private static final int TITLE_STAY_TICKS = 70;
     private static final int TITLE_FADE_OUT_TICKS = 20;
@@ -139,10 +142,15 @@ public final class SessionLifecycle implements Listener {
             if (!title.isEmpty() || !subtitle.isEmpty()) {
                 this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
                     if (player.isOnline()) {
-                        player.sendTitle(
-                            title, subtitle,
-                            TITLE_FADE_IN_TICKS, TITLE_STAY_TICKS, TITLE_FADE_OUT_TICKS
-                        );
+                        player.showTitle(Title.title(
+                            Component.text(title),
+                            Component.text(subtitle),
+                            Title.Times.times(
+                                Duration.ofMillis(TITLE_FADE_IN_TICKS * MILLIS_PER_TICK),
+                                Duration.ofMillis(TITLE_STAY_TICKS * MILLIS_PER_TICK),
+                                Duration.ofMillis(TITLE_FADE_OUT_TICKS * MILLIS_PER_TICK)
+                            )
+                        ));
                     }
                 }, this.delayTicks);
             }
