@@ -10,7 +10,7 @@ website: https://github.com/thomasuebel/minecraft-last-active-players
 commands:
   lastactive:
     description: List last active players, current MVP, and streak leader.
-    usage: /lastactive [mvp|streak|test]
+    usage: /lastactive [mvp|streak|reload|test]
     permission: lastactiveplayers.use
 
 permissions:
@@ -18,7 +18,7 @@ permissions:
     description: Allows using the /lastactive command.
     default: true
   lastactiveplayers.admin:
-    description: Allows admin subcommands such as /lastactive test.
+    description: Allows admin subcommands such as /lastactive reload and /lastactive test.
     default: op
   lastactiveplayers.mvp:
     description: Granted to the current MVP (highest playtime in 30 days).
