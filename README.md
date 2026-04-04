@@ -46,8 +46,6 @@ Reload by restarting the server (the plugin does not support `/reload`).
 
 ### Messages
 
-All message keys support standard colour codes via the `&` prefix (e.g. `&6{player}`).
-
 | Key | Available tokens | Description |
 |-----|-----------------|-------------|
 | `messages.join-entry` | `{n}`, `{player}`, `{date}`, `{duration}` | One line per player in the last-active list |
