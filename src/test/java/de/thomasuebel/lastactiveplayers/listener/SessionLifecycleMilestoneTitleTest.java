@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -229,7 +230,7 @@ class SessionLifecycleMilestoneTitleTest {
         final Milestones milestones = new StreakMilestones();
         final SessionLifecycle lifecycle = new SessionLifecycle(
             stubPlayers(), stubSessions(), stubActiveSessions(),
-            milestones, java.time.ZoneId.systemDefault(),
+            milestones, ZoneId.systemDefault(),
             "Server: {player} hit a {streak}-day streak!",
             plugin, DELAY_TICKS,
             "{streak}-Day Streak!", "{player} did it!"
@@ -252,7 +253,7 @@ class SessionLifecycleMilestoneTitleTest {
         final Milestones milestones = new StreakMilestones();
         final SessionLifecycle lifecycle = new SessionLifecycle(
             stubPlayers(), stubSessions(), stubActiveSessions(),
-            milestones, java.time.ZoneId.systemDefault(),
+            milestones, ZoneId.systemDefault(),
             "Server: {player} hit a {streak}-day streak!",
             plugin, DELAY_TICKS,
             "", ""
@@ -273,7 +274,7 @@ class SessionLifecycleMilestoneTitleTest {
         final Milestones milestones = new StreakMilestones();
         final SessionLifecycle lifecycle = new SessionLifecycle(
             stubPlayers(), stubSessions(), stubActiveSessions(),
-            milestones, java.time.ZoneId.systemDefault(),
+            milestones, ZoneId.systemDefault(),
             "Server: {player} hit a {streak}-day streak!",
             plugin, DELAY_TICKS,
             "{streak}-Day Streak!", ""
