@@ -1,5 +1,6 @@
 package de.thomasuebel.lastactiveplayers.player;
 
+import de.thomasuebel.lastactiveplayers.db.AddShieldsColumn;
 import de.thomasuebel.lastactiveplayers.db.Database;
 import de.thomasuebel.lastactiveplayers.db.InitialSchema;
 import de.thomasuebel.lastactiveplayers.db.SqliteDatabase;
@@ -43,7 +44,8 @@ class SqlitePlayersTest {
     @BeforeEach
     void setUp(@TempDir final Path dir) throws IOException {
         this.db = new SqliteDatabase(
-            dir.resolve("test.db"), new SqliteMigrations(new InitialSchema())
+            dir.resolve("test.db"),
+            new SqliteMigrations(new InitialSchema(), new AddShieldsColumn())
         );
         this.players = new SqlitePlayers(this.db);
         this.sessions = new SqliteSessions(this.db);
@@ -226,5 +228,34 @@ class SqlitePlayersTest {
         final List<Player> top = players.withTopStreak();
 
         assertEquals(2, top.size());
+    }
+
+    @Test
+    void shieldsDefaultsToZeroForNewPlayer() {
+        final UUID uuid = UUID.randomUUID();
+        players.upsert(uuid, "Alice");
+        assertEquals(0, players.shields(uuid));
+    }
+
+    @Test
+    void setShieldsPersistsCount() {
+        final UUID uuid = UUID.randomUUID();
+        players.upsert(uuid, "Alice");
+        players.setShields(uuid, 2);
+        assertEquals(2, players.shields(uuid));
+    }
+
+    @Test
+    void setShieldsOverwritesPreviousValue() {
+        final UUID uuid = UUID.randomUUID();
+        players.upsert(uuid, "Alice");
+        players.setShields(uuid, 3);
+        players.setShields(uuid, 1);
+        assertEquals(1, players.shields(uuid));
+    }
+
+    @Test
+    void shieldsReturnsZeroForUnknownPlayer() {
+        assertEquals(0, players.shields(UUID.randomUUID()));
     }
 }

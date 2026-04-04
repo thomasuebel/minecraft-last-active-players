@@ -66,4 +66,22 @@ public interface Players {
      * @param threshold sessions ending before this instant mark a player as inactive
      */
     void purgeInactiveBefore(Instant threshold);
+
+    /**
+     * Returns the current streak shield count for the given player.
+     *
+     * <p>Returns {@code 0} if the player is not found.
+     *
+     * @param uuid the player's unique identifier; never null
+     * @return non-negative shield count
+     */
+    int shields(UUID uuid);
+
+    /**
+     * Persists a new streak shield count for the given player.
+     *
+     * @param uuid  the player's unique identifier; never null
+     * @param count the new shield count; non-negative
+     */
+    void setShields(UUID uuid, int count);
 }
