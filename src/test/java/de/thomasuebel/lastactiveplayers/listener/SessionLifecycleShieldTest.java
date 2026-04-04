@@ -315,6 +315,8 @@ class SessionLifecycleShieldTest {
         lifecycle(players, plugin).onJoin(new PlayerJoinEvent(player, ""));
 
         assertEquals(1, shields.get());
+        assertEquals(1, messages.size());
+        assertEquals("Shield earned! Total: 1", messages.get(0));
     }
 
     @Test
@@ -349,5 +351,6 @@ class SessionLifecycleShieldTest {
         lifecycle(players, plugin).onJoin(new PlayerJoinEvent(player, ""));
 
         assertEquals(MAX_SHIELDS, shields.get());
+        assertTrue(messages.isEmpty());
     }
 }
