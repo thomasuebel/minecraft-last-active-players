@@ -3,6 +3,7 @@ package de.thomasuebel.lastactiveplayers.listener;
 import de.thomasuebel.lastactiveplayers.player.Milestones;
 import de.thomasuebel.lastactiveplayers.player.Player;
 import de.thomasuebel.lastactiveplayers.player.Players;
+import de.thomasuebel.lastactiveplayers.player.ShieldedPlayer;
 import de.thomasuebel.lastactiveplayers.player.Streak;
 import de.thomasuebel.lastactiveplayers.player.TodayStreak;
 import de.thomasuebel.lastactiveplayers.session.ActiveSessions;
@@ -29,7 +30,8 @@ import java.util.UUID;
  * Bukkit event listener that opens and closes database sessions on player join and quit,
  * and updates the player's consecutive daily login streak on join.
  *
- * <p>On join: upserts the player record, computes and persists the updated streak, then
+ * <p>On join: upserts the player record, applies a streak shield if exactly one day was
+ * missed and a shield is available, computes and persists the updated streak, then
  * schedules any newly reached streak milestone broadcasts and the personal title at
  * {@code delayTicks} in the future (first in the join stagger sequence). After that it
  * opens a database session and registers it in the in-memory {@link ActiveSessions}
@@ -44,6 +46,8 @@ public final class SessionLifecycle implements Listener {
     private static final int TITLE_FADE_IN_TICKS = 10;
     private static final int TITLE_STAY_TICKS = 70;
     private static final int TITLE_FADE_OUT_TICKS = 20;
+    /** Gap (today minus last-login in calendar days) that represents exactly one missed day. */
+    private static final long SHIELD_BRIDGE_GAP = 2L;
 
     private final Players players;
     private final Sessions sessions;
@@ -55,6 +59,8 @@ public final class SessionLifecycle implements Listener {
     private final long delayTicks;
     private final String milestoneTitleTemplate;
     private final String milestoneSubtitleTemplate;
+    private final int maxShields;
+    private final String shieldUsedTemplate;
 
     /**
      * Constructs the lifecycle listener.
@@ -75,6 +81,10 @@ public final class SessionLifecycle implements Listener {
      *                                  suppresses the title line; never null
      * @param milestoneSubtitleTemplate subtitle shown below the title; tokens {player}
      *                                  and {streak}; empty string suppresses it; never null
+     * @param maxShields                maximum streak shields a player may hold; non-negative
+     * @param shieldUsedTemplate        private message sent to the player when a shield is
+     *                                  consumed; tokens {streak} and {shields_remaining};
+     *                                  never null
      */
     public SessionLifecycle(
         final Players players,
@@ -86,7 +96,9 @@ public final class SessionLifecycle implements Listener {
         final Plugin plugin,
         final long delayTicks,
         final String milestoneTitleTemplate,
-        final String milestoneSubtitleTemplate
+        final String milestoneSubtitleTemplate,
+        final int maxShields,
+        final String shieldUsedTemplate
     ) {
         this.players = players;
         this.sessions = sessions;
@@ -98,6 +110,8 @@ public final class SessionLifecycle implements Listener {
         this.delayTicks = delayTicks;
         this.milestoneTitleTemplate = milestoneTitleTemplate;
         this.milestoneSubtitleTemplate = milestoneSubtitleTemplate;
+        this.maxShields = maxShields;
+        this.shieldUsedTemplate = shieldUsedTemplate;
     }
 
     /**
@@ -116,10 +130,42 @@ public final class SessionLifecycle implements Listener {
 
         final Player stored = this.players.withUuid(uuid);
         final LocalDate today = LocalDate.now(this.serverZone);
-        final Streak streak = new TodayStreak(stored, today);
+
+        // Consume a shield if the player missed exactly one day and has shields available.
+        Player playerForStreak = stored;
+        boolean shieldConsumed = false;
+        if (stored.exists() && stored.streakDays() > 0 && stored.streakLastDay().isPresent()) {
+            final long gap = today.toEpochDay() - stored.streakLastDay().get().toEpochDay();
+            if (gap == SHIELD_BRIDGE_GAP && this.players.shields(uuid) > 0) {
+                this.players.setShields(uuid, this.players.shields(uuid) - 1);
+                playerForStreak = new ShieldedPlayer(stored, today.minusDays(1));
+                shieldConsumed = true;
+            }
+        }
+
+        final Streak streak = new TodayStreak(playerForStreak, today);
         final List<Integer> newMilestones =
-            this.milestones.crossedBy(stored.streakDays(), streak.days());
+            this.milestones.crossedBy(playerForStreak.streakDays(), streak.days());
         this.players.updateStreak(uuid, streak.days(), Optional.of(streak.lastDay()));
+
+        // Award one shield per newly crossed milestone, up to the configured cap.
+        if (!newMilestones.isEmpty()) {
+            final int current = this.players.shields(uuid);
+            final int awarded = Math.min(current + newMilestones.size(), this.maxShields);
+            if (awarded > current) {
+                this.players.setShields(uuid, awarded);
+            }
+        }
+
+        // Notify the player immediately when a shield was consumed.
+        if (shieldConsumed) {
+            final int remaining = this.players.shields(uuid);
+            player.sendMessage(
+                this.shieldUsedTemplate
+                    .replace("{streak}", String.valueOf(streak.days()))
+                    .replace("{shields_remaining}", String.valueOf(remaining))
+            );
+        }
 
         for (final int milestone : newMilestones) {
             final String message = this.milestoneTemplate
