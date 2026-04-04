@@ -68,6 +68,9 @@ public final class LastActivePlayers extends JavaPlugin {
     private static final int BSTATS_PLUGIN_ID = 30553;
     private static final int DEFAULT_PURGE_DAYS = 60;
     private static final int DEFAULT_JOIN_DELAY_SECONDS = 10;
+    // The last-active list fires one full delay interval after the award broadcast so
+    // the two messages are clearly separated in chat: t+delay = awards, t+2*delay = list.
+    private static final long JOIN_BROADCAST_DELAY_MULTIPLIER = 2L;
 
     private Statistics statistics;
     private Database database;
@@ -191,7 +194,8 @@ public final class LastActivePlayers extends JavaPlugin {
             ? new LeaderboardRankHint(displayBoard, rankHintTemplate)
             : new NoRankHint();
         getServer().getPluginManager().registerEvents(
-            new JoinBroadcast(joinMessage, rankHint, this, joinDelayTicks * 2),
+            new JoinBroadcast(joinMessage, rankHint, this,
+                joinDelayTicks * JOIN_BROADCAST_DELAY_MULTIPLIER),
             this
         );
 
