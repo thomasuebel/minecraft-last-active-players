@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-04-04
+
+### Added
+- Configurable join message delay (`display.join-delay-seconds`, default 10). The
+  last-active list and rank hint are sent after the configured number of seconds so the
+  message appears after join noise has settled. If the player disconnects before the
+  delay expires no message is sent.
+
+### Changed
+- Bukkit framework classes (`LastActivePlayers`, all listeners, `BukkitHeartbeat`) are
+  now excluded from JaCoCo coverage reports, mirroring the existing pitest exclusions.
+
 ## [1.0.2] - 2026-04-03
 
 ### Added
