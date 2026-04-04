@@ -85,7 +85,7 @@ Display name prefixes are applied to the current MVP and streak leader while the
 
 | Node | Default | Description |
 |------|---------|-------------|
-| `lastactiveplayers.use` | everyone | Use `/lastactive` and its player subcommands |
+| `lastactiveplayers.use` | true | Use `/lastactive` and its player subcommands |
 | `lastactiveplayers.admin` | op | Use `/lastactive test` |
 | `lastactiveplayers.mvp` | false | Dynamically granted to the current MVP(s) |
 | `lastactiveplayers.streak.3` | false | Dynamically granted at a 3-day consecutive login streak |
