@@ -53,6 +53,12 @@ public final class SqlitePlayers implements Players {
         )
         """;
 
+    private static final String SELECT_SHIELDS =
+        "SELECT streak_shields FROM players WHERE uuid = ?";
+
+    private static final String UPDATE_SHIELDS =
+        "UPDATE players SET streak_shields = ? WHERE uuid = ?";
+
     private final Database database;
 
     /**
@@ -163,6 +169,31 @@ public final class SqlitePlayers implements Players {
     public void purgeInactiveBefore(final Instant threshold) {
         try (PreparedStatement stmt = this.database.connection().prepareStatement(PURGE)) {
             stmt.setString(1, threshold.toString());
+            stmt.executeUpdate();
+        } catch (final SQLException exception) {
+            throw new DatabaseException(exception);
+        }
+    }
+
+    @Override
+    public int shields(final UUID uuid) {
+        try (PreparedStatement stmt =
+                 this.database.connection().prepareStatement(SELECT_SHIELDS)) {
+            stmt.setString(1, uuid.toString());
+            try (var rs = stmt.executeQuery()) {
+                return rs.next() ? rs.getInt("streak_shields") : 0;
+            }
+        } catch (final SQLException exception) {
+            throw new DatabaseException(exception);
+        }
+    }
+
+    @Override
+    public void storeShields(final UUID uuid, final int count) {
+        try (PreparedStatement stmt =
+                 this.database.connection().prepareStatement(UPDATE_SHIELDS)) {
+            stmt.setInt(1, count);
+            stmt.setString(2, uuid.toString());
             stmt.executeUpdate();
         } catch (final SQLException exception) {
             throw new DatabaseException(exception);

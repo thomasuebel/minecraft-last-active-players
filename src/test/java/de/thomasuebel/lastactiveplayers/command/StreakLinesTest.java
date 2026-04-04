@@ -80,6 +80,15 @@ class StreakLinesTest {
             public void purgeInactiveBefore(final Instant threshold) {
             }
 
+            @Override
+            public int shields(final UUID uuid) {
+                return 0;
+            }
+
+            @Override
+            public void storeShields(final UUID uuid, final int count) {
+            }
+
             private Player noPlayer() {
                 return new Player() {
                     @Override

@@ -1,5 +1,6 @@
 package de.thomasuebel.lastactiveplayers;
 
+import de.thomasuebel.lastactiveplayers.db.AddShieldsColumn;
 import de.thomasuebel.lastactiveplayers.db.Database;
 import de.thomasuebel.lastactiveplayers.db.DatabaseException;
 import de.thomasuebel.lastactiveplayers.db.InitialSchema;
@@ -72,10 +73,11 @@ public final class LastActivePlayers extends JavaPlugin {
     private static final int BSTATS_PLUGIN_ID = 30553;
     private static final int DEFAULT_PURGE_DAYS = 60;
     private static final int DEFAULT_JOIN_DELAY_SECONDS = 10;
-    // Stagger order: t+1*delay = milestone title, t+2*delay = awards, t+3*delay = list.
+    // Stagger order: t+1*delay = milestone title+broadcast, t+2*delay = awards, t+3*delay = list.
     private static final long MILESTONE_BROADCAST_DELAY_MULTIPLIER = 1L;
     private static final long AWARD_BROADCAST_DELAY_MULTIPLIER = 2L;
     private static final long JOIN_BROADCAST_DELAY_MULTIPLIER = 3L;
+    private static final int DEFAULT_MAX_SHIELDS = 3;
     private static final String MSG_RELOADED = "Configuration reloaded.";
     private static final String MSG_RELOAD_FAILED = "Reload failed: invalid display.date-format. "
         + "Check the server console for details.";
@@ -98,7 +100,7 @@ public final class LastActivePlayers extends JavaPlugin {
         try {
             this.database = new SqliteDatabase(
                 getDataFolder().toPath().resolve("lastactiveplayers.db"),
-                new SqliteMigrations(new InitialSchema())
+                new SqliteMigrations(new InitialSchema(), new AddShieldsColumn())
             );
         } catch (final IOException exception) {
             getLogger().severe("Failed to open database: " + exception.getMessage());
@@ -223,6 +225,17 @@ public final class LastActivePlayers extends JavaPlugin {
         final String milestoneTemplate = getConfig().getString(
             "messages.streak-milestone", "\uD83D\uDD25 {player} has reached a {streak}-day streak!"
         );
+        final String milestoneTitleTemplate = getConfig().getString(
+            "messages.streak-milestone-title", "\uD83D\uDD25 {streak}-Day Streak!"
+        );
+        final String milestoneSubtitleTemplate = getConfig().getString(
+            "messages.streak-milestone-subtitle", "A new personal best!"
+        );
+        final int maxShields = getConfig().getInt("streak.max-shields", DEFAULT_MAX_SHIELDS);
+        final String shieldUsedTemplate = getConfig().getString(
+            "messages.streak-shield-used",
+            "\uD83D\uDEE1 Streak protected! ({streak} days) Shields remaining: {shields_remaining}"
+        );
         final String mvpTemplate = getConfig().getString(
             "messages.mvp", "\uD83D\uDC51 Most active player (last 30 days): {player}"
         );
@@ -252,19 +265,14 @@ public final class LastActivePlayers extends JavaPlugin {
         final int joinDelaySeconds =
             getConfig().getInt("display.join-delay-seconds", DEFAULT_JOIN_DELAY_SECONDS);
         final long joinDelayTicks = (long) joinDelaySeconds * TICKS_PER_SECOND;
-        final String milestoneTitleTemplate = getConfig().getString(
-            "messages.streak-milestone-title", "\uD83D\uDD25 {streak}-Day Streak!"
-        );
-        final String milestoneSubtitleTemplate = getConfig().getString(
-            "messages.streak-milestone-subtitle", "A new personal best!"
-        );
 
         getServer().getPluginManager().registerEvents(
             new SessionLifecycle(
                 this.players, this.sessions, this.activeSessions,
                 this.milestones, ZoneId.systemDefault(), milestoneTemplate,
                 this, joinDelayTicks * MILESTONE_BROADCAST_DELAY_MULTIPLIER,
-                milestoneTitleTemplate, milestoneSubtitleTemplate
+                milestoneTitleTemplate, milestoneSubtitleTemplate,
+                maxShields, shieldUsedTemplate
             ),
             this
         );
