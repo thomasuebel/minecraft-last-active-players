@@ -34,8 +34,9 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * <p>On every player join ({@link EventPriority#MONITOR} so streak and session writes
  * are already complete), this listener re-elects the current MVP and Streak Leader,
- * refreshes their permission attachments, updates display name prefixes, and broadcasts
- * both results unconditionally.
+ * refreshes their permission attachments and display name prefixes immediately, then
+ * broadcasts both results after a configurable delay so the message appears after the
+ * initial join noise has settled.
  *
  * <p>On quit, and after each heartbeat flush (via {@link #broadcastIfChanged}), the
  * election is repeated and the results are broadcast only when the set of leaders changed.
@@ -57,6 +58,7 @@ public final class AwardLifecycle implements Listener {
     private final String mvpTieTemplate;
     private final String streakTemplate;
     private final String streakTieTemplate;
+    private final long delayTicks;
     private final Map<UUID, PermissionAttachment> attachments;
     private final AtomicReference<AwardSnapshot> previousSnapshot;
 
@@ -75,6 +77,8 @@ public final class AwardLifecycle implements Listener {
      *                          use {player} and {streak}; never null
      * @param streakTieTemplate broadcast template for tied streak leaders;
      *                          use {players} and {streak}; never null
+     * @param delayTicks        server ticks to wait before broadcasting on join
+     *                          (0 schedules for the next tick)
      */
     public AwardLifecycle(
         final Leaderboard mvpBoard,
@@ -86,7 +90,8 @@ public final class AwardLifecycle implements Listener {
         final String mvpTemplate,
         final String mvpTieTemplate,
         final String streakTemplate,
-        final String streakTieTemplate
+        final String streakTieTemplate,
+        final long delayTicks
     ) {
         this.mvpBoard = mvpBoard;
         this.players = players;
@@ -98,6 +103,7 @@ public final class AwardLifecycle implements Listener {
         this.mvpTieTemplate = mvpTieTemplate;
         this.streakTemplate = streakTemplate;
         this.streakTieTemplate = streakTieTemplate;
+        this.delayTicks = delayTicks;
         this.attachments = new ConcurrentHashMap<>();
         this.previousSnapshot = new AtomicReference<>(new NoAwards());
     }
@@ -115,8 +121,15 @@ public final class AwardLifecycle implements Listener {
         this.previousSnapshot.set(current);
         final Server server = this.plugin.getServer();
         refreshAttachments(server, current);
-        broadcastMvp(server, mvp);
-        broadcastStreak(server, streak);
+        // Broadcasts are deferred so they arrive after the initial join noise. No
+        // isOnline() guard is needed: broadcastMessage targets all currently online
+        // players at dispatch time, so a disconnect before the delay expires simply
+        // means the departed player no longer receives it -- which is the desired
+        // behaviour.
+        this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+            broadcastMvp(server, mvp);
+            broadcastStreak(server, streak);
+        }, this.delayTicks);
     }
 
     /**
