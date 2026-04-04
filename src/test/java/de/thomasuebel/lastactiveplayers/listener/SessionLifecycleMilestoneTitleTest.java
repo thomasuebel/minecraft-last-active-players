@@ -124,8 +124,13 @@ class SessionLifecycleMilestoneTitleTest {
     /**
      * Builds a Bukkit Player proxy whose scheduler runs runnables immediately.
      * Title calls are captured as String[]{title, subtitle}, broadcasts as strings.
+     *
+     * @param online           value returned by {@code isOnline()} when the scheduled task runs
+     * @param titlesCapture    receives one entry per {@code sendTitle} call
+     * @param broadcastsCapture receives one entry per {@code broadcastMessage} call
      */
     private static org.bukkit.entity.Player stubPlayer(
+        final boolean online,
         final List<String[]> titlesCapture,
         final List<String> broadcastsCapture
     ) {
@@ -183,7 +188,7 @@ class SessionLifecycleMilestoneTitleTest {
                 case "getUniqueId": return PLAYER_UUID;
                 case "getName": return PLAYER_NAME;
                 case "getServer": return serverProxy;
-                case "isOnline": return true;
+                case "isOnline": return online;
                 case "sendTitle":
                     if (args != null && args.length >= 2) {
                         titlesCapture.add(new String[]{(String) args[0], (String) args[1]});
@@ -224,7 +229,7 @@ class SessionLifecycleMilestoneTitleTest {
     void sendsTitleAndSubtitleWithTokensSubstitutedWhenMilestoneCrossed() {
         final List<String[]> titles = new ArrayList<>();
         final List<String> broadcasts = new ArrayList<>();
-        final org.bukkit.entity.Player player = stubPlayer(titles, broadcasts);
+        final org.bukkit.entity.Player player = stubPlayer(true, titles, broadcasts);
         final Plugin plugin = stubPlugin(player.getServer());
 
         final Milestones milestones = new StreakMilestones();
@@ -247,7 +252,7 @@ class SessionLifecycleMilestoneTitleTest {
     void skipsEmptyTitleTemplates() {
         final List<String[]> titles = new ArrayList<>();
         final List<String> broadcasts = new ArrayList<>();
-        final org.bukkit.entity.Player player = stubPlayer(titles, broadcasts);
+        final org.bukkit.entity.Player player = stubPlayer(true, titles, broadcasts);
         final Plugin plugin = stubPlugin(player.getServer());
 
         final Milestones milestones = new StreakMilestones();
@@ -268,7 +273,7 @@ class SessionLifecycleMilestoneTitleTest {
     void broadcastsServerMessageAlongsideTitle() {
         final List<String[]> titles = new ArrayList<>();
         final List<String> broadcasts = new ArrayList<>();
-        final org.bukkit.entity.Player player = stubPlayer(titles, broadcasts);
+        final org.bukkit.entity.Player player = stubPlayer(true, titles, broadcasts);
         final Plugin plugin = stubPlugin(player.getServer());
 
         final Milestones milestones = new StreakMilestones();
@@ -285,5 +290,27 @@ class SessionLifecycleMilestoneTitleTest {
         assertEquals(1, broadcasts.size());
         assertTrue(broadcasts.get(0).contains("TestPlayer"));
         assertTrue(broadcasts.get(0).contains("3"));
+    }
+
+    @Test
+    void suppressesTitleWhenPlayerGoesOfflineBeforeDelay() {
+        final List<String[]> titles = new ArrayList<>();
+        final List<String> broadcasts = new ArrayList<>();
+        final org.bukkit.entity.Player player = stubPlayer(false, titles, broadcasts);
+        final Plugin plugin = stubPlugin(player.getServer());
+
+        final Milestones milestones = new StreakMilestones();
+        final SessionLifecycle lifecycle = new SessionLifecycle(
+            stubPlayers(), stubSessions(), stubActiveSessions(),
+            milestones, ZoneId.systemDefault(),
+            "Server: {player} hit a {streak}-day streak!",
+            plugin, DELAY_TICKS,
+            "{streak}-Day Streak!", "You did it!"
+        );
+
+        lifecycle.onJoin(new PlayerJoinEvent(player, ""));
+
+        assertTrue(titles.isEmpty());
+        assertEquals(1, broadcasts.size());
     }
 }
