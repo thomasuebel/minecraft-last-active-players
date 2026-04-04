@@ -1,1 +1,1 @@
-rootProject.name = "minecraft-last-active-players"
+rootProject.name = "last-active-players"
