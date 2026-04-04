@@ -47,10 +47,10 @@ a player who simultaneously crosses a milestone and consumes a shield ends up wi
 that correctly reflects both operations -- without additional database reads, because the shield
 count is tracked in memory throughout the join flow.
 
-### Silent by default
+### Notification on by default, suppressible via config
 
-The award notification (`messages.streak-shield-earned`) is on by default. Operators who prefer
-a quieter experience can set it to `""` to suppress it.
+The award notification (`messages.streak-shield-earned`) is enabled by default. Operators who
+prefer a quieter experience can set it to `""` to suppress it.
 
 ## Consequences
 
