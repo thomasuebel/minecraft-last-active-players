@@ -59,6 +59,19 @@ tasks {
 
     jacocoTestReport {
         dependsOn(test)
+        // Exclude the same Bukkit-framework classes excluded from pitest: thin wiring over
+        // domain objects that cannot be unit-tested without MockBukkit.
+        classDirectories.setFrom(
+            files(classDirectories.files.map {
+                fileTree(it) {
+                    exclude(
+                        "de/thomasuebel/lastactiveplayers/LastActivePlayers.class",
+                        "de/thomasuebel/lastactiveplayers/listener/**",
+                        "de/thomasuebel/lastactiveplayers/session/BukkitHeartbeat.class"
+                    )
+                }
+            })
+        )
         reports {
             xml.required = true
             html.required = true
