@@ -180,6 +180,12 @@ public final class LastActivePlayers extends JavaPlugin {
      * fails the existing listeners and tasks are left intact and an error is reported to
      * the sender.
      *
+     * <p>There is a brief window between {@code HandlerList.unregisterAll} and the
+     * {@code registerEvents} calls inside {@code configure()} during which a
+     * {@code PlayerQuitEvent} will not be captured. Any in-progress session that ends in
+     * this window will be recovered on next startup via the orphan-close logic. Reload is
+     * a synchronous, near-instant operation so the window is negligible in practice.
+     *
      * @param sender the command sender who triggered the reload; never null
      */
     void reload(final CommandSender sender) {
