@@ -35,8 +35,10 @@ import de.thomasuebel.lastactiveplayers.session.SqliteSessions;
 import de.thomasuebel.lastactiveplayers.session.TrackedSession;
 import de.thomasuebel.lastactiveplayers.stats.BStatsStatistics;
 import de.thomasuebel.lastactiveplayers.stats.Statistics;
+import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -73,11 +75,17 @@ public final class LastActivePlayers extends JavaPlugin {
     // The last-active list fires one full delay interval after the award broadcast so
     // the two messages are clearly separated in chat: t+delay = awards, t+2*delay = list.
     private static final long JOIN_BROADCAST_DELAY_MULTIPLIER = 2L;
+    private static final String MSG_RELOADED = "Configuration reloaded.";
+    private static final String MSG_RELOAD_FAILED = "Reload failed: invalid display.date-format. "
+        + "Check the server console for details.";
 
     private Statistics statistics;
     private Database database;
     private Sessions sessions;
+    private Players players;
     private ActiveSessions activeSessions;
+    private Leaderboard mvpBoard;
+    private StreakMilestones milestones;
     private BukkitTask heartbeatTask;
 
     @Override
@@ -85,51 +93,6 @@ public final class LastActivePlayers extends JavaPlugin {
         saveDefaultConfig();
         this.statistics = new BStatsStatistics(this, BSTATS_PLUGIN_ID);
         this.statistics.register();
-        final long heartbeatMinutes =
-            getConfig().getLong("session.heartbeat-interval-minutes", 10L);
-        final String milestoneTemplate = getConfig().getString(
-            "messages.streak-milestone", "\uD83D\uDD25 {player} has reached a {streak}-day streak!"
-        );
-        final String mvpTemplate = getConfig().getString(
-            "messages.mvp", "\uD83D\uDC51 Most active player (last 30 days): {player}"
-        );
-        final String mvpTieTemplate = getConfig().getString(
-            "messages.mvp-tie",
-            "\uD83D\uDC51 {players} are tied for MVP (last 30 days)!"
-        );
-        final String streakTemplate = getConfig().getString(
-            "messages.streak", "\uD83D\uDD25 Longest daily login streak: {player} ({streak} days)"
-        );
-        final String streakTieTemplate = getConfig().getString(
-            "messages.streak-tie",
-            "\uD83D\uDD25 {players} are tied for longest daily login streak ({streak} days)!"
-        );
-        final String mvpPrefix = getConfig().getString("prefix.mvp", "\uD83D\uDC51 ");
-        final String streakPrefix = getConfig().getString("prefix.streak", "\uD83D\uDD25 ");
-        final int listSize = getConfig().getInt("display.list-size", DEFAULT_LIST_SIZE);
-        final String sortMode = getConfig().getString("display.sort", SORT_PLAYTIME);
-        final String dateFormat = getConfig().getString("display.date-format", "yyyy-MM-dd");
-        final String entryTemplate = getConfig().getString(
-            "messages.join-entry",
-            "Last Active: {n}. {player} was here on {date} for {duration}"
-        );
-        final String rankHintTemplate = getConfig().getString(
-            "messages.rank-hint",
-            "You are rank #{rank}. {minutes} more minutes to reach #{next_rank}."
-        );
-        final int joinDelaySeconds =
-            getConfig().getInt("display.join-delay-seconds", DEFAULT_JOIN_DELAY_SECONDS);
-        final long joinDelayTicks = (long) joinDelaySeconds * TICKS_PER_SECOND;
-
-        final DateTimeFormatter dateFormatter;
-        try {
-            dateFormatter = DateTimeFormatter.ofPattern(dateFormat);
-        } catch (final IllegalArgumentException exception) {
-            getLogger().severe("Invalid display.date-format '" + dateFormat
-                + "': " + exception.getMessage());
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
 
         try {
             this.database = new SqliteDatabase(
@@ -142,15 +105,16 @@ public final class LastActivePlayers extends JavaPlugin {
             return;
         }
 
-        final Players players = new SqlitePlayers(this.database);
+        this.players = new SqlitePlayers(this.database);
         this.sessions = new SqliteSessions(this.database);
-
         this.sessions.closeOrphans(Instant.now());
 
         final int purgeInactiveDays =
             getConfig().getInt("data.purge-inactive-days", DEFAULT_PURGE_DAYS);
         try {
-            players.purgeInactiveBefore(Instant.now().minus(purgeInactiveDays, ChronoUnit.DAYS));
+            this.players.purgeInactiveBefore(
+                Instant.now().minus(purgeInactiveDays, ChronoUnit.DAYS)
+            );
             getLogger().info(
                 "Startup purge complete: removed players inactive for more than "
                 + purgeInactiveDays + " days."
@@ -160,73 +124,23 @@ public final class LastActivePlayers extends JavaPlugin {
         }
 
         this.activeSessions = new InMemoryActiveSessions();
-
-        final StreakMilestones milestones = new StreakMilestones();
-        getServer().getPluginManager().registerEvents(
-            new SessionLifecycle(
-                players, this.sessions, this.activeSessions,
-                milestones, ZoneId.systemDefault(), milestoneTemplate
-            ),
-            this
-        );
-
-        final Leaderboard mvpBoard = new SqlitePlaytimeLeaderboard(
+        this.mvpBoard = new SqlitePlaytimeLeaderboard(
             this.database, Clock.systemUTC(), THIRTY_DAYS
         );
-        final AwardLifecycle awardLifecycle = new AwardLifecycle(
-            mvpBoard, players, milestones, this,
-            mvpPrefix, streakPrefix, mvpTemplate, mvpTieTemplate, streakTemplate, streakTieTemplate,
-            joinDelayTicks
-        );
-        getServer().getPluginManager().registerEvents(awardLifecycle, this);
+        this.milestones = new StreakMilestones();
 
-        final Heartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
-        final long intervalTicks = heartbeatMinutes * TICKS_PER_MINUTE;
-        this.heartbeatTask = new BukkitHeartbeat(heartbeat, awardLifecycle::broadcastIfChanged)
-            .runTaskTimer(this, intervalTicks, intervalTicks);
-
-        final Leaderboard displayBoard = SORT_PLAYTIME.equals(sortMode)
-            ? mvpBoard
-            : new SqliteLastLeaveLeaderboard(this.database);
-        final JoinMessage joinMessage = new LeaderboardJoinMessage(
-            displayBoard, listSize, entryTemplate, dateFormatter, ZoneId.systemDefault()
-        );
-        // Rank hint uses minutes-of-playtime arithmetic; only meaningful for playtime sort.
-        final RankHint rankHint = SORT_PLAYTIME.equals(sortMode)
-            ? new LeaderboardRankHint(displayBoard, rankHintTemplate)
-            : new NoRankHint();
-        getServer().getPluginManager().registerEvents(
-            new JoinBroadcast(joinMessage, rankHint, this,
-                joinDelayTicks * JOIN_BROADCAST_DELAY_MULTIPLIER),
-            this
-        );
-
-        final CommandLines list = new LastActiveLines(
-            joinMessage, mvpBoard, players, mvpTemplate, streakTemplate
-        );
-        final CommandLines mvpLines = new MvpLines(mvpBoard, mvpTemplate, mvpTieTemplate);
-        final CommandLines streakLines = new StreakLines(
-            players, streakTemplate, streakTieTemplate
-        );
-        final CommandLines preview = new AwardPreviewLines(
-            mvpBoard, players, mvpPrefix, streakPrefix
-        );
-        final Supplier<Set<UUID>> online = () -> {
-            final Set<UUID> uuids = new HashSet<>();
-            for (final Player p : getServer().getOnlinePlayers()) {
-                uuids.add(p.getUniqueId());
-            }
-            return uuids;
-        };
-        final PluginCommand lastActive = getCommand("lastactive");
-        if (lastActive != null) {
-            lastActive.setExecutor(
-                new LastActiveCommand(list, mvpLines, streakLines, preview, online)
-            );
-        } else {
-            getLogger().severe("/lastactive command not found in plugin.yml");
+        final String dateFormat = getConfig().getString("display.date-format", "yyyy-MM-dd");
+        final DateTimeFormatter dateFormatter;
+        try {
+            dateFormatter = DateTimeFormatter.ofPattern(dateFormat);
+        } catch (final IllegalArgumentException exception) {
+            getLogger().severe("Invalid display.date-format '" + dateFormat
+                + "': " + exception.getMessage());
             getServer().getPluginManager().disablePlugin(this);
+            return;
         }
+
+        configure(dateFormatter);
     }
 
     @Override
@@ -256,6 +170,151 @@ public final class LastActivePlayers extends JavaPlugin {
             } catch (final IOException exception) {
                 getLogger().warning("Error closing database: " + exception.getMessage());
             }
+        }
+    }
+
+    /**
+     * Reloads the plugin configuration without restarting the server.
+     *
+     * <p>Validates the new config before tearing down the existing setup. If validation
+     * fails the existing listeners and tasks are left intact and an error is reported to
+     * the sender.
+     *
+     * <p>There is a brief window between {@code HandlerList.unregisterAll} and the
+     * {@code registerEvents} calls inside {@code configure()} during which a
+     * {@code PlayerQuitEvent} will not be captured. Any in-progress session that ends in
+     * this window will be recovered on next startup via the orphan-close logic. Reload is
+     * a synchronous, near-instant operation so the window is negligible in practice.
+     *
+     * @param sender the command sender who triggered the reload; never null
+     */
+    void reload(final CommandSender sender) {
+        reloadConfig();
+        final String dateFormat = getConfig().getString("display.date-format", "yyyy-MM-dd");
+        final DateTimeFormatter dateFormatter;
+        try {
+            dateFormatter = DateTimeFormatter.ofPattern(dateFormat);
+        } catch (final IllegalArgumentException exception) {
+            getLogger().severe("Reload aborted: invalid display.date-format '"
+                + dateFormat + "': " + exception.getMessage());
+            sender.sendMessage(MSG_RELOAD_FAILED);
+            return;
+        }
+        if (this.heartbeatTask != null) {
+            this.heartbeatTask.cancel();
+        }
+        HandlerList.unregisterAll(this);
+        if (configure(dateFormatter)) {
+            sender.sendMessage(MSG_RELOADED);
+        }
+    }
+
+    /**
+     * Reads all config values and (re-)registers listeners, the heartbeat task, and the
+     * command executor. Called on first enable and on each successful reload.
+     *
+     * @param dateFormatter pre-validated formatter for the {@code display.date-format} value
+     * @return {@code true} if wiring succeeded; {@code false} if the plugin was disabled
+     */
+    private boolean configure(final DateTimeFormatter dateFormatter) {
+        final long heartbeatMinutes =
+            getConfig().getLong("session.heartbeat-interval-minutes", 10L);
+        final String milestoneTemplate = getConfig().getString(
+            "messages.streak-milestone", "\uD83D\uDD25 {player} has reached a {streak}-day streak!"
+        );
+        final String mvpTemplate = getConfig().getString(
+            "messages.mvp", "\uD83D\uDC51 Most active player (last 30 days): {player}"
+        );
+        final String mvpTieTemplate = getConfig().getString(
+            "messages.mvp-tie",
+            "\uD83D\uDC51 {players} are tied for MVP (last 30 days)!"
+        );
+        final String streakTemplate = getConfig().getString(
+            "messages.streak", "\uD83D\uDD25 Longest daily login streak: {player} ({streak} days)"
+        );
+        final String streakTieTemplate = getConfig().getString(
+            "messages.streak-tie",
+            "\uD83D\uDD25 {players} are tied for longest daily login streak ({streak} days)!"
+        );
+        final String mvpPrefix = getConfig().getString("prefix.mvp", "\uD83D\uDC51 ");
+        final String streakPrefix = getConfig().getString("prefix.streak", "\uD83D\uDD25 ");
+        final int listSize = getConfig().getInt("display.list-size", DEFAULT_LIST_SIZE);
+        final String sortMode = getConfig().getString("display.sort", SORT_PLAYTIME);
+        final String entryTemplate = getConfig().getString(
+            "messages.join-entry",
+            "Last Active: {n}. {player} was here on {date} for {duration}"
+        );
+        final String rankHintTemplate = getConfig().getString(
+            "messages.rank-hint",
+            "You are rank #{rank}. {minutes} more minutes to reach #{next_rank}."
+        );
+        final int joinDelaySeconds =
+            getConfig().getInt("display.join-delay-seconds", DEFAULT_JOIN_DELAY_SECONDS);
+        final long joinDelayTicks = (long) joinDelaySeconds * TICKS_PER_SECOND;
+
+        getServer().getPluginManager().registerEvents(
+            new SessionLifecycle(
+                this.players, this.sessions, this.activeSessions,
+                this.milestones, ZoneId.systemDefault(), milestoneTemplate
+            ),
+            this
+        );
+
+        final AwardLifecycle awardLifecycle = new AwardLifecycle(
+            this.mvpBoard, this.players, this.milestones, this,
+            mvpPrefix, streakPrefix, mvpTemplate, mvpTieTemplate, streakTemplate, streakTieTemplate,
+            joinDelayTicks
+        );
+        getServer().getPluginManager().registerEvents(awardLifecycle, this);
+
+        final Heartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
+        final long intervalTicks = heartbeatMinutes * TICKS_PER_MINUTE;
+        this.heartbeatTask = new BukkitHeartbeat(heartbeat, awardLifecycle::broadcastIfChanged)
+            .runTaskTimer(this, intervalTicks, intervalTicks);
+
+        final Leaderboard displayBoard = SORT_PLAYTIME.equals(sortMode)
+            ? this.mvpBoard
+            : new SqliteLastLeaveLeaderboard(this.database);
+        final JoinMessage joinMessage = new LeaderboardJoinMessage(
+            displayBoard, listSize, entryTemplate, dateFormatter, ZoneId.systemDefault()
+        );
+        // Rank hint uses minutes-of-playtime arithmetic; only meaningful for playtime sort.
+        final RankHint rankHint = SORT_PLAYTIME.equals(sortMode)
+            ? new LeaderboardRankHint(displayBoard, rankHintTemplate)
+            : new NoRankHint();
+        getServer().getPluginManager().registerEvents(
+            new JoinBroadcast(joinMessage, rankHint, this,
+                joinDelayTicks * JOIN_BROADCAST_DELAY_MULTIPLIER),
+            this
+        );
+
+        final CommandLines list = new LastActiveLines(
+            joinMessage, this.mvpBoard, this.players, mvpTemplate, streakTemplate
+        );
+        final CommandLines mvpLines = new MvpLines(this.mvpBoard, mvpTemplate, mvpTieTemplate);
+        final CommandLines streakLines = new StreakLines(
+            this.players, streakTemplate, streakTieTemplate
+        );
+        final CommandLines preview = new AwardPreviewLines(
+            this.mvpBoard, this.players, mvpPrefix, streakPrefix
+        );
+        final Supplier<Set<UUID>> online = () -> {
+            final Set<UUID> uuids = new HashSet<>();
+            for (final Player p : getServer().getOnlinePlayers()) {
+                uuids.add(p.getUniqueId());
+            }
+            return uuids;
+        };
+        final PluginCommand lastActive = getCommand("lastactive");
+        if (lastActive != null) {
+            lastActive.setExecutor(
+                new LastActiveCommand(list, mvpLines, streakLines, preview, this::reload, online)
+            );
+            return true;
+        } else {
+            getLogger().severe("/lastactive command not found in plugin.yml");
+            getServer().getPluginManager().disablePlugin(this);
+            return false;
         }
     }
 }

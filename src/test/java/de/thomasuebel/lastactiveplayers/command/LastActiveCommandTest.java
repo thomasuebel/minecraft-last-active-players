@@ -9,8 +9,10 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LastActiveCommandTest {
@@ -63,7 +65,7 @@ class LastActiveCommandTest {
         final CommandLines streak,
         final CommandLines preview
     ) {
-        return new LastActiveCommand(list, mvp, streak, preview, Set::of);
+        return new LastActiveCommand(list, mvp, streak, preview, sender -> { }, Set::of);
     }
 
     @Test
@@ -166,5 +168,46 @@ class LastActiveCommandTest {
             stubSender(false, captured), stubCommand(), "lastactive", new String[]{"streak"}
         );
         assertEquals(List.of("streak"), captured);
+    }
+
+    @Test
+    void reloadSubcommandInvokesReloadActionWithPermission() {
+        final AtomicBoolean reloadCalled = new AtomicBoolean(false);
+        final List<String> captured = new ArrayList<>();
+        final LastActiveCommand cmd = new LastActiveCommand(
+            online -> List.of(),
+            online -> List.of(),
+            online -> List.of(),
+            online -> List.of(),
+            sender -> reloadCalled.set(true),
+            Set::of
+        );
+        final boolean result = cmd.onCommand(
+            stubSender(true, captured), stubCommand(), "lastactive", new String[]{"reload"}
+        );
+        assertTrue(result);
+        assertTrue(reloadCalled.get());
+        assertTrue(captured.isEmpty());
+    }
+
+    @Test
+    void reloadSubcommandSendsPermissionDeniedWithoutPermission() {
+        final AtomicBoolean reloadCalled = new AtomicBoolean(false);
+        final List<String> captured = new ArrayList<>();
+        final LastActiveCommand cmd = new LastActiveCommand(
+            online -> List.of(),
+            online -> List.of(),
+            online -> List.of(),
+            online -> List.of(),
+            sender -> reloadCalled.set(true),
+            Set::of
+        );
+        final boolean result = cmd.onCommand(
+            stubSender(false, captured), stubCommand(), "lastactive", new String[]{"reload"}
+        );
+        assertTrue(result);
+        assertFalse(reloadCalled.get());
+        assertEquals(1, captured.size());
+        assertTrue(captured.get(0).contains("permission"));
     }
 }
