@@ -72,9 +72,10 @@ public final class LastActivePlayers extends JavaPlugin {
     private static final int BSTATS_PLUGIN_ID = 30553;
     private static final int DEFAULT_PURGE_DAYS = 60;
     private static final int DEFAULT_JOIN_DELAY_SECONDS = 10;
-    // The last-active list fires one full delay interval after the award broadcast so
-    // the two messages are clearly separated in chat: t+delay = awards, t+2*delay = list.
-    private static final long JOIN_BROADCAST_DELAY_MULTIPLIER = 2L;
+    // Stagger order: t+1*delay = milestone title, t+2*delay = awards, t+3*delay = list.
+    private static final long MILESTONE_BROADCAST_DELAY_MULTIPLIER = 1L;
+    private static final long AWARD_BROADCAST_DELAY_MULTIPLIER = 2L;
+    private static final long JOIN_BROADCAST_DELAY_MULTIPLIER = 3L;
     private static final String MSG_RELOADED = "Configuration reloaded.";
     private static final String MSG_RELOAD_FAILED = "Reload failed: invalid display.date-format. "
         + "Check the server console for details.";
@@ -251,11 +252,19 @@ public final class LastActivePlayers extends JavaPlugin {
         final int joinDelaySeconds =
             getConfig().getInt("display.join-delay-seconds", DEFAULT_JOIN_DELAY_SECONDS);
         final long joinDelayTicks = (long) joinDelaySeconds * TICKS_PER_SECOND;
+        final String milestoneTitleTemplate = getConfig().getString(
+            "messages.streak-milestone-title", "\uD83D\uDD25 {streak}-Day Streak!"
+        );
+        final String milestoneSubtitleTemplate = getConfig().getString(
+            "messages.streak-milestone-subtitle", "A new personal best!"
+        );
 
         getServer().getPluginManager().registerEvents(
             new SessionLifecycle(
                 this.players, this.sessions, this.activeSessions,
-                this.milestones, ZoneId.systemDefault(), milestoneTemplate
+                this.milestones, ZoneId.systemDefault(), milestoneTemplate,
+                this, joinDelayTicks * MILESTONE_BROADCAST_DELAY_MULTIPLIER,
+                milestoneTitleTemplate, milestoneSubtitleTemplate
             ),
             this
         );
@@ -263,7 +272,7 @@ public final class LastActivePlayers extends JavaPlugin {
         final AwardLifecycle awardLifecycle = new AwardLifecycle(
             this.mvpBoard, this.players, this.milestones, this,
             mvpPrefix, streakPrefix, mvpTemplate, mvpTieTemplate, streakTemplate, streakTieTemplate,
-            joinDelayTicks
+            joinDelayTicks * AWARD_BROADCAST_DELAY_MULTIPLIER
         );
         getServer().getPluginManager().registerEvents(awardLifecycle, this);
 
