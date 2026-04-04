@@ -87,6 +87,15 @@ class SessionLifecycleMilestoneTitleTest {
 
             @Override
             public void purgeInactiveBefore(final Instant threshold) { }
+
+            @Override
+            public int shields(final UUID uuid) {
+                return 0;
+            }
+
+            @Override
+            public void storeShields(final UUID uuid, final int count) {
+            }
         };
     }
 
@@ -246,7 +255,7 @@ class SessionLifecycleMilestoneTitleTest {
             milestones, ZoneId.systemDefault(),
             "Server: {player} hit a {streak}-day streak!",
             plugin, DELAY_TICKS,
-            "{streak}-Day Streak!", "{player} did it!"
+            "{streak}-Day Streak!", "{player} did it!", 3, ""
         );
 
         lifecycle.onJoin(new PlayerJoinEvent(player, ""));
@@ -269,7 +278,7 @@ class SessionLifecycleMilestoneTitleTest {
             milestones, ZoneId.systemDefault(),
             "Server: {player} hit a {streak}-day streak!",
             plugin, DELAY_TICKS,
-            "", ""
+            "", "", 3, ""
         );
 
         lifecycle.onJoin(new PlayerJoinEvent(player, ""));
@@ -290,7 +299,7 @@ class SessionLifecycleMilestoneTitleTest {
             milestones, ZoneId.systemDefault(),
             "Server: {player} hit a {streak}-day streak!",
             plugin, DELAY_TICKS,
-            "{streak}-Day Streak!", ""
+            "{streak}-Day Streak!", "", 3, ""
         );
 
         lifecycle.onJoin(new PlayerJoinEvent(player, ""));
@@ -313,7 +322,7 @@ class SessionLifecycleMilestoneTitleTest {
             milestones, ZoneId.systemDefault(),
             "Server: {player} hit a {streak}-day streak!",
             plugin, DELAY_TICKS,
-            "{streak}-Day Streak!", "You did it!"
+            "{streak}-Day Streak!", "You did it!", 3, ""
         );
 
         lifecycle.onJoin(new PlayerJoinEvent(player, ""));
@@ -377,6 +386,15 @@ class SessionLifecycleMilestoneTitleTest {
 
             @Override
             public void purgeInactiveBefore(final Instant threshold) { }
+
+            @Override
+            public int shields(final UUID uuid) {
+                return 0;
+            }
+
+            @Override
+            public void storeShields(final UUID uuid, final int count) {
+            }
         };
     }
 
@@ -398,7 +416,7 @@ class SessionLifecycleMilestoneTitleTest {
             milestones, ZoneId.systemDefault(),
             "Server: {player} hit a {streak}-day streak!",
             plugin, DELAY_TICKS,
-            "{streak}-Day Streak!", ""
+            "{streak}-Day Streak!", "", 3, ""
         );
 
         lifecycle.onJoin(new PlayerJoinEvent(player, ""));
