@@ -8,12 +8,12 @@ import de.thomasuebel.lastactiveplayers.player.TodayStreak;
 import de.thomasuebel.lastactiveplayers.session.ActiveSessions;
 import de.thomasuebel.lastactiveplayers.session.Sessions;
 import de.thomasuebel.lastactiveplayers.session.TrackedSession;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.Plugin;
 
 import java.time.Duration;
 import java.time.Instant;
