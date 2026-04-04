@@ -57,30 +57,67 @@ class LastActiveCommandTest {
         };
     }
 
+    private static LastActiveCommand command(
+        final CommandLines list,
+        final CommandLines mvp,
+        final CommandLines streak,
+        final CommandLines preview
+    ) {
+        return new LastActiveCommand(list, mvp, streak, preview, Set::of);
+    }
+
     @Test
     void sendsListLinesForBaseCommand() {
         final List<String> captured = new ArrayList<>();
-        final LastActiveCommand cmd = new LastActiveCommand(
+        final boolean result = command(
             online -> List.of("line1", "line2"),
-            online -> List.of("preview"),
-            Set::of
-        );
-        final boolean result = cmd.onCommand(
-            stubSender(false, captured), stubCommand(), "lastactive", new String[0]
-        );
+            online -> List.of(),
+            online -> List.of(),
+            online -> List.of()
+        ).onCommand(stubSender(false, captured), stubCommand(), "lastactive", new String[0]);
         assertTrue(result);
         assertEquals(List.of("line1", "line2"), captured);
     }
 
     @Test
+    void sendsMvpLinesForMvpSubcommand() {
+        final List<String> captured = new ArrayList<>();
+        final boolean result = command(
+            online -> List.of(),
+            online -> List.of("mvp-line"),
+            online -> List.of(),
+            online -> List.of()
+        ).onCommand(
+            stubSender(false, captured), stubCommand(), "lastactive", new String[]{"mvp"}
+        );
+        assertTrue(result);
+        assertEquals(List.of("mvp-line"), captured);
+    }
+
+    @Test
+    void sendsStreakLinesForStreakSubcommand() {
+        final List<String> captured = new ArrayList<>();
+        final boolean result = command(
+            online -> List.of(),
+            online -> List.of(),
+            online -> List.of("streak-line"),
+            online -> List.of()
+        ).onCommand(
+            stubSender(false, captured), stubCommand(), "lastactive", new String[]{"streak"}
+        );
+        assertTrue(result);
+        assertEquals(List.of("streak-line"), captured);
+    }
+
+    @Test
     void sendsPreviewLinesForTestSubcommandWithPermission() {
         final List<String> captured = new ArrayList<>();
-        final LastActiveCommand cmd = new LastActiveCommand(
-            online -> List.of("list"),
-            online -> List.of("preview1", "preview2"),
-            Set::of
-        );
-        final boolean result = cmd.onCommand(
+        final boolean result = command(
+            online -> List.of(),
+            online -> List.of(),
+            online -> List.of(),
+            online -> List.of("preview1", "preview2")
+        ).onCommand(
             stubSender(true, captured), stubCommand(), "lastactive", new String[]{"test"}
         );
         assertTrue(result);
@@ -90,16 +127,44 @@ class LastActiveCommandTest {
     @Test
     void sendsPermissionDeniedForTestSubcommandWithoutPermission() {
         final List<String> captured = new ArrayList<>();
-        final LastActiveCommand cmd = new LastActiveCommand(
+        final boolean result = command(
             online -> List.of(),
             online -> List.of(),
-            Set::of
-        );
-        final boolean result = cmd.onCommand(
+            online -> List.of(),
+            online -> List.of()
+        ).onCommand(
             stubSender(false, captured), stubCommand(), "lastactive", new String[]{"test"}
         );
         assertTrue(result);
         assertEquals(1, captured.size());
         assertTrue(captured.get(0).contains("permission"));
+    }
+
+    @Test
+    void mvpSubcommandRequiresNoPermission() {
+        final List<String> captured = new ArrayList<>();
+        command(
+            online -> List.of(),
+            online -> List.of("mvp"),
+            online -> List.of(),
+            online -> List.of()
+        ).onCommand(
+            stubSender(false, captured), stubCommand(), "lastactive", new String[]{"mvp"}
+        );
+        assertEquals(List.of("mvp"), captured);
+    }
+
+    @Test
+    void streakSubcommandRequiresNoPermission() {
+        final List<String> captured = new ArrayList<>();
+        command(
+            online -> List.of(),
+            online -> List.of(),
+            online -> List.of("streak"),
+            online -> List.of()
+        ).onCommand(
+            stubSender(false, captured), stubCommand(), "lastactive", new String[]{"streak"}
+        );
+        assertEquals(List.of("streak"), captured);
     }
 }

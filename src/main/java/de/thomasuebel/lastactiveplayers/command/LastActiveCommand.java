@@ -9,21 +9,22 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 /**
- * Handles the {@code /lastactive} command and its {@code test} subcommand.
+ * Handles the {@code /lastactive} command and its subcommands.
  *
- * <p>The base command is available to any {@link CommandSender} (players and console) and
- * shows the last-active player list plus the current MVP and streak leader. The {@code test}
- * subcommand is gated behind the {@code lastactiveplayers.admin} permission (which defaults to
- * op in {@code plugin.yml}); using a named permission node rather than a literal {@link
- * CommandSender#isOp()} check allows server operators to delegate the permission via a
- * permissions plugin if desired.
+ * <p>The base command and the {@code mvp} and {@code streak} subcommands are available to
+ * any {@link CommandSender}. The {@code test} subcommand is gated behind the
+ * {@code lastactiveplayers.admin} permission (which defaults to op in {@code plugin.yml}).
  */
 public final class LastActiveCommand implements CommandExecutor {
 
+    private static final String SUBCOMMAND_MVP = "mvp";
+    private static final String SUBCOMMAND_STREAK = "streak";
     private static final String SUBCOMMAND_TEST = "test";
     private static final String PERM_ADMIN = "lastactiveplayers.admin";
 
     private final CommandLines list;
+    private final CommandLines mvp;
+    private final CommandLines streak;
     private final CommandLines preview;
     private final Supplier<Set<UUID>> online;
 
@@ -31,13 +32,21 @@ public final class LastActiveCommand implements CommandExecutor {
      * Constructs the command handler.
      *
      * @param list    the lines to show for the base command; never null
+     * @param mvp     the lines to show for the {@code mvp} subcommand; never null
+     * @param streak  the lines to show for the {@code streak} subcommand; never null
      * @param preview the lines to show for the {@code test} subcommand; never null
      * @param online  supplies the current set of online player UUIDs on each invocation; never null
      */
     public LastActiveCommand(
-        final CommandLines list, final CommandLines preview, final Supplier<Set<UUID>> online
+        final CommandLines list,
+        final CommandLines mvp,
+        final CommandLines streak,
+        final CommandLines preview,
+        final Supplier<Set<UUID>> online
     ) {
         this.list = list;
+        this.mvp = mvp;
+        this.streak = streak;
         this.preview = preview;
         this.online = online;
     }
@@ -59,7 +68,11 @@ public final class LastActiveCommand implements CommandExecutor {
         final String[] args
     ) {
         final CommandLines response;
-        if (args.length > 0 && SUBCOMMAND_TEST.equals(args[0])) {
+        if (args.length > 0 && SUBCOMMAND_MVP.equals(args[0])) {
+            response = this.mvp;
+        } else if (args.length > 0 && SUBCOMMAND_STREAK.equals(args[0])) {
+            response = this.streak;
+        } else if (args.length > 0 && SUBCOMMAND_TEST.equals(args[0])) {
             if (!sender.hasPermission(PERM_ADMIN)) {
                 sender.sendMessage("You do not have permission to use this subcommand.");
                 return true;
