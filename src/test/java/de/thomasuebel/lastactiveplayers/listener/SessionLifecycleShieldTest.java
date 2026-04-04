@@ -317,6 +317,24 @@ class SessionLifecycleShieldTest {
     }
 
     @Test
+    void shieldConsumedAndMilestoneCrossedInSameLogin() {
+        // streak=6, last=2 days ago (gap=2), 1 shield available
+        // shield consumed (-1), shielded streak→7 crosses milestone 7, award +1 → net = 1
+        final AtomicInteger shields = new AtomicInteger();
+        final de.thomasuebel.lastactiveplayers.player.Players players =
+            stubPlayers(6, TWO_DAYS, 1, shields);
+        final List<String> messages = new ArrayList<>();
+        final org.bukkit.entity.Player player = stubBukkitPlayer(messages);
+        final Plugin plugin = stubPlugin(player.getServer());
+
+        lifecycle(players, plugin).onJoin(new PlayerJoinEvent(player, ""));
+
+        assertEquals(1, shields.get());
+        assertEquals(1, messages.size());
+        assertEquals("Shield used! Streak: 7. Remaining: 1", messages.get(0));
+    }
+
+    @Test
     void shieldsNotExceedingMaxOnAward() {
         final AtomicInteger shields = new AtomicInteger();
         // Already at max (3), crossing milestone 7 should not increase beyond 3
