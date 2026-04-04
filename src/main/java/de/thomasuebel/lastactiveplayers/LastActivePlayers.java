@@ -73,6 +73,7 @@ public final class LastActivePlayers extends JavaPlugin {
     private static final int DEFAULT_PURGE_DAYS = 60;
     private static final int DEFAULT_JOIN_DELAY_SECONDS = 10;
     // Stagger order: t+1*delay = milestone title, t+2*delay = awards, t+3*delay = list.
+    private static final long MILESTONE_BROADCAST_DELAY_MULTIPLIER = 1L;
     private static final long AWARD_BROADCAST_DELAY_MULTIPLIER = 2L;
     private static final long JOIN_BROADCAST_DELAY_MULTIPLIER = 3L;
     private static final String MSG_RELOADED = "Configuration reloaded.";
@@ -262,7 +263,7 @@ public final class LastActivePlayers extends JavaPlugin {
             new SessionLifecycle(
                 this.players, this.sessions, this.activeSessions,
                 this.milestones, ZoneId.systemDefault(), milestoneTemplate,
-                this, joinDelayTicks,
+                this, joinDelayTicks * MILESTONE_BROADCAST_DELAY_MULTIPLIER,
                 milestoneTitleTemplate, milestoneSubtitleTemplate
             ),
             this
