@@ -182,7 +182,7 @@ public final class LastActivePlayers extends JavaPlugin {
      *
      * @param sender the command sender who triggered the reload; never null
      */
-    public void reload(final CommandSender sender) {
+    void reload(final CommandSender sender) {
         reloadConfig();
         final String dateFormat = getConfig().getString("display.date-format", "yyyy-MM-dd");
         final DateTimeFormatter dateFormatter;
