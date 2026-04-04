@@ -24,6 +24,11 @@ messages:
   rank-hint: "You are rank #{rank}. {minutes} more minutes to reach #{next_rank}."
   # Milestone streak broadcast. Tokens: {player}, {streak}
   streak-milestone: "🔥 {player} has reached a {streak}-day login streak!"
+  # Full-screen title shown to the achieving player on a streak milestone. Tokens: {player}, {streak}
+  # Set to "" to disable.
+  streak-milestone-title: "🔥 {streak}-Day Streak!"
+  # Subtitle shown below the milestone title. Tokens: {player}, {streak}. Set to "" to disable.
+  streak-milestone-subtitle: "A new personal best!"
 
 prefix:
   # Display name prefix applied to the current MVP.
