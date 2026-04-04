@@ -67,12 +67,13 @@ Plugin ID: 30553
 ## Development Standards
 
 - Build: Gradle (gradlew), Java 21 (sdkman)
-- Commits: atomic, grouped by intent
+- Commits: atomic, grouped by intent; review-fix commits are also atomic, one commit per finding addressed
+- PRs: never squash; merge commit preserves the full commit history of the branch
 - TDD: red then green then commit; tests written before behaviour
 - Mutation testing: PIT (pitest) on every feature branch
 - DI over mocking: dependency injection for testability; avoid Mockito for internal seams
 - Branches and MRs: all features on branches, merged via pull request
-- Code review: sub-agent acting as principal software engineer reviews every feature
+- Code review: sub-agent acting as principal software engineer reviews every feature; spawn immediately after PR creation, before moving to next task
 - ADRs: every architecture decision documented after Nygard in docs/adr/
 - Linting: Checkstyle with Google Java Style; no magic numbers; no magic strings
 - Coverage: 70-90% line coverage (JaCoCo)
