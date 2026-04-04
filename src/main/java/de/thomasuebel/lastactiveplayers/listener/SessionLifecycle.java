@@ -43,8 +43,11 @@ import java.util.UUID;
 public final class SessionLifecycle implements Listener {
 
     private static final long MILLIS_PER_TICK = 50L;
+    /** Title fade-in: 0.5 s (gives the chat log time to settle before the title appears). */
     private static final int TITLE_FADE_IN_TICKS = 10;
+    /** Title stay: 3.5 s, long enough to read a short milestone message comfortably. */
     private static final int TITLE_STAY_TICKS = 70;
+    /** Title fade-out: 1.0 s. */
     private static final int TITLE_FADE_OUT_TICKS = 20;
     /** Gap (today minus last-login in calendar days) that represents exactly one missed day. */
     private static final long SHIELD_BRIDGE_GAP = 2L;
