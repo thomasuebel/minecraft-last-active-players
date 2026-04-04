@@ -7,8 +7,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.plugin.Plugin;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -19,21 +22,36 @@ import java.util.UUID;
  * <p>The join list excludes all currently online players so only offline activity is
  * shown. The rank hint excludes all online players except the joiner so that the joiner's
  * own historical play time is visible in the ranking.
+ *
+ * <p>The message is delivered after a configurable delay (in server ticks) so that it
+ * appears after the initial join noise has settled. If the player disconnects before the
+ * delay expires, no message is sent.
  */
 public final class JoinBroadcast implements Listener {
 
     private final JoinMessage joinMessage;
     private final RankHint rankHint;
+    private final Plugin plugin;
+    private final long delayTicks;
 
     /**
      * Constructs a join broadcast listener.
      *
      * @param joinMessage the last-active player list to send to the joining player; never null
      * @param rankHint    the rank hint to send to the joining player; never null
+     * @param plugin      the plugin used to schedule the delayed send; never null
+     * @param delayTicks  server ticks to wait before sending (0 schedules for the next tick)
      */
-    public JoinBroadcast(final JoinMessage joinMessage, final RankHint rankHint) {
+    public JoinBroadcast(
+        final JoinMessage joinMessage,
+        final RankHint rankHint,
+        final Plugin plugin,
+        final long delayTicks
+    ) {
         this.joinMessage = joinMessage;
         this.rankHint = rankHint;
+        this.plugin = plugin;
+        this.delayTicks = delayTicks;
     }
 
     /**
@@ -48,9 +66,16 @@ public final class JoinBroadcast implements Listener {
         for (final Player p : player.getServer().getOnlinePlayers()) {
             online.add(p.getUniqueId());
         }
-        for (final String line : this.joinMessage.lines(online)) {
-            player.sendMessage(line);
-        }
-        this.rankHint.text(player.getUniqueId(), online).ifPresent(player::sendMessage);
+        final List<String> lines = this.joinMessage.lines(online);
+        final Optional<String> hint = this.rankHint.text(player.getUniqueId(), online);
+        this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+            if (!player.isOnline()) {
+                return;
+            }
+            for (final String line : lines) {
+                player.sendMessage(line);
+            }
+            hint.ifPresent(player::sendMessage);
+        }, this.delayTicks);
     }
 }
