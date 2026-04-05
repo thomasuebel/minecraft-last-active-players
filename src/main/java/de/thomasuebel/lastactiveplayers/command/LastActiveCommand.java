@@ -19,6 +19,7 @@ import java.util.function.Supplier;
  */
 public final class LastActiveCommand implements CommandExecutor {
 
+    private static final String SUBCOMMAND_HELP = "help";
     private static final String SUBCOMMAND_MVP = "mvp";
     private static final String SUBCOMMAND_STREAK = "streak";
     private static final String SUBCOMMAND_RELOAD = "reload";
@@ -79,7 +80,9 @@ public final class LastActiveCommand implements CommandExecutor {
         final String label,
         final String[] args
     ) {
-        if (args.length > 0 && SUBCOMMAND_MVP.equals(args[0])) {
+        if (args.length > 0 && SUBCOMMAND_HELP.equals(args[0])) {
+            return false;
+        } else if (args.length > 0 && SUBCOMMAND_MVP.equals(args[0])) {
             for (final String line : this.mvp.lines(this.online.get())) {
                 sender.sendMessage(line);
             }

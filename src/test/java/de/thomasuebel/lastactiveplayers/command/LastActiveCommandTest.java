@@ -171,6 +171,21 @@ class LastActiveCommandTest {
     }
 
     @Test
+    void returnsHelpUsageForHelpSubcommand() {
+        final List<String> captured = new ArrayList<>();
+        final boolean result = command(
+            online -> List.of("list"),
+            online -> List.of(),
+            online -> List.of(),
+            online -> List.of()
+        ).onCommand(
+            stubSender(false, captured), stubCommand(), "lastactive", new String[]{"help"}
+        );
+        assertFalse(result);
+        assertTrue(captured.isEmpty());
+    }
+
+    @Test
     void reloadSubcommandInvokesReloadActionWithPermission() {
         final AtomicBoolean reloadCalled = new AtomicBoolean(false);
         final List<String> captured = new ArrayList<>();
