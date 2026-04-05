@@ -302,7 +302,7 @@ public final class LastActivePlayers extends JavaPlugin {
             .runTaskTimer(this, intervalTicks, intervalTicks);
 
         final DateLabel dateLabel = new RelativeDateLabel(
-            Clock.systemUTC(), ZoneId.systemDefault(),
+            Clock.systemDefaultZone(), ZoneId.systemDefault(),
             dateLabelToday, dateLabelYesterday, dateLabelDaysAgo,
             dateFormatter.withZone(ZoneId.systemDefault())
         );
