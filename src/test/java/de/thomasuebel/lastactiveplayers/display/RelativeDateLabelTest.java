@@ -56,6 +56,13 @@ class RelativeDateLabelTest {
     }
 
     @Test
+    void returnsTodayForFutureInstant() {
+        // Clock skew or a session heartbeat written after a server clock correction
+        // could produce an instant in the future; must not silently return a future date.
+        assertEquals(TODAY, label().text(Instant.parse("2026-04-06T06:00:00Z")));
+    }
+
+    @Test
     void daysBoundaryRespectsTimezone() {
         // 23:30 UTC on the 4th is still "yesterday" in UTC
         assertEquals(YESTERDAY, label().text(Instant.parse("2026-04-04T23:30:00Z")));

@@ -57,7 +57,7 @@ public final class RelativeDateLabel implements DateLabel {
         final LocalDate date = LocalDate.ofInstant(instant, this.zone);
         final LocalDate now = LocalDate.ofInstant(Instant.now(this.clock), this.zone);
         final long days = ChronoUnit.DAYS.between(date, now);
-        if (days == 0) {
+        if (days <= 0) {
             return this.today;
         }
         if (days == 1) {
