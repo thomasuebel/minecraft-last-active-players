@@ -136,6 +136,32 @@ class SqliteLastLeaveLeaderboardTest {
     }
 
     @Test
+    void limitIsAppliedAfterExclusionSoExcludedPlayersDoNotConsumeLimitSlots() {
+        // Three players: Alice (most recent), Bob, Carol. Alice is online (excluded).
+        // Requesting top(2) must return Bob and Carol, not just Bob.
+        final UUID carolUuid = UUID.randomUUID();
+        this.players.upsert(carolUuid, "Carol");
+        final Instant leaveCarol = Instant.parse("2026-03-08T11:00:00Z");
+
+        final long aliceId = sessions.open(aliceUuid, JOIN_ALICE);
+        sessions.heartbeat(aliceId, LEAVE_ALICE, ONE_HOUR_SECONDS);
+        sessions.close(aliceId, LEAVE_ALICE);
+        final long bobId = sessions.open(bobUuid, JOIN_BOB);
+        sessions.heartbeat(bobId, LEAVE_BOB, ONE_HOUR_SECONDS);
+        sessions.close(bobId, LEAVE_BOB);
+        final long carolId = sessions.open(carolUuid, Instant.parse("2026-03-08T10:00:00Z"));
+        sessions.heartbeat(carolId, leaveCarol, ONE_HOUR_SECONDS);
+        sessions.close(carolId, leaveCarol);
+
+        final Leaderboard board = new SqliteLastLeaveLeaderboard(this.db, CLOCK, THIRTY_DAYS);
+        final List<LeaderboardEntry> top = board.top(2, Set.of(aliceUuid));
+
+        assertEquals(2, top.size());
+        assertEquals(bobUuid, top.get(0).uuid());
+        assertEquals(carolUuid, top.get(1).uuid());
+    }
+
+    @Test
     void totalSecondsCountsOnlySessionsWithinRollingWindow() {
         // Alice has one session inside the window (1h) and one outside (2h).
         // totalSeconds must reflect only the inside session.
