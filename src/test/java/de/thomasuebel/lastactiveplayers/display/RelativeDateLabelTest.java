@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
@@ -66,5 +67,20 @@ class RelativeDateLabelTest {
     void daysBoundaryRespectsTimezone() {
         // 23:30 UTC on the 4th is still "yesterday" in UTC
         assertEquals(YESTERDAY, label().text(Instant.parse("2026-04-04T23:30:00Z")));
+    }
+
+    @Test
+    void daysBoundaryDiffersAcrossTimezones() {
+        // 00:30 UTC on the 5th is still the 4th in America/New_York (EDT, UTC-4).
+        // In UTC the same instant is "today"; in New York it must be "yesterday".
+        final ZoneId newYork = ZoneId.of("America/New_York");
+        final Clock clock = Clock.fixed(NOW, newYork);
+        final DateTimeFormatter fallback =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(newYork);
+        final DateLabel nyLabel =
+            new RelativeDateLabel(clock, newYork, TODAY, YESTERDAY, DAYS_AGO, fallback);
+
+        assertEquals(TODAY, label().text(Instant.parse("2026-04-05T00:30:00Z")));
+        assertEquals(YESTERDAY, nyLabel.text(Instant.parse("2026-04-05T00:30:00Z")));
     }
 }
