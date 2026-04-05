@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-04-05
+
+### Added
+- `/lastactive help` subcommand: returns Bukkit's built-in usage line
+  (`/lastactive [help|mvp|streak|reload|test]`) instead of silently showing the player list.
+
+### Fixed
+- The join list was sorted by 30-day playtime when `display.sort: playtime` was set (the
+  default), which did not match player expectation of "who was last online". The sort option
+  has been removed; the list now always sorts by most recent leave time.
+- The playtime rank hint was tied to the sort mode and was suppressed when sort was not
+  `playtime`. It is now always shown on join, backed independently by the 30-day playtime
+  leaderboard regardless of display order.
+
+### Removed
+- `display.sort` config key. Existing `config.yml` files that contain this key will have it
+  silently ignored on reload.
+
 ## [1.0.4] - 2026-04-04
 
 ### Added

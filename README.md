@@ -46,7 +46,6 @@ Apply changes without restarting by running `/lastactive reload` (requires `last
 | Key | Default | Description |
 |-----|---------|-------------|
 | `display.list-size` | `3` | Number of offline players listed on join and via `/lastactive` |
-| `display.sort` | `playtime` | Sort order: `playtime` (30-day total, descending) or `last_leave` (most recent first) |
 | `display.date-format` | `yyyy-MM-dd` | Date format for `{date}` token; any [Java DateTimeFormatter](https://docs.oracle.com/en/java/docs/api/java.base/java/time/format/DateTimeFormatter.html) pattern |
 | `display.join-delay-seconds` | `10` | Stagger delay in seconds. Milestone broadcasts fire at 1x this value, MVP/streak at 2x, and the last-active list at 3x. Set to `0` for next-tick delivery. |
 
@@ -59,7 +58,7 @@ Apply changes without restarting by running `/lastactive reload` (requires `last
 | `messages.mvp-tie` | `{players}` | Broadcast when two or more players are tied for MVP |
 | `messages.streak` | `{player}`, `{streak}` | Broadcast when a single streak leader is elected on join |
 | `messages.streak-tie` | `{players}`, `{streak}` | Broadcast when two or more players are tied for streak leader |
-| `messages.rank-hint` | `{rank}`, `{next_rank}`, `{minutes}` | Private hint sent only to the joining player (only shown when `display.sort` is `playtime`; online players are excluded from the ranking) |
+| `messages.rank-hint` | `{rank}`, `{next_rank}`, `{minutes}` | Private hint sent only to the joining player based on their 30-day playtime rank; online players are excluded from the ranking |
 | `messages.streak-milestone` | `{player}`, `{streak}` | Broadcast to all players when a streak milestone (3/7/14/30/60 days) is newly reached |
 | `messages.streak-milestone-title` | `{player}`, `{streak}` | Full-screen title shown to the achieving player at a new milestone. Set to `""` to disable. |
 | `messages.streak-milestone-subtitle` | `{player}`, `{streak}` | Subtitle shown below the milestone title. Set to `""` to disable. |
@@ -93,6 +92,7 @@ Display name prefixes are applied to the current MVP and streak leader while the
 | Command | Who | Description |
 |---------|-----|-------------|
 | `/lastactive` | Everyone | Shows the last-active player list, current MVP, and streak leader |
+| `/lastactive help` | Everyone | Shows command usage |
 | `/lastactive mvp` | Everyone | Shows the current MVP (or tied MVPs) |
 | `/lastactive streak` | Everyone | Shows the current streak leader(s) |
 | `/lastactive test` | Ops (`lastactiveplayers.admin`) | Previews how MVP and streak leader display names look in chat |
@@ -172,8 +172,7 @@ Check the server log for a line containing `SEVERE` and `[LastActivePlayers]`. I
 
 - Confirm at least one player has session data: run `/lastactive` and check whether the list is
   populated.
-- If `display.sort` is set to `last_leave`, the rank hint is suppressed (it is only meaningful
-  for playtime sorting); the MVP/streak broadcast is unaffected.
+- Confirm the server has been running long enough for at least one player to have session data.
 
 **Display name prefixes are not showing**
 
