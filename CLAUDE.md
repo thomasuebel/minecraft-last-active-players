@@ -28,7 +28,7 @@ A milestone broadcast fires to all online players when a streak is newly reached
 |-----|---------|-------------|
 | `display.list-size` | `3` | Number of last-active players shown on join |
 | `display.date-format` | `yyyy-MM-dd` | Java DateTimeFormatter pattern for {date} |
-| `messages.join-entry` | `"Last Active players: {n}. {player} was here on {date} for {duration}"` | Per-player line |
+| `messages.join-entry` | `"Last Active: {n}. {player} was last seen on {date} ({duration} last 30 days)"` | Per-player line; `{duration}` is rolling 30-day playtime |
 | `messages.mvp` | `"[Crown] Most active player (last 30 days): {player}"` | MVP broadcast |
 | `messages.streak` | `"[Fire] Longest daily login streak: {player} ({streak} days)"` | Streak broadcast |
 | `messages.rank-hint` | `"You are rank #{rank}. {minutes} more minutes to reach #{next_rank}."` | Private hint to joining player based on 30-day playtime rank |

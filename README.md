@@ -8,7 +8,7 @@ members of your community.
 
 ## Features
 
-- On join, lists the last N offline players with their last visit date and session duration.
+- On join, lists the last N offline players with their last visit date and their playtime in the rolling 30-day window.
 - Shows the joining player their current rank and how many minutes of playtime until the next rank.
 - Broadcasts the **MVP** -- the player with the most total playtime in the last 30 days.
 - Broadcasts the **Streak Leader** -- the player with the longest consecutive daily login streak.
@@ -53,7 +53,7 @@ Apply changes without restarting by running `/lastactive reload` (requires `last
 
 | Key | Available tokens | Description |
 |-----|-----------------|-------------|
-| `messages.join-entry` | `{n}`, `{player}`, `{date}`, `{duration}` | One line per player in the last-active list |
+| `messages.join-entry` | `{n}`, `{player}`, `{date}`, `{duration}` | One line per player in the last-active list; `{duration}` is the player's playtime in the rolling 30-day window (zero if they have not played in the last 30 days) |
 | `messages.mvp` | `{player}` | Broadcast when a single MVP is elected on join |
 | `messages.mvp-tie` | `{players}` | Broadcast when two or more players are tied for MVP |
 | `messages.streak` | `{player}`, `{streak}` | Broadcast when a single streak leader is elected on join |
