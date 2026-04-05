@@ -46,14 +46,17 @@ Apply changes without restarting by running `/lastactive reload` (requires `last
 | Key | Default | Description |
 |-----|---------|-------------|
 | `display.list-size` | `3` | Number of offline players listed on join and via `/lastactive` |
-| `display.date-format` | `yyyy-MM-dd` | Date format for `{date}` token; any [Java DateTimeFormatter](https://docs.oracle.com/en/java/docs/api/java.base/java/time/format/DateTimeFormatter.html) pattern |
+| `display.date-format` | `yyyy-MM-dd` | Fallback date format for `{date}` when the date is more than 6 days ago; any [Java DateTimeFormatter](https://docs.oracle.com/en/java/docs/api/java.base/java/time/format/DateTimeFormatter.html) pattern |
 | `display.join-delay-seconds` | `10` | Stagger delay in seconds. Milestone broadcasts fire at 1x this value, MVP/streak at 2x, and the last-active list at 3x. Set to `0` for next-tick delivery. |
 
 ### Messages
 
 | Key | Available tokens | Description |
 |-----|-----------------|-------------|
-| `messages.join-entry` | `{n}`, `{player}`, `{date}`, `{duration}` | One line per player in the last-active list; `{duration}` is the player's playtime in the rolling 30-day window (zero if they have not played in the last 30 days) |
+| `messages.join-entry` | `{n}`, `{player}`, `{date}`, `{duration}` | One line per player in the last-active list; `{duration}` is the player's playtime in the rolling 30-day window (zero if they have not played in the last 30 days); `{date}` uses relative labels for the last 6 days (see below) |
+| `messages.date-today` | — | `{date}` label when the player left today. Default: `today` |
+| `messages.date-yesterday` | — | `{date}` label when the player left yesterday. Default: `yesterday` |
+| `messages.date-days-ago` | `{days}` | `{date}` label for 2–6 days ago. Default: `{days} days ago` |
 | `messages.mvp` | `{player}` | Broadcast when a single MVP is elected on join |
 | `messages.mvp-tie` | `{players}` | Broadcast when two or more players are tied for MVP |
 | `messages.streak` | `{player}`, `{streak}` | Broadcast when a single streak leader is elected on join |
