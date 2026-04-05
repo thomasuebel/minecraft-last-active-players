@@ -2,10 +2,6 @@ package de.thomasuebel.lastactiveplayers.display;
 
 import de.thomasuebel.lastactiveplayers.ranking.LeaderboardEntry;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-
 /**
  * Package-private value object that formats a single last-active player entry line by
  * replacing template tokens with values from a {@link LeaderboardEntry}.
@@ -23,26 +19,23 @@ final class JoinEntryLine {
     private final LeaderboardEntry entry;
     private final int rank;
     private final String template;
-    private final DateTimeFormatter formatter;
-    private final ZoneId zone;
+    private final DateLabel dateLabel;
 
     JoinEntryLine(
         final LeaderboardEntry entry,
         final int rank,
         final String template,
-        final DateTimeFormatter formatter,
-        final ZoneId zone
+        final DateLabel dateLabel
     ) {
         this.entry = entry;
         this.rank = rank;
         this.template = template;
-        this.formatter = formatter;
-        this.zone = zone;
+        this.dateLabel = dateLabel;
     }
 
     String text() {
         final String date = this.entry.lastLeave()
-            .map(instant -> LocalDate.ofInstant(instant, this.zone).format(this.formatter))
+            .map(this.dateLabel::text)
             .orElse("");
         return this.template
             .replace(TOKEN_N, String.valueOf(this.rank))
