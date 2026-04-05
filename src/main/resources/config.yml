@@ -1,8 +1,6 @@
 display:
   # Number of last-active players listed on join and via /lastactive.
   list-size: 3
-  # Sort order for the player list. Options: playtime, last_leave
-  sort: playtime
   # Date format for {date} token. Uses Java DateTimeFormatter patterns.
   date-format: "yyyy-MM-dd"
   # Delay in seconds before the join message is sent to the joining player (0 = next tick).
@@ -21,8 +19,8 @@ messages:
   streak: "[Fire] Longest daily login streak: {player} ({streak} days)"
   # Streak tie broadcast message. Tokens: {players} (comma-separated list), {streak}
   streak-tie: "[Fire] {players} are tied for longest daily login streak ({streak} days)!"
-  # Private rank hint sent to the joining player. Tokens: {rank}, {minutes}, {next_rank}
-  # Only shown when display.sort is playtime. Online players are excluded from the ranking.
+  # Private rank hint sent to the joining player based on 30-day playtime ranking.
+  # Tokens: {rank}, {minutes}, {next_rank}
   rank-hint: "You are rank #{rank}. {minutes} more minutes to reach #{next_rank}."
   # Milestone streak broadcast. Tokens: {player}, {streak}
   streak-milestone: "[Fire] {player} has reached a {streak}-day login streak!"

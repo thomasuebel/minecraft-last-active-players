@@ -15,7 +15,6 @@ import de.thomasuebel.lastactiveplayers.command.StreakLines;
 import de.thomasuebel.lastactiveplayers.display.JoinMessage;
 import de.thomasuebel.lastactiveplayers.display.LeaderboardJoinMessage;
 import de.thomasuebel.lastactiveplayers.display.LeaderboardRankHint;
-import de.thomasuebel.lastactiveplayers.display.NoRankHint;
 import de.thomasuebel.lastactiveplayers.display.RankHint;
 import de.thomasuebel.lastactiveplayers.listener.AwardLifecycle;
 import de.thomasuebel.lastactiveplayers.listener.JoinBroadcast;
@@ -69,7 +68,6 @@ public final class LastActivePlayers extends JavaPlugin {
     private static final long TICKS_PER_MINUTE = 1200L;
     private static final int THIRTY_DAYS = 30;
     private static final int DEFAULT_LIST_SIZE = 3;
-    private static final String SORT_PLAYTIME = "playtime";
     private static final int BSTATS_PLUGIN_ID = 30553;
     private static final int DEFAULT_PURGE_DAYS = 60;
     private static final int DEFAULT_JOIN_DELAY_SECONDS = 10;
@@ -261,14 +259,13 @@ public final class LastActivePlayers extends JavaPlugin {
         final String mvpPrefix = getConfig().getString("prefix.mvp", "[Crown] ");
         final String streakPrefix = getConfig().getString("prefix.streak", "[Fire] ");
         final int listSize = getConfig().getInt("display.list-size", DEFAULT_LIST_SIZE);
-        final String sortMode = getConfig().getString("display.sort", SORT_PLAYTIME);
-        final String entryTemplate = getConfig().getString(
-            "messages.join-entry",
-            "Last Active: {n}. {player} was here on {date} for {duration}"
-        );
         final String rankHintTemplate = getConfig().getString(
             "messages.rank-hint",
             "You are rank #{rank}. {minutes} more minutes to reach #{next_rank}."
+        );
+        final String entryTemplate = getConfig().getString(
+            "messages.join-entry",
+            "Last Active: {n}. {player} was here on {date} for {duration}"
         );
         final int joinDelaySeconds =
             getConfig().getInt("display.join-delay-seconds", DEFAULT_JOIN_DELAY_SECONDS);
@@ -297,16 +294,11 @@ public final class LastActivePlayers extends JavaPlugin {
         this.heartbeatTask = new BukkitHeartbeat(heartbeat, this.awardLifecycle::broadcastIfChanged)
             .runTaskTimer(this, intervalTicks, intervalTicks);
 
-        final Leaderboard displayBoard = SORT_PLAYTIME.equals(sortMode)
-            ? this.mvpBoard
-            : new SqliteLastLeaveLeaderboard(this.database);
         final JoinMessage joinMessage = new LeaderboardJoinMessage(
-            displayBoard, listSize, entryTemplate, dateFormatter, ZoneId.systemDefault()
+            new SqliteLastLeaveLeaderboard(this.database),
+            listSize, entryTemplate, dateFormatter, ZoneId.systemDefault()
         );
-        // Rank hint uses minutes-of-playtime arithmetic; only meaningful for playtime sort.
-        final RankHint rankHint = SORT_PLAYTIME.equals(sortMode)
-            ? new LeaderboardRankHint(displayBoard, rankHintTemplate)
-            : new NoRankHint();
+        final RankHint rankHint = new LeaderboardRankHint(this.mvpBoard, rankHintTemplate);
         getServer().getPluginManager().registerEvents(
             new JoinBroadcast(joinMessage, rankHint, this,
                 joinDelayTicks * JOIN_BROADCAST_DELAY_MULTIPLIER),

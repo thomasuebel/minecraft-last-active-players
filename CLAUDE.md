@@ -4,8 +4,8 @@ A Minecraft Paper plugin (1.21.x, Java 21) that tracks join/leave events per pla
 
 ## Behaviour on Player Join
 
-- Lists the last {n} active (offline) players with a configurable message template.
-- Shows the joining player their rank in the list and a "(N more minutes to next rank)" hint.
+- Lists the last {n} active (offline) players sorted by most recent leave time, with a configurable message template.
+- Shows the joining player their playtime rank and a "(N more minutes to next rank)" hint, based on the 30-day playtime leaderboard.
 - Broadcasts the MVP (most total playtime in a rolling 30-day window) with a configurable crown-style message.
 - Broadcasts the Streak Leader (longest consecutive daily login streak) separately.
 
@@ -27,12 +27,11 @@ A milestone broadcast fires to all online players when a streak is newly reached
 | Key | Default | Description |
 |-----|---------|-------------|
 | `display.list-size` | `3` | Number of last-active players shown on join |
-| `display.sort` | `playtime` | Sort mode: `playtime` (30-day total, desc) or `last_leave` (most recent first) |
 | `display.date-format` | `yyyy-MM-dd` | Java DateTimeFormatter pattern for {date} |
 | `messages.join-entry` | `"Last Active players: {n}. {player} was here on {date} for {duration}"` | Per-player line |
 | `messages.mvp` | `"[Crown] Most active player (last 30 days): {player}"` | MVP broadcast |
 | `messages.streak` | `"[Fire] Longest daily login streak: {player} ({streak} days)"` | Streak broadcast |
-| `messages.rank-hint` | `"You are rank #{rank}. {minutes} more minutes to reach #{next_rank}."` | Private hint to joining player |
+| `messages.rank-hint` | `"You are rank #{rank}. {minutes} more minutes to reach #{next_rank}."` | Private hint to joining player based on 30-day playtime rank |
 | `session.heartbeat-interval-minutes` | `10` | How often active session time is flushed to DB |
 | `data.purge-inactive-days` | `60` | Days of inactivity before a player record is purged |
 | `prefix.mvp` | `"[Crown] "` | Display name prefix for current MVP |
@@ -46,6 +45,8 @@ A milestone broadcast fires to all online players when a streak is newly reached
 
 - Access: any player
 - Behaviour: lists the {n} last active players (same as join message) plus current MVP and Streak Leader
+- Subcommands:
+  - `/lastactive help` -- show command usage
 - Subcommands (ops only):
   - `/lastactive test` -- preview MVP/streak display names in chat
 
