@@ -68,11 +68,20 @@ Apply changes without restarting by running `/lastactive reload` (requires `last
 ### Prefixes
 
 Display name prefixes are applied to the current MVP and streak leader while they are online.
+The prefix is set on join and removed on leave or when the player is dethroned.
 
 | Key | Default | Description |
 |-----|---------|-------------|
 | `prefix.mvp` | `"[Crown] "` | Prepended to the MVP's display name |
 | `prefix.streak` | `"[Fire] "` | Prepended to the streak leader's display name |
+
+The prefix is applied via Bukkit's display name, so it appears in **chat messages** and
+**death messages**. It does not appear on the nameplate above the player's head in-game
+(that requires a scoreboard team, which this plugin does not manage).
+
+Whether the prefix shows in chat depends on your chat plugin. If it formats messages using
+`{displayname}` (EssentialsX Chat, LuckPerms chat formatter, etc.) the prefix will appear
+automatically. If it uses `{username}` or `%player_name%` it will not.
 
 ### Streak shields
 
@@ -177,8 +186,10 @@ Check the server log for a line containing `SEVERE` and `[LastActivePlayers]`. I
 **Display name prefixes are not showing**
 
 - The prefix is only applied while the award holder is online. It is reapplied on each join.
-- Some chat plugins replace the display name independently. Check for conflicts with your
-  chat formatting plugin.
+- The prefix appears in chat and death messages only if your chat plugin uses `{displayname}`.
+  Plugins that use `{username}` or `%player_name%` will not show it.
+- Nameplates above players' heads are not affected; those require scoreboard team management,
+  which this plugin does not do.
 
 ## Anonymous statistics
 
