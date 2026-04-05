@@ -295,7 +295,7 @@ public final class LastActivePlayers extends JavaPlugin {
             .runTaskTimer(this, intervalTicks, intervalTicks);
 
         final JoinMessage joinMessage = new LeaderboardJoinMessage(
-            new SqliteLastLeaveLeaderboard(this.database),
+            new SqliteLastLeaveLeaderboard(this.database, Clock.systemUTC(), THIRTY_DAYS),
             listSize, entryTemplate, dateFormatter, ZoneId.systemDefault()
         );
         final RankHint rankHint = new LeaderboardRankHint(this.mvpBoard, rankHintTemplate);

@@ -6,6 +6,8 @@ import de.thomasuebel.lastactiveplayers.db.DatabaseException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,13 @@ import java.util.UUID;
 /**
  * SQLite-backed {@link Leaderboard} sorted by the most recent leave time, descending.
  *
+ * <p>{@code totalSeconds} in each entry reflects only sessions whose {@code leave_time}
+ * falls within the rolling window, so callers display the same 30-day playtime figure
+ * used by the MVP leaderboard.
+ *
+ * <p>Players whose last session predates the window still appear in the list (sorted by
+ * {@code last_leave}) but their {@code totalSeconds} will be zero.
+ *
  * <p>Only players who have at least one closed session are included.
  * Online-player exclusion is applied in Java after the query.
  */
@@ -23,7 +32,8 @@ public final class SqliteLastLeaveLeaderboard implements Leaderboard {
 
     private static final String QUERY = """
         SELECT p.uuid, p.username,
-               SUM(s.duration_seconds) AS total_seconds,
+               SUM(CASE WHEN s.leave_time >= ? THEN s.duration_seconds ELSE 0 END)
+                   AS total_seconds,
                MAX(s.leave_time) AS last_leave
         FROM players p
         JOIN sessions s ON s.player_uuid = p.uuid
@@ -33,19 +43,29 @@ public final class SqliteLastLeaveLeaderboard implements Leaderboard {
         """;
 
     private final Database database;
+    private final Clock clock;
+    private final long windowDays;
 
     /**
      * Constructs a leaderboard backed by the given database.
      *
-     * @param database the open database; never null
+     * @param database   the open database; never null
+     * @param clock      used to compute the rolling window start on each query; never null
+     * @param windowDays length of the rolling window in days; positive
      */
-    public SqliteLastLeaveLeaderboard(final Database database) {
+    public SqliteLastLeaveLeaderboard(
+        final Database database, final Clock clock, final long windowDays
+    ) {
         this.database = database;
+        this.clock = clock;
+        this.windowDays = windowDays;
     }
 
     @Override
     public List<LeaderboardEntry> top(final int limit, final Set<UUID> exclude) {
+        final String windowStart = windowStart();
         try (PreparedStatement stmt = this.database.connection().prepareStatement(QUERY)) {
+            stmt.setString(1, windowStart);
             try (ResultSet rs = stmt.executeQuery()) {
                 return mapEntries(rs, limit, exclude);
             }
@@ -56,13 +76,19 @@ public final class SqliteLastLeaveLeaderboard implements Leaderboard {
 
     @Override
     public List<LeaderboardEntry> topTied(final Set<UUID> exclude) {
+        final String windowStart = windowStart();
         try (PreparedStatement stmt = this.database.connection().prepareStatement(QUERY)) {
+            stmt.setString(1, windowStart);
             try (ResultSet rs = stmt.executeQuery()) {
                 return mapTiedEntries(rs, exclude);
             }
         } catch (final SQLException exception) {
             throw new DatabaseException(exception);
         }
+    }
+
+    private String windowStart() {
+        return Instant.now(this.clock).minus(Duration.ofDays(this.windowDays)).toString();
     }
 
     private List<LeaderboardEntry> mapEntries(
