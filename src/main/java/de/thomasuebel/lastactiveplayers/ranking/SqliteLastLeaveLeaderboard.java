@@ -95,20 +95,19 @@ public final class SqliteLastLeaveLeaderboard implements Leaderboard {
         final ResultSet rs, final int limit, final Set<UUID> exclude
     ) throws SQLException {
         final List<LeaderboardEntry> result = new ArrayList<>();
-        while (rs.next() && result.size() < limit) {
+        while (rs.next()) {
             final UUID uuid = UUID.fromString(rs.getString("uuid"));
             if (exclude.contains(uuid)) {
                 continue;
             }
-            final String lastLeaveStr = rs.getString("last_leave");
-            if (lastLeaveStr == null) {
-                continue;
+            if (result.size() >= limit) {
+                break;
             }
             result.add(new StoredEntry(
                 uuid,
                 rs.getString("username"),
                 rs.getLong("total_seconds"),
-                Optional.of(Instant.parse(lastLeaveStr))
+                Optional.of(Instant.parse(rs.getString("last_leave")))
             ));
         }
         return result;
