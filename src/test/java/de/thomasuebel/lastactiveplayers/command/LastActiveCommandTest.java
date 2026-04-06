@@ -431,4 +431,51 @@ class LastActiveCommandTest {
         cmd.onCommand(stubSender(false, captured), stubCommand(), "lastactive", new String[0]);
         assertTrue(captured.contains("Streak: Bob (7 days)"));
     }
+
+    @Test
+    void baseCommandPassesOnlinePlayersToJoinMessage() {
+        final UUID onlineUuid = UUID.randomUUID();
+        final List<String> captured = new ArrayList<>();
+        final LastActiveCommand cmd = new LastActiveCommand(
+            exclude -> exclude.contains(onlineUuid)
+                ? List.of("excluded") : List.of("visible"),
+            (limit, exclude) -> List.of(),
+            stubPlayers(noPlayer(), List.of()),
+            MVP_TEMPLATE, MVP_TIE_TEMPLATE,
+            STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
+            MVP_PREFIX, STREAK_PREFIX,
+            sender -> { },
+            () -> Set.of(onlineUuid)
+        );
+        cmd.onCommand(stubSender(false, captured), stubCommand(), "lastactive", new String[0]);
+        assertTrue(captured.contains("excluded"));
+    }
+
+    @Test
+    void baseCommandMvpNotExcludedByOnlineSet() {
+        final UUID onlineUuid = UUID.randomUUID();
+        final List<String> captured = new ArrayList<>();
+        final LastActiveCommand cmd = new LastActiveCommand(
+            exclude -> List.of(),
+            (limit, exclude) -> exclude.isEmpty()
+                ? List.of(entry("Alice")) : List.of(),
+            stubPlayers(noPlayer(), List.of()),
+            MVP_TEMPLATE, MVP_TIE_TEMPLATE,
+            STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
+            MVP_PREFIX, STREAK_PREFIX,
+            sender -> { },
+            () -> Set.of(onlineUuid)
+        );
+        cmd.onCommand(stubSender(false, captured), stubCommand(), "lastactive", new String[0]);
+        assertTrue(captured.contains("MVP: Alice"));
+    }
+
+    @Test
+    void testSubcommandEmptyWhenNeitherExists() {
+        final List<String> captured = new ArrayList<>();
+        command(List.of(), List.of(), noPlayer(), List.of())
+            .onCommand(stubSender(true, captured), stubCommand(), "lastactive",
+                new String[]{"test"});
+        assertTrue(captured.isEmpty());
+    }
 }
