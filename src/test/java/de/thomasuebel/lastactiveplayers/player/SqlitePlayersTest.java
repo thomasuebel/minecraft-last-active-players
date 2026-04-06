@@ -23,7 +23,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SqlitePlayersTest {
@@ -57,21 +56,15 @@ class SqlitePlayersTest {
     }
 
     @Test
-    void returnsNoPlayerWhenUuidNotFound() {
-        assertFalse(players.withUuid(UUID.randomUUID()).exists());
-    }
-
-    @Test
-    void noPlayerUuidReturnsZeroUuid() {
-        assertEquals(new UUID(0L, 0L), players.withUuid(UUID.randomUUID()).uuid());
+    void returnsEmptyWhenUuidNotFound() {
+        assertTrue(players.withUuid(UUID.randomUUID()).isEmpty());
     }
 
     @Test
     void upsertCreatesPlayerRecord() {
         final UUID uuid = UUID.randomUUID();
         players.upsert(uuid, "Alice");
-        final Player found = players.withUuid(uuid);
-        assertTrue(found.exists());
+        final PlayerRecord found = players.withUuid(uuid).orElseThrow();
         assertEquals("Alice", found.username());
         assertEquals(uuid, found.uuid());
     }
@@ -81,14 +74,14 @@ class SqlitePlayersTest {
         final UUID uuid = UUID.randomUUID();
         players.upsert(uuid, "Alice");
         players.upsert(uuid, "AliceRenamed");
-        assertEquals("AliceRenamed", players.withUuid(uuid).username());
+        assertEquals("AliceRenamed", players.withUuid(uuid).orElseThrow().username());
     }
 
     @Test
     void newPlayerHasZeroStreak() {
         final UUID uuid = UUID.randomUUID();
         players.upsert(uuid, "Bob");
-        final Player found = players.withUuid(uuid);
+        final PlayerRecord found = players.withUuid(uuid).orElseThrow();
         assertEquals(0, found.streakDays());
         assertEquals(Optional.empty(), found.streakLastDay());
     }
@@ -98,7 +91,7 @@ class SqlitePlayersTest {
         final UUID uuid = UUID.randomUUID();
         players.upsert(uuid, "Bob");
         players.updateStreak(uuid, SEVEN_DAY_STREAK, Optional.of(STREAK_DATE));
-        final Player found = players.withUuid(uuid);
+        final PlayerRecord found = players.withUuid(uuid).orElseThrow();
         assertEquals(SEVEN_DAY_STREAK, found.streakDays());
         assertEquals(Optional.of(STREAK_DATE), found.streakLastDay());
     }
@@ -109,8 +102,8 @@ class SqlitePlayersTest {
         players.upsert(uuid, "Bob");
         players.updateStreak(uuid, FIVE_DAY_STREAK, Optional.of(EARLIER_STREAK_DATE));
         players.updateStreak(uuid, 0, Optional.empty());
-        assertEquals(0, players.withUuid(uuid).streakDays());
-        assertEquals(Optional.empty(), players.withUuid(uuid).streakLastDay());
+        assertEquals(0, players.withUuid(uuid).orElseThrow().streakDays());
+        assertEquals(Optional.empty(), players.withUuid(uuid).orElseThrow().streakLastDay());
     }
 
     @Test
@@ -123,7 +116,7 @@ class SqlitePlayersTest {
 
         players.purgeInactiveBefore(Instant.now().minus(PURGE_THRESHOLD_DAYS, ChronoUnit.DAYS));
 
-        assertFalse(players.withUuid(uuid).exists());
+        assertTrue(players.withUuid(uuid).isEmpty());
     }
 
     @Test
@@ -135,14 +128,14 @@ class SqlitePlayersTest {
 
         players.purgeInactiveBefore(Instant.now().minus(PURGE_THRESHOLD_DAYS, ChronoUnit.DAYS));
 
-        assertTrue(players.withUuid(uuid).exists());
+        assertTrue(players.withUuid(uuid).isPresent());
     }
 
     @Test
-    void withHighestStreakReturnsNoPlayerWhenNoneHaveStreak() {
+    void withHighestStreakReturnsEmptyWhenNoneHaveStreak() {
         final UUID uuid = UUID.randomUUID();
         players.upsert(uuid, "Alice");
-        assertFalse(players.withHighestStreak().exists());
+        assertTrue(players.withHighestStreak().isEmpty());
     }
 
     @Test
@@ -153,8 +146,7 @@ class SqlitePlayersTest {
         players.upsert(bobUuid, "Bob");
         players.updateStreak(aliceUuid, FIVE_DAY_STREAK, Optional.of(STREAK_DATE));
         players.updateStreak(bobUuid, SEVEN_DAY_STREAK, Optional.of(STREAK_DATE));
-        final Player leader = players.withHighestStreak();
-        assertTrue(leader.exists());
+        final PlayerRecord leader = players.withHighestStreak().orElseThrow();
         assertEquals(bobUuid, leader.uuid());
         assertEquals(SEVEN_DAY_STREAK, leader.streakDays());
     }
@@ -166,7 +158,7 @@ class SqlitePlayersTest {
 
         players.purgeInactiveBefore(Instant.now().minus(PURGE_THRESHOLD_DAYS, ChronoUnit.DAYS));
 
-        assertFalse(players.withUuid(uuid).exists());
+        assertTrue(players.withUuid(uuid).isEmpty());
     }
 
     @Test
@@ -179,7 +171,7 @@ class SqlitePlayersTest {
 
         players.purgeInactiveBefore(threshold);
 
-        assertTrue(players.withUuid(uuid).exists());
+        assertTrue(players.withUuid(uuid).isPresent());
     }
 
     @Test
@@ -190,7 +182,7 @@ class SqlitePlayersTest {
 
         players.purgeInactiveBefore(Instant.now().minus(PURGE_THRESHOLD_DAYS, ChronoUnit.DAYS));
 
-        assertTrue(players.withUuid(uuid).exists());
+        assertTrue(players.withUuid(uuid).isPresent());
     }
 
     @Test
@@ -210,7 +202,7 @@ class SqlitePlayersTest {
         players.updateStreak(aliceUuid, SEVEN_DAY_STREAK, Optional.of(STREAK_DATE));
         players.updateStreak(bobUuid, FIVE_DAY_STREAK, Optional.of(STREAK_DATE));
 
-        final List<Player> top = players.withTopStreak();
+        final List<PlayerRecord> top = players.withTopStreak();
 
         assertEquals(1, top.size());
         assertEquals(aliceUuid, top.get(0).uuid());
@@ -225,7 +217,7 @@ class SqlitePlayersTest {
         players.updateStreak(aliceUuid, SEVEN_DAY_STREAK, Optional.of(STREAK_DATE));
         players.updateStreak(bobUuid, SEVEN_DAY_STREAK, Optional.of(STREAK_DATE));
 
-        final List<Player> top = players.withTopStreak();
+        final List<PlayerRecord> top = players.withTopStreak();
 
         assertEquals(2, top.size());
     }

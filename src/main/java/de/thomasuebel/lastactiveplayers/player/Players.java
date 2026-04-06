@@ -7,10 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Persistence operations for {@link Player} records.
- *
- * <p>Implementations must never return {@code null}; use {@link NoPlayer} when a
- * requested player is not found.
+ * Persistence operations for {@link PlayerRecord} entries.
  */
 public interface Players {
 
@@ -32,20 +29,20 @@ public interface Players {
     void updateStreak(UUID uuid, int streakDays, Optional<LocalDate> streakLastDay);
 
     /**
-     * Returns the player record for the given UUID, or {@link NoPlayer} if not found.
+     * Returns the player record for the given UUID, or empty if not found.
      *
      * @param uuid the player's unique identifier; never null
-     * @return the player record; never null
+     * @return the player record, or empty; never null
      */
-    Player withUuid(UUID uuid);
+    Optional<PlayerRecord> withUuid(UUID uuid);
 
     /**
-     * Returns the player with the highest {@code streak_days}, or {@link NoPlayer} if
+     * Returns the player with the highest {@code streak_days}, or empty if
      * no player has a streak greater than zero.
      *
-     * @return the streak leader; never null
+     * @return the streak leader, or empty; never null
      */
-    Player withHighestStreak();
+    Optional<PlayerRecord> withHighestStreak();
 
     /**
      * Returns all players sharing the highest {@code streak_days} value.
@@ -56,7 +53,7 @@ public interface Players {
      *
      * @return all tied streak leaders; never null, may be empty
      */
-    List<Player> withTopStreak();
+    List<PlayerRecord> withTopStreak();
 
     /**
      * Deletes players whose last session ended before the given threshold.

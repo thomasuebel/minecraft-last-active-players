@@ -15,7 +15,7 @@ import java.util.Optional;
  */
 public final class TodayStreak implements Streak {
 
-    private final Player player;
+    private final PlayerRecord player;
     private final LocalDate today;
 
     /**
@@ -24,7 +24,7 @@ public final class TodayStreak implements Streak {
      * @param player the player whose streak is being evaluated; never null
      * @param today  the calendar date of the current login; never null
      */
-    public TodayStreak(final Player player, final LocalDate today) {
+    public TodayStreak(final PlayerRecord player, final LocalDate today) {
         this.player = player;
         this.today = today;
     }

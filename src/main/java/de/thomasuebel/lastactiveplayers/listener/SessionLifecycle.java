@@ -1,9 +1,8 @@
 package de.thomasuebel.lastactiveplayers.listener;
 
 import de.thomasuebel.lastactiveplayers.player.Milestones;
-import de.thomasuebel.lastactiveplayers.player.Player;
+import de.thomasuebel.lastactiveplayers.player.PlayerRecord;
 import de.thomasuebel.lastactiveplayers.player.Players;
-import de.thomasuebel.lastactiveplayers.player.ShieldedPlayer;
 import de.thomasuebel.lastactiveplayers.player.Streak;
 import de.thomasuebel.lastactiveplayers.player.TodayStreak;
 import de.thomasuebel.lastactiveplayers.session.ActiveSessions;
@@ -138,23 +137,27 @@ public final class SessionLifecycle implements Listener {
 
         this.players.upsert(uuid, name);
 
-        final Player stored = this.players.withUuid(uuid);
+        final Optional<PlayerRecord> stored = this.players.withUuid(uuid);
         final LocalDate today = LocalDate.now(this.serverZone);
 
         // Read shield count once. Players with no existing streak cannot consume or earn
         // shields so the read is skipped for them to avoid an unnecessary DB round-trip.
-        int shieldCount = (stored.exists() && stored.streakDays() > 0)
+        int shieldCount = (stored.isPresent() && stored.get().streakDays() > 0)
             ? this.players.shields(uuid) : 0;
 
         // Consume a shield if the player missed exactly one day and has shields available.
-        Player playerForStreak = stored;
+        PlayerRecord playerForStreak = stored.orElseGet(
+            () -> new PlayerRecord(uuid, name, 0, Optional.empty())
+        );
         boolean shieldConsumed = false;
-        if (stored.exists() && stored.streakDays() > 0 && stored.streakLastDay().isPresent()) {
-            final long gap = today.toEpochDay() - stored.streakLastDay().get().toEpochDay();
+        if (stored.isPresent() && stored.get().streakDays() > 0
+            && stored.get().streakLastDay().isPresent()) {
+            final long gap =
+                today.toEpochDay() - stored.get().streakLastDay().get().toEpochDay();
             if (gap == SHIELD_BRIDGE_GAP && shieldCount > 0) {
                 shieldCount--;
                 this.players.storeShields(uuid, shieldCount);
-                playerForStreak = new ShieldedPlayer(stored, today.minusDays(1));
+                playerForStreak = stored.get().withStreakLastDay(today.minusDays(1));
                 shieldConsumed = true;
             }
         }

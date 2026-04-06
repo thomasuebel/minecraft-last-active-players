@@ -1,6 +1,6 @@
 package de.thomasuebel.lastactiveplayers.command;
 
-import de.thomasuebel.lastactiveplayers.player.Player;
+import de.thomasuebel.lastactiveplayers.player.PlayerRecord;
 import de.thomasuebel.lastactiveplayers.player.Players;
 import de.thomasuebel.lastactiveplayers.ranking.LeaderboardEntry;
 import org.bukkit.command.Command;
@@ -80,57 +80,13 @@ class LastActiveCommandTest {
         );
     }
 
-    private static Player player(final String username, final int streak) {
-        return new Player() {
-            @Override
-            public boolean exists() {
-                return true;
-            }
-            @Override
-            public UUID uuid() {
-                return UUID.randomUUID();
-            }
-            @Override
-            public String username() {
-                return username;
-            }
-            @Override
-            public int streakDays() {
-                return streak;
-            }
-            @Override
-            public Optional<LocalDate> streakLastDay() {
-                return Optional.empty();
-            }
-        };
+    private static PlayerRecord player(final String username, final int streak) {
+        return new PlayerRecord(UUID.randomUUID(), username, streak, Optional.empty());
     }
 
-    private static Player noPlayer() {
-        return new Player() {
-            @Override
-            public boolean exists() {
-                return false;
-            }
-            @Override
-            public UUID uuid() {
-                return new UUID(0L, 0L);
-            }
-            @Override
-            public String username() {
-                return "";
-            }
-            @Override
-            public int streakDays() {
-                return 0;
-            }
-            @Override
-            public Optional<LocalDate> streakLastDay() {
-                return Optional.empty();
-            }
-        };
-    }
-
-    private static Players stubPlayers(final Player highest, final List<Player> topStreak) {
+    private static Players stubPlayers(
+        final Optional<PlayerRecord> highest, final List<PlayerRecord> topStreak
+    ) {
         return new Players() {
             @Override
             public void upsert(final UUID uuid, final String username) {
@@ -141,15 +97,15 @@ class LastActiveCommandTest {
             ) {
             }
             @Override
-            public Player withUuid(final UUID uuid) {
-                return noPlayer();
+            public Optional<PlayerRecord> withUuid(final UUID uuid) {
+                return Optional.empty();
             }
             @Override
-            public Player withHighestStreak() {
+            public Optional<PlayerRecord> withHighestStreak() {
                 return highest;
             }
             @Override
-            public List<Player> withTopStreak() {
+            public List<PlayerRecord> withTopStreak() {
                 return topStreak;
             }
             @Override
@@ -168,8 +124,8 @@ class LastActiveCommandTest {
     private static LastActiveCommand command(
         final List<LeaderboardEntry> topOne,
         final List<LeaderboardEntry> topTied,
-        final Player highestStreak,
-        final List<Player> topStreak
+        final Optional<PlayerRecord> highestStreak,
+        final List<PlayerRecord> topStreak
     ) {
         return new LastActiveCommand(
             exclude -> List.of(),
@@ -199,7 +155,7 @@ class LastActiveCommandTest {
                     return topTied;
                 }
             },
-            stubPlayers(noPlayer(), List.of()),
+            stubPlayers(Optional.empty(), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
             MVP_PREFIX, STREAK_PREFIX,
@@ -213,7 +169,7 @@ class LastActiveCommandTest {
     @Test
     void returnsHelpUsageForHelpSubcommand() {
         final List<String> captured = new ArrayList<>();
-        final boolean result = command(List.of(), List.of(), noPlayer(), List.of())
+        final boolean result = command(List.of(), List.of(), Optional.empty(), List.of())
             .onCommand(stubSender(false, captured), stubCommand(), "lastactive",
                 new String[]{"help"});
         assertFalse(result);
@@ -223,7 +179,7 @@ class LastActiveCommandTest {
     @Test
     void sendsPermissionDeniedForTestSubcommandWithoutPermission() {
         final List<String> captured = new ArrayList<>();
-        command(List.of(), List.of(), noPlayer(), List.of())
+        command(List.of(), List.of(), Optional.empty(), List.of())
             .onCommand(stubSender(false, captured), stubCommand(), "lastactive",
                 new String[]{"test"});
         assertEquals(1, captured.size());
@@ -237,7 +193,7 @@ class LastActiveCommandTest {
         final LastActiveCommand cmd = new LastActiveCommand(
             exclude -> List.of(),
             (limit, exclude) -> List.of(),
-            stubPlayers(noPlayer(), List.of()),
+            stubPlayers(Optional.empty(), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
             MVP_PREFIX, STREAK_PREFIX,
@@ -257,7 +213,7 @@ class LastActiveCommandTest {
         final LastActiveCommand cmd = new LastActiveCommand(
             exclude -> List.of(),
             (limit, exclude) -> List.of(),
-            stubPlayers(noPlayer(), List.of()),
+            stubPlayers(Optional.empty(), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
             MVP_PREFIX, STREAK_PREFIX,
@@ -304,7 +260,7 @@ class LastActiveCommandTest {
     @Test
     void streakSubcommandShowsSingleLeader() {
         final List<String> captured = new ArrayList<>();
-        command(List.of(), List.of(), noPlayer(),
+        command(List.of(), List.of(), Optional.empty(),
             List.of(player("Alice", SEVEN_DAYS)))
             .onCommand(stubSender(false, captured), stubCommand(), "lastactive",
                 new String[]{"streak"});
@@ -314,7 +270,7 @@ class LastActiveCommandTest {
     @Test
     void streakSubcommandShowsTiedLeaders() {
         final List<String> captured = new ArrayList<>();
-        command(List.of(), List.of(), noPlayer(),
+        command(List.of(), List.of(), Optional.empty(),
             List.of(player("Alice", SEVEN_DAYS), player("Bob", SEVEN_DAYS)))
             .onCommand(stubSender(false, captured), stubCommand(), "lastactive",
                 new String[]{"streak"});
@@ -324,7 +280,7 @@ class LastActiveCommandTest {
     @Test
     void streakSubcommandEmptyWhenNoLeader() {
         final List<String> captured = new ArrayList<>();
-        command(List.of(), List.of(), noPlayer(), List.of())
+        command(List.of(), List.of(), Optional.empty(), List.of())
             .onCommand(stubSender(false, captured), stubCommand(), "lastactive",
                 new String[]{"streak"});
         assertTrue(captured.isEmpty());
@@ -335,7 +291,7 @@ class LastActiveCommandTest {
     @Test
     void testSubcommandShowsMvpWithPrefix() {
         final List<String> captured = new ArrayList<>();
-        command(List.of(entry("Alice")), List.of(), noPlayer(), List.of())
+        command(List.of(entry("Alice")), List.of(), Optional.empty(), List.of())
             .onCommand(stubSender(true, captured), stubCommand(), "lastactive",
                 new String[]{"test"});
         assertEquals(List.of("[MVP] Alice"), captured);
@@ -345,7 +301,7 @@ class LastActiveCommandTest {
     void testSubcommandShowsStreakWithPrefix() {
         final List<String> captured = new ArrayList<>();
         command(List.of(), List.of(),
-            player("Bob", SEVEN_DAYS), List.of())
+            Optional.of(player("Bob", SEVEN_DAYS)), List.of())
             .onCommand(stubSender(true, captured), stubCommand(), "lastactive",
                 new String[]{"test"});
         assertEquals(List.of("[Streak] Bob (7 days)"), captured);
@@ -355,7 +311,7 @@ class LastActiveCommandTest {
     void testSubcommandShowsBothWhenBothExist() {
         final List<String> captured = new ArrayList<>();
         command(List.of(entry("Alice")), List.of(),
-            player("Bob", SEVEN_DAYS), List.of())
+            Optional.of(player("Bob", SEVEN_DAYS)), List.of())
             .onCommand(stubSender(true, captured), stubCommand(), "lastactive",
                 new String[]{"test"});
         assertEquals(2, captured.size());
@@ -371,7 +327,7 @@ class LastActiveCommandTest {
         final LastActiveCommand cmd = new LastActiveCommand(
             exclude -> List.of("line1", "line2"),
             (limit, exclude) -> List.of(),
-            stubPlayers(noPlayer(), List.of()),
+            stubPlayers(Optional.empty(), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
             MVP_PREFIX, STREAK_PREFIX,
@@ -389,7 +345,7 @@ class LastActiveCommandTest {
         final LastActiveCommand cmd = new LastActiveCommand(
             exclude -> List.of(),
             (limit, exclude) -> List.of(entry("Alice")),
-            stubPlayers(noPlayer(), List.of()),
+            stubPlayers(Optional.empty(), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
             MVP_PREFIX, STREAK_PREFIX,
@@ -406,7 +362,7 @@ class LastActiveCommandTest {
         final LastActiveCommand cmd = new LastActiveCommand(
             exclude -> List.of(),
             (limit, exclude) -> List.of(),
-            stubPlayers(player("Bob", SEVEN_DAYS), List.of()),
+            stubPlayers(Optional.of(player("Bob", SEVEN_DAYS)), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
             MVP_PREFIX, STREAK_PREFIX,
@@ -425,7 +381,7 @@ class LastActiveCommandTest {
             exclude -> exclude.contains(onlineUuid)
                 ? List.of("excluded") : List.of("visible"),
             (limit, exclude) -> List.of(),
-            stubPlayers(noPlayer(), List.of()),
+            stubPlayers(Optional.empty(), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
             MVP_PREFIX, STREAK_PREFIX,
@@ -444,7 +400,7 @@ class LastActiveCommandTest {
             exclude -> List.of(),
             (limit, exclude) -> exclude.isEmpty()
                 ? List.of(entry("Alice")) : List.of(),
-            stubPlayers(noPlayer(), List.of()),
+            stubPlayers(Optional.empty(), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
             MVP_PREFIX, STREAK_PREFIX,
@@ -458,7 +414,7 @@ class LastActiveCommandTest {
     @Test
     void testSubcommandEmptyWhenNeitherExists() {
         final List<String> captured = new ArrayList<>();
-        command(List.of(), List.of(), noPlayer(), List.of())
+        command(List.of(), List.of(), Optional.empty(), List.of())
             .onCommand(stubSender(true, captured), stubCommand(), "lastactive",
                 new String[]{"test"});
         assertTrue(captured.isEmpty());

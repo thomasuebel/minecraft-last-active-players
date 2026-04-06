@@ -1,7 +1,7 @@
 package de.thomasuebel.lastactiveplayers.listener;
 
 import de.thomasuebel.lastactiveplayers.player.Milestones;
-import de.thomasuebel.lastactiveplayers.player.Player;
+import de.thomasuebel.lastactiveplayers.player.PlayerRecord;
 import de.thomasuebel.lastactiveplayers.player.Players;
 import de.thomasuebel.lastactiveplayers.ranking.Awards;
 import de.thomasuebel.lastactiveplayers.ranking.Leaderboard;
@@ -250,9 +250,9 @@ public final class AwardLifecycle implements Listener, Awards {
     }
 
     private List<Nomination> electStreak() {
-        final List<Player> leaders = this.players.withTopStreak();
+        final List<PlayerRecord> leaders = this.players.withTopStreak();
         final List<Nomination> result = new ArrayList<>();
-        for (final Player p : leaders) {
+        for (final PlayerRecord p : leaders) {
             result.add(new Nomination(p.uuid(), p.username(), p.streakDays()));
         }
         return result;
