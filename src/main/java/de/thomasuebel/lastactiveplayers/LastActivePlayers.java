@@ -267,7 +267,7 @@ public final class LastActivePlayers extends JavaPlugin {
         );
         final String entryTemplate = getConfig().getString(
             "messages.join-entry",
-            "Last Active: {n}. {player} was last seen on {date} ({duration} last 30 days)"
+            "Last Active: {n}. {player} was last seen {date} ({duration} last 30 days)"
         );
         final String dateLabelToday = getConfig().getString("messages.date-today", "today");
         final String dateLabelYesterday =

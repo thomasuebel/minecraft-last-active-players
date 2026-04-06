@@ -28,7 +28,7 @@ A milestone broadcast fires to all online players when a streak is newly reached
 |-----|---------|-------------|
 | `display.list-size` | `3` | Number of last-active players shown on join |
 | `display.date-format` | `yyyy-MM-dd` | Java DateTimeFormatter pattern for {date} fallback (dates older than 6 days) |
-| `messages.join-entry` | `"Last Active: {n}. {player} was last seen on {date} ({duration} last 30 days)"` | Per-player line; `{duration}` is rolling 30-day playtime |
+| `messages.join-entry` | `"Last Active: {n}. {player} was last seen {date} ({duration} last 30 days)"` | Per-player line; `{duration}` is rolling 30-day playtime |
 | `messages.date-today` | `"today"` | {date} label when the player left today |
 | `messages.date-yesterday` | `"yesterday"` | {date} label when the player left yesterday |
 | `messages.date-days-ago` | `"{days} days ago"` | {date} label for 2-6 days ago; token: {days} |

@@ -12,7 +12,7 @@ messages:
   # {duration} reflects the player's playtime in the rolling 30-day window.
   # {date} shows "today", "yesterday", or "N days ago" for the last 6 days,
   # then falls back to display.date-format for older dates.
-  join-entry: "Last Active: {n}. {player} was last seen on {date} ({duration} last 30 days)"
+  join-entry: "Last Active: {n}. {player} was last seen {date} ({duration} last 30 days)"
   # Relative date labels for {date}. Localise these to any language.
   date-today: "today"
   date-yesterday: "yesterday"
