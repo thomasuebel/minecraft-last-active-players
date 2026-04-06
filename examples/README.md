@@ -8,7 +8,6 @@ PlaceholderAPI placeholders into common server plugins.
 | Path | Description |
 |------|-------------|
 | `essentialsx/kits.yml` | Kit definitions to paste into EssentialsX `config.yml` |
-| `essentialsx/chat-format.yml` | EssentialsXChat format snippet — shows the award prefix in chat |
 | `deluxemenus/awards_menu.yml` | DeluxeMenus GUI menu — players claim rewards via `/rewards` |
 
 ---
@@ -64,46 +63,53 @@ warning is logged. You can install PlaceholderAPI at any time and restart
 
 ---
 
-## EssentialsXChat chat format
+## TAB list prefix
 
-**File:** `essentialsx/chat-format.yml`
+**Requires:** [TAB plugin](https://www.spigotmc.org/resources/tab-list-and-name-tags.57806/)
+1.4+, PlaceholderAPI
 
-**Requires:** EssentialsX, EssentialsXChat, PlaceholderAPI
+The award prefix does not appear in the Tab list automatically because Paper's
+`displayName()` only affects chat and death messages. To show the prefix in the
+Tab list and above players' heads, use the TAB plugin.
 
-Open `plugins/Essentials/config.yml`, find the `chat:` section, and replace
-(or set) the `format:` value. Then run `/ess reload` or restart.
-
-```yaml
-chat:
-  format: '<%lastactiveplayers_prefix%{DISPLAYNAME}> {MESSAGE}'
-```
-
-**Why this works**
-
-EssentialsXChat formats chat using its own `{DISPLAYNAME}` token, which reads
-from EssentialsX's internal nickname store. Bukkit's `player.setDisplayName()`
--- which LastActivePlayers uses for Bukkit display name -- is a separate system
-that EssentialsXChat ignores. Using the PlaceholderAPI placeholder sidesteps
-that entirely: the prefix is injected directly into the format string before
-EssentialsXChat renders the message.
-
-**Colour codes in the prefix**
-
-The default prefixes (`[Crown] `, `[Fire] `) contain no colour codes, so the
-format above works out of the box. If you add colour codes to `prefix.mvp` or
-`prefix.streak` in LastActivePlayers `config.yml`, add `&r` after the
-placeholder:
+Open `plugins/TAB/config.yml` and add `%lastactiveplayers_prefix%` to the
+tab name format:
 
 ```yaml
-  format: '<%lastactiveplayers_prefix%&r{DISPLAYNAME}> {MESSAGE}'
+tablist-name-formatting:
+  enabled: true
+  default-value: "%lastactiveplayers_prefix%&f%player%"
 ```
 
-**Tab list**
+Run `/tab reload`. The prefix resolves to an empty string for non-award-holders,
+so only the MVP and streak leader see the prefix in the Tab list.
 
-`%lastactiveplayers_prefix%` does not affect the Tab list automatically.
-If you also want the prefix in the Tab list, use the
-[TAB plugin](https://www.spigotmc.org/resources/tab-list-and-name-tags.57806/)
-and reference `%lastactiveplayers_prefix%` in its tab name format.
+**Nameplates** (above-head display) can also use the placeholder if you enable
+TAB's nametag feature:
+
+```yaml
+nametag:
+  enabled: true
+  prefix: "%lastactiveplayers_prefix%"
+```
+
+---
+
+## Holograms
+
+**Requires:** [DecentHolograms](https://modrinth.com/plugin/decentholograms) or
+[FancyHolograms](https://modrinth.com/plugin/fancyholograms), PlaceholderAPI
+
+Any hologram plugin that supports PlaceholderAPI can display the current award
+holder's prefix on a hologram line. For example, with DecentHolograms:
+
+```
+/dh create awards
+/dh line add awards "%lastactiveplayers_prefix%Current MVP"
+```
+
+Use `%lastactiveplayers_award%` to conditionally show hologram lines (e.g. only
+when a player is the MVP).
 
 ---
 

@@ -78,13 +78,11 @@ The prefix is set on join and removed on leave or when the player is dethroned.
 | `prefix.mvp` | `"[Crown] "` | Prepended to the MVP's display name |
 | `prefix.streak` | `"[Fire] "` | Prepended to the streak leader's display name |
 
-The prefix is applied via Bukkit's display name, so it appears in **chat messages** and
-**death messages**. It does not appear on the nameplate above the player's head in-game
-(that requires a scoreboard team, which this plugin does not manage).
-
-Whether the prefix shows in chat depends on your chat plugin. If it formats messages using
-`{displayname}` (EssentialsX Chat, LuckPerms chat formatter, etc.) the prefix will appear
-automatically. If it uses `{username}` or `%player_name%` it will not.
+The prefix is applied via both Paper's Adventure `displayName()` component and the legacy
+Bukkit `setDisplayName()`, so it appears in **chat messages** and **death messages** on
+Paper 1.21+ servers out of the box -- no chat plugin required. It does not appear on the
+nameplate above the player's head in-game (that requires a scoreboard team, which this
+plugin does not manage).
 
 ### Streak shields
 
@@ -146,38 +144,23 @@ expansion automatically when PlaceholderAPI is present. No configuration is requ
 Both placeholders return an empty string for players who hold no active award, so they are
 safe to embed in formats without conditional guards.
 
-### Using the prefix in EssentialsXChat
+### Use cases
 
-EssentialsXChat formats chat using its own display name system and does not read Bukkit's
-`player.setDisplayName()`. The `%lastactiveplayers_prefix%` placeholder injects the prefix
-directly into the chat format, bypassing that limitation entirely.
+The award prefix appears in chat automatically on Paper 1.21+ via the Adventure
+`displayName()` component. PlaceholderAPI placeholders are useful for integrations where
+the display name is not used directly:
 
-**Step 1** -- Install PlaceholderAPI. Drop the JAR into `plugins/` and restart.
+**Tab list** -- use the [TAB plugin](https://www.spigotmc.org/resources/tab-list-and-name-tags.57806/)
+and add `%lastactiveplayers_prefix%` to its tab name format to show the award prefix next
+to the player's name in the player list.
 
-**Step 2** -- Open `plugins/Essentials/config.yml` and update the chat format:
+**DeluxeMenus** -- use `%lastactiveplayers_award%` in `view_requirement` checks to
+conditionally show menu items based on the player's current award. See the
+[integration examples](examples/) for a complete awards menu.
 
-```yaml
-chat:
-  format: '<%lastactiveplayers_prefix%{DISPLAYNAME}> {MESSAGE}'
-```
-
-**Step 3** -- Run `/ess reload`.
-
-Players who hold no award are unaffected: `%lastactiveplayers_prefix%` resolves to `""` so
-their chat lines look exactly as before -- no extra space or bracket is inserted.
-
-If you use colour codes in `prefix.mvp` or `prefix.streak` (e.g. `&6[Crown]&r `), add a
-reset code after the placeholder to prevent colour bleed:
-
-```yaml
-  format: '<%lastactiveplayers_prefix%&r{DISPLAYNAME}> {MESSAGE}'
-```
-
-### Tab list
-
-`%lastactiveplayers_prefix%` works in any PlaceholderAPI-aware plugin. To show the prefix
-in the Tab list use the [TAB plugin](https://www.spigotmc.org/resources/tab-list-and-name-tags.57806/)
-and add `%lastactiveplayers_prefix%` to its tab name format.
+**Holograms** -- any hologram plugin that supports PlaceholderAPI (e.g. DecentHolograms,
+FancyHolograms) can display `%lastactiveplayers_prefix%` on a hologram line to show the
+current award holder's prefix.
 
 ### Without PlaceholderAPI
 
@@ -244,18 +227,18 @@ Check the server log for a line containing `SEVERE` and `[LastActivePlayers]`. I
 
 **Display name prefixes are not showing in chat**
 
-LastActivePlayers sets the Bukkit display name (`player.setDisplayName()`). Whether this
-appears in chat depends on how your chat plugin renders messages:
+LastActivePlayers sets both the Paper Adventure `displayName()` component and the legacy
+Bukkit `setDisplayName()`. On a vanilla Paper 1.21+ server the prefix appears in chat
+automatically via Paper's default chat renderer.
 
-- **EssentialsXChat** uses its own internal display name system and does not read the Bukkit
-  display name. Use the `%lastactiveplayers_prefix%` PlaceholderAPI placeholder in the
-  EssentialsXChat format instead. See the [PlaceholderAPI integration](#placeholderapi-integration)
-  section above for step-by-step instructions.
-- **Other chat plugins** that use `{displayname}` or `%player_displayname%` will show the
-  prefix automatically without PlaceholderAPI.
-- **Nameplates** (the name above the player's head in-game) are not affected; those require
-  scoreboard team management, which this plugin does not do. Use the TAB plugin with
-  `%lastactiveplayers_prefix%` to show the prefix there.
+If you use a chat plugin that overrides the default renderer, the prefix may not appear.
+Check whether your chat plugin supports `{displayname}` or `%player_displayname%` tokens --
+if so, the prefix will work automatically. If not, use `%lastactiveplayers_prefix%` via
+PlaceholderAPI in your chat plugin's format string.
+
+**Nameplates** (the name above the player's head in-game) are not affected; those require
+scoreboard team management, which this plugin does not do. Use the TAB plugin with
+`%lastactiveplayers_prefix%` to show the prefix in the Tab list and above players' heads.
 
 The prefix is only applied while the award holder is online and is reapplied on each join.
 
