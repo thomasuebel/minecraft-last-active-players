@@ -10,7 +10,6 @@ import de.thomasuebel.lastactiveplayers.ranking.Leaderboard;
 import de.thomasuebel.lastactiveplayers.ranking.LeaderboardEntry;
 import de.thomasuebel.lastactiveplayers.ranking.NoAwards;
 import de.thomasuebel.lastactiveplayers.ranking.Nomination;
-import de.thomasuebel.lastactiveplayers.ranking.StoredNomination;
 import org.bukkit.Server;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -225,7 +224,7 @@ public final class AwardLifecycle implements Listener, Awards {
         final List<LeaderboardEntry> entries = this.mvpBoard.topTied(Set.of());
         final List<Nomination> result = new ArrayList<>();
         for (final LeaderboardEntry entry : entries) {
-            result.add(new StoredNomination(entry.uuid(), entry.username(), 0));
+            result.add(new Nomination(entry.uuid(), entry.username(), 0));
         }
         return result;
     }
@@ -234,7 +233,7 @@ public final class AwardLifecycle implements Listener, Awards {
         final List<Player> leaders = this.players.withTopStreak();
         final List<Nomination> result = new ArrayList<>();
         for (final Player p : leaders) {
-            result.add(new StoredNomination(p.uuid(), p.username(), p.streakDays()));
+            result.add(new Nomination(p.uuid(), p.username(), p.streakDays()));
         }
         return result;
     }

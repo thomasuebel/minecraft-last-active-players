@@ -115,6 +115,6 @@ class FrozenAwardsTest {
     // --- helper ---
 
     private static Nomination nomination(final UUID uuid, final String name, final int streak) {
-        return new StoredNomination(uuid, name, streak);
+        return new Nomination(uuid, name, streak);
     }
 }
