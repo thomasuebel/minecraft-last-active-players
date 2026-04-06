@@ -61,16 +61,16 @@ tasks {
 
     jacocoTestReport {
         dependsOn(test)
-        // Exclude the same Bukkit-framework classes excluded from pitest: thin wiring over
-        // domain objects that cannot be unit-tested without MockBukkit.
+        // Exclude plugin main class (pure wiring, no testable logic) and the
+        // PlaceholderAPI expansion (requires PAPI on classpath to instantiate).
+        // Listener classes are now included: AwardLifecycle, SessionLifecycle,
+        // and HeartbeatRankHints have dedicated test coverage.
         classDirectories.setFrom(
             files(classDirectories.files.map {
                 fileTree(it) {
                     exclude(
                         "de/thomasuebel/lastactiveplayers/LastActivePlayers.class",
-                        "de/thomasuebel/lastactiveplayers/listener/**",
-                        "de/thomasuebel/lastactiveplayers/placeholder/**",
-                        "de/thomasuebel/lastactiveplayers/session/BukkitHeartbeat.class"
+                        "de/thomasuebel/lastactiveplayers/placeholder/**"
                     )
                 }
             })
@@ -101,14 +101,12 @@ pitest {
     // under test; SQLite JDBC treats unset PreparedStatement parameters as NULL,
     // making setNull() equivalent to leaving the parameter unset.
     avoidCallsTo.set(setOf("java.sql.Connection", "java.sql.PreparedStatement"))
-    // Exclude Bukkit-framework classes (plugin main, listeners, scheduled tasks) from mutation
-    // targets. These classes are thin wiring over domain objects that are fully covered;
-    // unit-testing them would require MockBukkit (a Paper integration-test framework) which
-    // is not yet in scope for this project.
+    // Exclude plugin main class (pure wiring), listener classes (tested via proxy stubs
+    // which do not reliably kill Bukkit-API mutations), and PlaceholderAPI expansion
+    // (requires PAPI framework to instantiate).
     excludedClasses.set(setOf(
         "de.thomasuebel.lastactiveplayers.LastActivePlayers",
         "de.thomasuebel.lastactiveplayers.listener.*",
-        "de.thomasuebel.lastactiveplayers.placeholder.*",
-        "de.thomasuebel.lastactiveplayers.session.BukkitHeartbeat"
+        "de.thomasuebel.lastactiveplayers.placeholder.*"
     ))
 }
