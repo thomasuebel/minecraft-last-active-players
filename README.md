@@ -131,6 +131,62 @@ never written to your permissions plugin's storage.
 30-day streak holds `lastactiveplayers.streak.30` but not the lower milestones. If your rewards
 plugin checks a specific tier, check the appropriate node for that tier.
 
+## PlaceholderAPI integration
+
+LastActivePlayers registers a [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/)
+expansion automatically when PlaceholderAPI is present. No configuration is required.
+
+### Available placeholders
+
+| Placeholder | Returns |
+|-------------|---------|
+| `%lastactiveplayers_prefix%` | The configured award prefix (`prefix.mvp` or `prefix.streak`), or `""` |
+| `%lastactiveplayers_award%` | `mvp`, `streak`, or `""` |
+
+Both placeholders return an empty string for players who hold no active award, so they are
+safe to embed in formats without conditional guards.
+
+### Using the prefix in EssentialsXChat
+
+EssentialsXChat formats chat using its own display name system and does not read Bukkit's
+`player.setDisplayName()`. The `%lastactiveplayers_prefix%` placeholder injects the prefix
+directly into the chat format, bypassing that limitation entirely.
+
+**Step 1** -- Install PlaceholderAPI. Drop the JAR into `plugins/` and restart.
+
+**Step 2** -- Open `plugins/Essentials/config.yml` and update the chat format:
+
+```yaml
+chat:
+  format: '<%lastactiveplayers_prefix%{DISPLAYNAME}> {MESSAGE}'
+```
+
+**Step 3** -- Run `/ess reload`.
+
+Players who hold no award are unaffected: `%lastactiveplayers_prefix%` resolves to `""` so
+their chat lines look exactly as before -- no extra space or bracket is inserted.
+
+If you use colour codes in `prefix.mvp` or `prefix.streak` (e.g. `&6[Crown]&r `), add a
+reset code after the placeholder to prevent colour bleed:
+
+```yaml
+  format: '<%lastactiveplayers_prefix%&r{DISPLAYNAME}> {MESSAGE}'
+```
+
+### Tab list
+
+`%lastactiveplayers_prefix%` works in any PlaceholderAPI-aware plugin. To show the prefix
+in the Tab list use the [TAB plugin](https://www.spigotmc.org/resources/tab-list-and-name-tags.57806/)
+and add `%lastactiveplayers_prefix%` to its tab name format.
+
+### Without PlaceholderAPI
+
+If PlaceholderAPI is not installed the plugin starts normally and all core features work.
+The placeholders are not registered; no warning is logged. You can add PlaceholderAPI at
+any time and restart (or run `/lastactive reload`) to activate them.
+
+---
+
 ## Integrating with a rewards plugin
 
 The `lastactiveplayers.mvp` and `lastactiveplayers.streak.*` nodes are designed to be read by
@@ -186,13 +242,22 @@ Check the server log for a line containing `SEVERE` and `[LastActivePlayers]`. I
   populated.
 - Confirm the server has been running long enough for at least one player to have session data.
 
-**Display name prefixes are not showing**
+**Display name prefixes are not showing in chat**
 
-- The prefix is only applied while the award holder is online. It is reapplied on each join.
-- The prefix appears in chat and death messages only if your chat plugin uses `{displayname}`.
-  Plugins that use `{username}` or `%player_name%` will not show it.
-- Nameplates above players' heads are not affected; those require scoreboard team management,
-  which this plugin does not do.
+LastActivePlayers sets the Bukkit display name (`player.setDisplayName()`). Whether this
+appears in chat depends on how your chat plugin renders messages:
+
+- **EssentialsXChat** uses its own internal display name system and does not read the Bukkit
+  display name. Use the `%lastactiveplayers_prefix%` PlaceholderAPI placeholder in the
+  EssentialsXChat format instead. See the [PlaceholderAPI integration](#placeholderapi-integration)
+  section above for step-by-step instructions.
+- **Other chat plugins** that use `{displayname}` or `%player_displayname%` will show the
+  prefix automatically without PlaceholderAPI.
+- **Nameplates** (the name above the player's head in-game) are not affected; those require
+  scoreboard team management, which this plugin does not do. Use the TAB plugin with
+  `%lastactiveplayers_prefix%` to show the prefix there.
+
+The prefix is only applied while the award holder is online and is reapplied on each join.
 
 ## Anonymous statistics
 

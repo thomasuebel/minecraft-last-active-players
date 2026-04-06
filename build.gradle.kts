@@ -18,10 +18,12 @@ java {
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
 }
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
+    compileOnly("me.clip:placeholderapi:2.11.6")
     implementation("org.xerial:sqlite-jdbc:3.47.1.0")
     implementation("org.bstats:bstats-bukkit:3.0.2")
 
@@ -67,6 +69,7 @@ tasks {
                     exclude(
                         "de/thomasuebel/lastactiveplayers/LastActivePlayers.class",
                         "de/thomasuebel/lastactiveplayers/listener/**",
+                        "de/thomasuebel/lastactiveplayers/placeholder/**",
                         "de/thomasuebel/lastactiveplayers/session/BukkitHeartbeat.class"
                     )
                 }
@@ -105,6 +108,7 @@ pitest {
     excludedClasses.set(setOf(
         "de.thomasuebel.lastactiveplayers.LastActivePlayers",
         "de.thomasuebel.lastactiveplayers.listener.*",
+        "de.thomasuebel.lastactiveplayers.placeholder.*",
         "de.thomasuebel.lastactiveplayers.session.BukkitHeartbeat"
     ))
 }

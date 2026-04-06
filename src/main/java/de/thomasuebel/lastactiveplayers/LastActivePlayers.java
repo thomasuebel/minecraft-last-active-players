@@ -19,6 +19,7 @@ import de.thomasuebel.lastactiveplayers.display.LeaderboardRankHint;
 import de.thomasuebel.lastactiveplayers.display.RelativeDateLabel;
 import de.thomasuebel.lastactiveplayers.display.RankHint;
 import de.thomasuebel.lastactiveplayers.listener.AwardLifecycle;
+import de.thomasuebel.lastactiveplayers.placeholder.AwardPlaceholders;
 import de.thomasuebel.lastactiveplayers.listener.JoinBroadcast;
 import de.thomasuebel.lastactiveplayers.listener.SessionLifecycle;
 import de.thomasuebel.lastactiveplayers.player.Players;
@@ -295,6 +296,11 @@ public final class LastActivePlayers extends JavaPlugin {
             joinDelayTicks * AWARD_BROADCAST_DELAY_MULTIPLIER
         );
         getServer().getPluginManager().registerEvents(this.awardLifecycle, this);
+
+        if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new AwardPlaceholders(this.awardLifecycle, getDescription().getVersion()).register();
+            getLogger().info("PlaceholderAPI found -- award placeholders registered.");
+        }
 
         final Heartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
         final long intervalTicks = heartbeatMinutes * TICKS_PER_MINUTE;

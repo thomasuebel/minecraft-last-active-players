@@ -6,6 +6,8 @@ description: Tracks player activity and highlights the most active players on jo
 authors:
   - thomasuebel
 website: https://github.com/thomasuebel/minecraft-last-active-players
+softdepend:
+  - PlaceholderAPI
 
 commands:
   lastactive:

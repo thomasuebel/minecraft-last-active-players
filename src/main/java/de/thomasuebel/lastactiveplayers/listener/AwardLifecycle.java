@@ -4,6 +4,7 @@ import de.thomasuebel.lastactiveplayers.player.Milestones;
 import de.thomasuebel.lastactiveplayers.player.Player;
 import de.thomasuebel.lastactiveplayers.player.Players;
 import de.thomasuebel.lastactiveplayers.ranking.AwardSnapshot;
+import de.thomasuebel.lastactiveplayers.ranking.Awards;
 import de.thomasuebel.lastactiveplayers.ranking.FrozenAwards;
 import de.thomasuebel.lastactiveplayers.ranking.Leaderboard;
 import de.thomasuebel.lastactiveplayers.ranking.LeaderboardEntry;
@@ -43,7 +44,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * <p>On quit, the departing player's permission attachment is removed.
  */
-public final class AwardLifecycle implements Listener {
+public final class AwardLifecycle implements Listener, Awards {
 
     private static final String MVP_PERMISSION = "lastactiveplayers.mvp";
     private static final String STREAK_PERMISSION_PREFIX = "lastactiveplayers.streak.";
@@ -146,6 +147,38 @@ public final class AwardLifecycle implements Listener {
         }
         player.setDisplayName(player.getName());
         broadcastIfChanged();
+    }
+
+    @Override
+    public String currentPrefix(final UUID uuid) {
+        final AwardSnapshot snapshot = this.previousSnapshot.get();
+        if (uuidsOf(snapshot.mvpCandidates()).contains(uuid)) {
+            return this.mvpPrefix;
+        }
+        final List<Nomination> streakCandidates = snapshot.streakCandidates();
+        if (!streakCandidates.isEmpty() && uuidsOf(streakCandidates).contains(uuid)) {
+            final int days = streakCandidates.get(0).streakDays();
+            if (!this.milestones.crossedBy(0, days).isEmpty()) {
+                return this.streakPrefix;
+            }
+        }
+        return "";
+    }
+
+    @Override
+    public String currentAward(final UUID uuid) {
+        final AwardSnapshot snapshot = this.previousSnapshot.get();
+        if (uuidsOf(snapshot.mvpCandidates()).contains(uuid)) {
+            return "mvp";
+        }
+        final List<Nomination> streakCandidates = snapshot.streakCandidates();
+        if (!streakCandidates.isEmpty() && uuidsOf(streakCandidates).contains(uuid)) {
+            final int days = streakCandidates.get(0).streakDays();
+            if (!this.milestones.crossedBy(0, days).isEmpty()) {
+                return "streak";
+            }
+        }
+        return "";
     }
 
     /**
