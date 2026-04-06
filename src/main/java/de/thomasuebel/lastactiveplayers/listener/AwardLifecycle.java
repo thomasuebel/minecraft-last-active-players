@@ -3,12 +3,9 @@ package de.thomasuebel.lastactiveplayers.listener;
 import de.thomasuebel.lastactiveplayers.player.Milestones;
 import de.thomasuebel.lastactiveplayers.player.Player;
 import de.thomasuebel.lastactiveplayers.player.Players;
-import de.thomasuebel.lastactiveplayers.ranking.AwardSnapshot;
 import de.thomasuebel.lastactiveplayers.ranking.Awards;
-import de.thomasuebel.lastactiveplayers.ranking.FrozenAwards;
 import de.thomasuebel.lastactiveplayers.ranking.Leaderboard;
 import de.thomasuebel.lastactiveplayers.ranking.LeaderboardEntry;
-import de.thomasuebel.lastactiveplayers.ranking.NoAwards;
 import de.thomasuebel.lastactiveplayers.ranking.Nomination;
 import org.bukkit.Server;
 import org.bukkit.event.EventHandler;
@@ -48,6 +45,18 @@ public final class AwardLifecycle implements Listener, Awards {
     private static final String MVP_PERMISSION = "lastactiveplayers.mvp";
     private static final String STREAK_PERMISSION_PREFIX = "lastactiveplayers.streak.";
 
+    /**
+     * Immutable snapshot of the current MVP and Streak Leader election result.
+     * Stored in an {@link AtomicReference} so PlaceholderAPI reads from any thread
+     * see a consistent pair of lists.
+     */
+    private record ElectionResult(List<Nomination> mvp, List<Nomination> streak) {
+        ElectionResult(final List<Nomination> mvp, final List<Nomination> streak) {
+            this.mvp = List.copyOf(mvp);
+            this.streak = List.copyOf(streak);
+        }
+    }
+
     private final Leaderboard mvpBoard;
     private final Players players;
     private final Milestones milestones;
@@ -60,7 +69,7 @@ public final class AwardLifecycle implements Listener, Awards {
     private final String streakTieTemplate;
     private final long delayTicks;
     private final Map<UUID, PermissionAttachment> attachments;
-    private final AtomicReference<AwardSnapshot> previousSnapshot;
+    private final AtomicReference<ElectionResult> previousResult;
 
     /**
      * Constructs the award lifecycle listener.
@@ -105,7 +114,8 @@ public final class AwardLifecycle implements Listener, Awards {
         this.streakTieTemplate = streakTieTemplate;
         this.delayTicks = delayTicks;
         this.attachments = new ConcurrentHashMap<>();
-        this.previousSnapshot = new AtomicReference<>(new NoAwards());
+        // null initial state: first election always triggers a broadcast.
+        this.previousResult = new AtomicReference<>(null);
     }
 
     /**
@@ -117,15 +127,9 @@ public final class AwardLifecycle implements Listener, Awards {
     public void onJoin(final PlayerJoinEvent event) {
         final List<Nomination> mvp = electMvp();
         final List<Nomination> streak = electStreak();
-        final AwardSnapshot current = new FrozenAwards(mvp, streak);
-        this.previousSnapshot.set(current);
+        this.previousResult.set(new ElectionResult(mvp, streak));
         final Server server = this.plugin.getServer();
-        refreshAttachments(server, current);
-        // Broadcasts are deferred so they arrive after the initial join noise. No
-        // isOnline() guard is needed: broadcastMessage targets all currently online
-        // players at dispatch time, so a disconnect before the delay expires simply
-        // means the departed player no longer receives it -- which is the desired
-        // behaviour.
+        refreshAttachments(server, mvp, streak);
         this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
             broadcastMvp(server, mvp);
             broadcastStreak(server, streak);
@@ -150,11 +154,14 @@ public final class AwardLifecycle implements Listener, Awards {
 
     @Override
     public String currentPrefix(final UUID uuid) {
-        final AwardSnapshot snapshot = this.previousSnapshot.get();
-        if (uuidsOf(snapshot.mvpCandidates()).contains(uuid)) {
+        final ElectionResult result = this.previousResult.get();
+        if (result == null) {
+            return "";
+        }
+        if (uuidsOf(result.mvp()).contains(uuid)) {
             return this.mvpPrefix;
         }
-        final List<Nomination> streakCandidates = snapshot.streakCandidates();
+        final List<Nomination> streakCandidates = result.streak();
         if (!streakCandidates.isEmpty() && uuidsOf(streakCandidates).contains(uuid)) {
             final int days = streakCandidates.get(0).streakDays();
             if (!this.milestones.crossedBy(0, days).isEmpty()) {
@@ -166,11 +173,14 @@ public final class AwardLifecycle implements Listener, Awards {
 
     @Override
     public String currentAward(final UUID uuid) {
-        final AwardSnapshot snapshot = this.previousSnapshot.get();
-        if (uuidsOf(snapshot.mvpCandidates()).contains(uuid)) {
+        final ElectionResult result = this.previousResult.get();
+        if (result == null) {
+            return "";
+        }
+        if (uuidsOf(result.mvp()).contains(uuid)) {
             return "mvp";
         }
-        final List<Nomination> streakCandidates = snapshot.streakCandidates();
+        final List<Nomination> streakCandidates = result.streak();
         if (!streakCandidates.isEmpty() && uuidsOf(streakCandidates).contains(uuid)) {
             final int days = streakCandidates.get(0).streakDays();
             if (!this.milestones.crossedBy(0, days).isEmpty()) {
@@ -204,20 +214,30 @@ public final class AwardLifecycle implements Listener, Awards {
     public void broadcastIfChanged() {
         final List<Nomination> currMvp = electMvp();
         final List<Nomination> currStreak = electStreak();
-        final AwardSnapshot current = new FrozenAwards(currMvp, currStreak);
-        final AwardSnapshot previous = this.previousSnapshot.get();
-        if (previous.sameLeaders(current)) {
+        final ElectionResult previous = this.previousResult.get();
+        if (previous != null && sameLeaders(previous, currMvp, currStreak)) {
             return;
         }
-        this.previousSnapshot.set(current);
+        this.previousResult.set(new ElectionResult(currMvp, currStreak));
         final Server server = this.plugin.getServer();
-        refreshAttachments(server, current);
-        if (!uuidsOf(previous.mvpCandidates()).equals(uuidsOf(currMvp))) {
+        refreshAttachments(server, currMvp, currStreak);
+        final List<Nomination> prevMvp = previous != null ? previous.mvp() : List.of();
+        final List<Nomination> prevStreak = previous != null ? previous.streak() : List.of();
+        if (!uuidsOf(prevMvp).equals(uuidsOf(currMvp))) {
             broadcastMvp(server, currMvp);
         }
-        if (!uuidsOf(previous.streakCandidates()).equals(uuidsOf(currStreak))) {
+        if (!uuidsOf(prevStreak).equals(uuidsOf(currStreak))) {
             broadcastStreak(server, currStreak);
         }
+    }
+
+    private boolean sameLeaders(
+        final ElectionResult previous,
+        final List<Nomination> currMvp,
+        final List<Nomination> currStreak
+    ) {
+        return uuidsOf(previous.mvp()).equals(uuidsOf(currMvp))
+            && uuidsOf(previous.streak()).equals(uuidsOf(currStreak));
     }
 
     private List<Nomination> electMvp() {
@@ -238,9 +258,11 @@ public final class AwardLifecycle implements Listener, Awards {
         return result;
     }
 
-    private void refreshAttachments(final Server server, final AwardSnapshot snapshot) {
-        final List<Nomination> mvpCandidates = snapshot.mvpCandidates();
-        final List<Nomination> streakCandidates = snapshot.streakCandidates();
+    private void refreshAttachments(
+        final Server server,
+        final List<Nomination> mvpCandidates,
+        final List<Nomination> streakCandidates
+    ) {
         final Set<UUID> mvpUuids = uuidsOf(mvpCandidates);
         final Set<UUID> streakUuids = uuidsOf(streakCandidates);
         final int streakDays = streakCandidates.isEmpty()
