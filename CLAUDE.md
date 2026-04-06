@@ -101,9 +101,13 @@ These rules govern every class in the codebase:
 - Correct examples: `ActiveSessions` (not `SessionManager`), `HumanDuration` (not `DurationFormatter`), `FormattedMessage` (not `MessageFormatter`), `Leaderboard` (not `LeaderboardService`), `SqliteDatabase` (not `DatabaseManager`).
 
 **Interfaces**
-- Every public type is an interface. Implementations are named by what makes them specific (e.g. `SqliteSessions`, `CachedLeaderboard`).
+- Create an interface only when at least one of the following is true: (1) a second implementation
+  exists or is concretely planned; (2) a test uses a substitutable fake or stub; (3) decorator
+  composition is actually applied. See ADR-005.
+- Implementations are named by what makes them specific (e.g. `SqliteSessions`, `CachedLeaderboard`).
 - No implementation inheritance: `extends` is only used to implement interfaces, never to extend a concrete class.
 - Prefer decorator composition over subclassing for extending behaviour.
+- Data-carrying types with no substitutable behaviour use Java records instead of interface + implementation + null-object.
 
 **Constructors**
 - Constructors only assign: `this.x = x`. No logic, no validation, no I/O.
@@ -116,9 +120,11 @@ These rules govern every class in the codebase:
 - Aim for few public methods per class (ideally 3-5).
 
 **Null**
-- Never return null. Never pass null. Use the Null Object pattern.
-- Null objects implement the same interface as real objects (e.g. `NoSession`, `UnknownPlayer`).
+- Never return null. Never pass null.
+- For look-up methods that may find nothing, return `Optional<T>`.
+- Use the Null Object pattern only when the null-object participates in decorator composition or is
+  used polymorphically in tests; otherwise prefer `Optional`.
 
 **Static**
 - No static methods. No utility classes. Behaviour belongs to objects.
-- Constants (`static final`) are permitted only as named values on interfaces or enums.
+- Constants (`static final`) are permitted only as named values on interfaces, enums, or records.
