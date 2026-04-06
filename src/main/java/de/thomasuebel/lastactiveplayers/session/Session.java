@@ -9,48 +9,20 @@ import java.util.UUID;
  *
  * <p>A session begins when a player joins the server and ends when they leave or the
  * server stops. Ongoing sessions have an empty {@link #leaveTime()}.
+ *
+ * @param id              the database-assigned session ID; positive
+ * @param playerUuid      the owning player's UUID; never null
+ * @param joinTime        the join timestamp; never null
+ * @param leaveTime       the leave timestamp, or empty for an ongoing session
+ * @param lastHeartbeat   the last heartbeat timestamp; never null
+ * @param durationSeconds accumulated play time in seconds; non-negative
  */
-public interface Session {
-
-    /**
-     * Returns the database-assigned session identifier.
-     *
-     * @return positive session ID
-     */
-    long id();
-
-    /**
-     * Returns the UUID of the player this session belongs to.
-     *
-     * @return the player UUID; never null
-     */
-    UUID playerUuid();
-
-    /**
-     * Returns the instant the player joined.
-     *
-     * @return join timestamp; never null
-     */
-    Instant joinTime();
-
-    /**
-     * Returns the instant the player left, or empty if the session is still open.
-     *
-     * @return leave timestamp, or empty for an ongoing session
-     */
-    Optional<Instant> leaveTime();
-
-    /**
-     * Returns the timestamp of the last heartbeat flush for this session.
-     *
-     * @return last heartbeat instant; never null
-     */
-    Instant lastHeartbeat();
-
-    /**
-     * Returns the total accumulated play time for this session in seconds.
-     *
-     * @return duration in seconds; non-negative
-     */
-    long durationSeconds();
+public record Session(
+    long id,
+    UUID playerUuid,
+    Instant joinTime,
+    Optional<Instant> leaveTime,
+    Instant lastHeartbeat,
+    long durationSeconds
+) {
 }
