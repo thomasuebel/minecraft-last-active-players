@@ -10,8 +10,8 @@ All notable changes to this project will be documented in this file.
 - PlaceholderAPI integration: `%lastactiveplayers_prefix%` and `%lastactiveplayers_award%`
   placeholders registered automatically when PlaceholderAPI is present. No configuration
   required on the LastActivePlayers side.
-- Integration examples folder (`examples/`) with drop-in configurations for EssentialsXChat,
-  EssentialsX kits, and DeluxeMenus awards menu.
+- Integration examples folder (`examples/`) with drop-in configurations for TAB list prefix,
+  EssentialsX kits, DeluxeMenus awards menu, and hologram placeholders.
 - Heartbeat rank-up notifications: online players receive a private message when their
   playtime rank improves during a session (checked after each heartbeat flush).
 - ADR-005: proportionate abstraction -- relaxed the "every public type is an interface"

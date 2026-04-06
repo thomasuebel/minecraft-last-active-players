@@ -144,38 +144,23 @@ expansion automatically when PlaceholderAPI is present. No configuration is requ
 Both placeholders return an empty string for players who hold no active award, so they are
 safe to embed in formats without conditional guards.
 
-### Using the prefix in EssentialsXChat
+### Use cases
 
-EssentialsXChat formats chat using its own display name system and does not read Bukkit's
-`player.setDisplayName()`. The `%lastactiveplayers_prefix%` placeholder injects the prefix
-directly into the chat format, bypassing that limitation entirely.
+The award prefix appears in chat automatically on Paper 1.21+ via the Adventure
+`displayName()` component. PlaceholderAPI placeholders are useful for integrations where
+the display name is not used directly:
 
-**Step 1** -- Install PlaceholderAPI. Drop the JAR into `plugins/` and restart.
+**Tab list** -- use the [TAB plugin](https://www.spigotmc.org/resources/tab-list-and-name-tags.57806/)
+and add `%lastactiveplayers_prefix%` to its tab name format to show the award prefix next
+to the player's name in the player list.
 
-**Step 2** -- Open `plugins/Essentials/config.yml` and update the chat format:
+**DeluxeMenus** -- use `%lastactiveplayers_award%` in `view_requirement` checks to
+conditionally show menu items based on the player's current award. See the
+[integration examples](examples/) for a complete awards menu.
 
-```yaml
-chat:
-  format: '<%lastactiveplayers_prefix%{DISPLAYNAME}> {MESSAGE}'
-```
-
-**Step 3** -- Run `/ess reload`.
-
-Players who hold no award are unaffected: `%lastactiveplayers_prefix%` resolves to `""` so
-their chat lines look exactly as before -- no extra space or bracket is inserted.
-
-If you use colour codes in `prefix.mvp` or `prefix.streak` (e.g. `&6[Crown]&r `), add a
-reset code after the placeholder to prevent colour bleed:
-
-```yaml
-  format: '<%lastactiveplayers_prefix%&r{DISPLAYNAME}> {MESSAGE}'
-```
-
-### Tab list
-
-`%lastactiveplayers_prefix%` works in any PlaceholderAPI-aware plugin. To show the prefix
-in the Tab list use the [TAB plugin](https://www.spigotmc.org/resources/tab-list-and-name-tags.57806/)
-and add `%lastactiveplayers_prefix%` to its tab name format.
+**Holograms** -- any hologram plugin that supports PlaceholderAPI (e.g. DecentHolograms,
+FancyHolograms) can display `%lastactiveplayers_prefix%` on a hologram line to show the
+current award holder's prefix.
 
 ### Without PlaceholderAPI
 
@@ -246,18 +231,14 @@ LastActivePlayers sets both the Paper Adventure `displayName()` component and th
 Bukkit `setDisplayName()`. On a vanilla Paper 1.21+ server the prefix appears in chat
 automatically via Paper's default chat renderer.
 
-If you use a **chat plugin** that overrides the default renderer:
+If you use a chat plugin that overrides the default renderer, the prefix may not appear.
+Check whether your chat plugin supports `{displayname}` or `%player_displayname%` tokens --
+if so, the prefix will work automatically. If not, use `%lastactiveplayers_prefix%` via
+PlaceholderAPI in your chat plugin's format string.
 
-- **EssentialsXChat** uses its own internal display name system and does not read either
-  Bukkit or Adventure display names. Use the `%lastactiveplayers_prefix%` PlaceholderAPI
-  placeholder in the EssentialsXChat format instead. See the
-  [PlaceholderAPI integration](#placeholderapi-integration) section above for step-by-step
-  instructions.
-- **Other chat plugins** that use `{displayname}` or `%player_displayname%` will show the
-  prefix automatically without PlaceholderAPI.
-- **Nameplates** (the name above the player's head in-game) are not affected; those require
-  scoreboard team management, which this plugin does not do. Use the TAB plugin with
-  `%lastactiveplayers_prefix%` to show the prefix there.
+**Nameplates** (the name above the player's head in-game) are not affected; those require
+scoreboard team management, which this plugin does not do. Use the TAB plugin with
+`%lastactiveplayers_prefix%` to show the prefix in the Tab list and above players' heads.
 
 The prefix is only applied while the award holder is online and is reapplied on each join.
 
