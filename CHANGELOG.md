@@ -4,6 +4,45 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.7] - 2026-04-06
+
+### Added
+- PlaceholderAPI integration: `%lastactiveplayers_prefix%` and `%lastactiveplayers_award%`
+  placeholders registered automatically when PlaceholderAPI is present. No configuration
+  required on the LastActivePlayers side.
+- Integration examples folder (`examples/`) with drop-in configurations for EssentialsXChat,
+  EssentialsX kits, and DeluxeMenus awards menu.
+- Heartbeat rank-up notifications: online players receive a private message when their
+  playtime rank improves during a session (checked after each heartbeat flush).
+- ADR-005: proportionate abstraction -- relaxed the "every public type is an interface"
+  rule to require interfaces only where polymorphism is actually exercised.
+
+### Fixed
+- Leaderboard ORDER BY was non-deterministic for tied scores; added UUID tiebreaker for
+  stable ordering across repeated queries.
+- Rank hint showed incorrect rank for tied players (index-based instead of shared rank).
+  Rank is now computed as count(players with strictly more seconds) + 1.
+- Default `messages.join-entry` contained an awkward "was last seen on yesterday" phrasing;
+  removed the preposition.
+- `HeartbeatRankHints.onJoin()` issued a synchronous database query on the Bukkit main
+  thread; now reuses the cached heartbeat snapshot.
+- Online players were not re-seeded into the rank tracker after `/lastactive reload`.
+
+### Changed
+- Codebase reduced from 67 to 46 production files (31%) and 28 to 18 test files (36%)
+  through ADR-005 proportionate abstraction. No functionality removed.
+- Data carriers (`LeaderboardEntry`, `Session`, `Nomination`) replaced with Java records.
+- `Player`/`StoredPlayer`/`NoPlayer`/`ShieldedPlayer` replaced with `PlayerRecord` record
+  and `Optional<PlayerRecord>` return types. `ShieldedPlayer` decorator replaced by
+  `PlayerRecord.withStreakLastDay()` copy method.
+- `CommandLines` interface and four implementations collapsed into private methods in
+  `LastActiveCommand`.
+- `Statistics`/`BStatsStatistics`/`NoStatistics` removed; bStats registered inline.
+- `AwardSnapshot`/`FrozenAwards`/`NoAwards` collapsed into a private inner record in
+  `AwardLifecycle`.
+- Listener classes (`AwardLifecycle`, `HeartbeatRankHints`) now included in JaCoCo
+  coverage reporting, backed by 21 new integration tests.
+
 ## [1.0.6] - 2026-04-06
 
 ### Added

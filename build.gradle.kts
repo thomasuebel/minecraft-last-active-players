@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "de.thomasuebel"
-version = "1.0.7-SNAPSHOT"
+version = "1.0.7"
 
 java {
     toolchain {
