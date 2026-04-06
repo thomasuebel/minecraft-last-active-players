@@ -38,8 +38,7 @@ import de.thomasuebel.lastactiveplayers.session.SessionHeartbeat;
 import de.thomasuebel.lastactiveplayers.session.Sessions;
 import de.thomasuebel.lastactiveplayers.session.SqliteSessions;
 import de.thomasuebel.lastactiveplayers.session.TrackedSession;
-import de.thomasuebel.lastactiveplayers.stats.BStatsStatistics;
-import de.thomasuebel.lastactiveplayers.stats.Statistics;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
@@ -85,7 +84,6 @@ public final class LastActivePlayers extends JavaPlugin {
     private static final String MSG_RELOAD_FAILED = "Reload failed: invalid display.date-format. "
         + "Check the server console for details.";
 
-    private Statistics statistics;
     private Database database;
     private Sessions sessions;
     private Players players;
@@ -98,8 +96,7 @@ public final class LastActivePlayers extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        this.statistics = new BStatsStatistics(this, BSTATS_PLUGIN_ID);
-        this.statistics.register();
+        new Metrics(this, BSTATS_PLUGIN_ID);
 
         try {
             this.database = new SqliteDatabase(
