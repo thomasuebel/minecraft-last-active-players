@@ -2,7 +2,7 @@ package de.thomasuebel.lastactiveplayers.listener;
 
 import de.thomasuebel.lastactiveplayers.ranking.Leaderboard;
 import de.thomasuebel.lastactiveplayers.ranking.LeaderboardEntry;
-import de.thomasuebel.lastactiveplayers.ranking.TrackedRanks;
+import de.thomasuebel.lastactiveplayers.ranking.OnlineRanks;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Bukkit event listener that feeds {@link TrackedRanks} with join and quit events and
+ * Bukkit event listener that feeds {@link OnlineRanks} with join and quit events and
  * exposes a {@link #pulse()} method for the heartbeat scheduler.
  *
  * <p>To avoid a synchronous database query on every join event, the last leaderboard
@@ -31,7 +31,7 @@ public final class HeartbeatRankHints implements Listener {
     /** Fetch the full leaderboard so no player is excluded from rank calculation. */
     private static final int MAX_LEADERBOARD_SIZE = Integer.MAX_VALUE;
 
-    private final TrackedRanks onlineRanks;
+    private final OnlineRanks onlineRanks;
     private final Leaderboard leaderboard;
     private final Plugin plugin;
     /** Last snapshot used by pulse(); reused to seed joining players without a DB query. */
@@ -45,7 +45,7 @@ public final class HeartbeatRankHints implements Listener {
      * @param plugin      the plugin instance used to resolve online players; never null
      */
     public HeartbeatRankHints(
-        final TrackedRanks onlineRanks,
+        final OnlineRanks onlineRanks,
         final Leaderboard leaderboard,
         final Plugin plugin
     ) {
