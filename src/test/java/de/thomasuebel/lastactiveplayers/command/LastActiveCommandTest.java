@@ -75,24 +75,9 @@ class LastActiveCommandTest {
     }
 
     private static LeaderboardEntry entry(final String username) {
-        return new LeaderboardEntry() {
-            @Override
-            public UUID uuid() {
-                return UUID.randomUUID();
-            }
-            @Override
-            public String username() {
-                return username;
-            }
-            @Override
-            public long totalSeconds() {
-                return ONE_HOUR;
-            }
-            @Override
-            public Optional<Instant> lastLeave() {
-                return Optional.empty();
-            }
-        };
+        return new LeaderboardEntry(
+            UUID.randomUUID(), username, ONE_HOUR, Optional.empty()
+        );
     }
 
     private static Player player(final String username, final int streak) {

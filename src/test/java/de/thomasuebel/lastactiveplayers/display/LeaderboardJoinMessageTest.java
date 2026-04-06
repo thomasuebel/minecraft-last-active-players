@@ -20,24 +20,9 @@ class LeaderboardJoinMessageTest {
     private static final DateLabel DATE_LABEL = instant -> "2026-03-10";
 
     private static LeaderboardEntry entry(final String username, final long seconds) {
-        return new LeaderboardEntry() {
-            @Override
-            public UUID uuid() {
-                return UUID.randomUUID();
-            }
-            @Override
-            public String username() {
-                return username;
-            }
-            @Override
-            public long totalSeconds() {
-                return seconds;
-            }
-            @Override
-            public Optional<Instant> lastLeave() {
-                return Optional.of(LAST_LEAVE);
-            }
-        };
+        return new LeaderboardEntry(
+            UUID.randomUUID(), username, seconds, Optional.of(LAST_LEAVE)
+        );
     }
 
     @Test

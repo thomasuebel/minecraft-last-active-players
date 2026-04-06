@@ -102,7 +102,7 @@ public final class SqlitePlaytimeLeaderboard implements Leaderboard {
                 break;
             }
             final String lastLeaveStr = rs.getString("last_leave");
-            result.add(new StoredEntry(
+            result.add(new LeaderboardEntry(
                 uuid,
                 rs.getString("username"),
                 rs.getLong("total_seconds"),
@@ -129,7 +129,7 @@ public final class SqlitePlaytimeLeaderboard implements Leaderboard {
                 break;
             }
             final String lastLeaveStr = rs.getString("last_leave");
-            result.add(new StoredEntry(
+            result.add(new LeaderboardEntry(
                 uuid,
                 rs.getString("username"),
                 score,
