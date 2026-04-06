@@ -8,7 +8,12 @@
 # Find the existing `chat:` section (or `format:` key) and replace the format line.
 # Then run /ess reload or restart the server.
 #
-# How it works:
+# Why this is needed:
+#   On a vanilla Paper server the award prefix appears in chat automatically via
+#   Paper's Adventure displayName() component. EssentialsXChat overrides the default
+#   chat renderer and uses its own display name system, so the prefix must be injected
+#   via PlaceholderAPI instead.
+#
 #   %lastactiveplayers_prefix% resolves to the configured award prefix for the player:
 #     - "[Crown] "  if the player is the current MVP
 #     - "[Fire] "   if the player is the current streak leader

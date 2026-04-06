@@ -78,14 +78,15 @@ chat:
   format: '<%lastactiveplayers_prefix%{DISPLAYNAME}> {MESSAGE}'
 ```
 
-**Why this works**
+**Why this is needed**
 
-EssentialsXChat formats chat using its own `{DISPLAYNAME}` token, which reads
-from EssentialsX's internal nickname store. Bukkit's `player.setDisplayName()`
--- which LastActivePlayers uses for Bukkit display name -- is a separate system
-that EssentialsXChat ignores. Using the PlaceholderAPI placeholder sidesteps
-that entirely: the prefix is injected directly into the format string before
-EssentialsXChat renders the message.
+On a vanilla Paper server the award prefix appears in chat automatically via
+Paper's Adventure `displayName()` component. EssentialsXChat, however, formats
+chat using its own `{DISPLAYNAME}` token which reads from EssentialsX's
+internal nickname store -- it does not read Bukkit or Adventure display names.
+Using the PlaceholderAPI placeholder sidesteps that entirely: the prefix is
+injected directly into the format string before EssentialsXChat renders the
+message.
 
 **Colour codes in the prefix**
 

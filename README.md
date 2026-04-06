@@ -78,13 +78,11 @@ The prefix is set on join and removed on leave or when the player is dethroned.
 | `prefix.mvp` | `"[Crown] "` | Prepended to the MVP's display name |
 | `prefix.streak` | `"[Fire] "` | Prepended to the streak leader's display name |
 
-The prefix is applied via Bukkit's display name, so it appears in **chat messages** and
-**death messages**. It does not appear on the nameplate above the player's head in-game
-(that requires a scoreboard team, which this plugin does not manage).
-
-Whether the prefix shows in chat depends on your chat plugin. If it formats messages using
-`{displayname}` (EssentialsX Chat, LuckPerms chat formatter, etc.) the prefix will appear
-automatically. If it uses `{username}` or `%player_name%` it will not.
+The prefix is applied via both Paper's Adventure `displayName()` component and the legacy
+Bukkit `setDisplayName()`, so it appears in **chat messages** and **death messages** on
+Paper 1.21+ servers out of the box -- no chat plugin required. It does not appear on the
+nameplate above the player's head in-game (that requires a scoreboard team, which this
+plugin does not manage).
 
 ### Streak shields
 
@@ -244,13 +242,17 @@ Check the server log for a line containing `SEVERE` and `[LastActivePlayers]`. I
 
 **Display name prefixes are not showing in chat**
 
-LastActivePlayers sets the Bukkit display name (`player.setDisplayName()`). Whether this
-appears in chat depends on how your chat plugin renders messages:
+LastActivePlayers sets both the Paper Adventure `displayName()` component and the legacy
+Bukkit `setDisplayName()`. On a vanilla Paper 1.21+ server the prefix appears in chat
+automatically via Paper's default chat renderer.
 
-- **EssentialsXChat** uses its own internal display name system and does not read the Bukkit
-  display name. Use the `%lastactiveplayers_prefix%` PlaceholderAPI placeholder in the
-  EssentialsXChat format instead. See the [PlaceholderAPI integration](#placeholderapi-integration)
-  section above for step-by-step instructions.
+If you use a **chat plugin** that overrides the default renderer:
+
+- **EssentialsXChat** uses its own internal display name system and does not read either
+  Bukkit or Adventure display names. Use the `%lastactiveplayers_prefix%` PlaceholderAPI
+  placeholder in the EssentialsXChat format instead. See the
+  [PlaceholderAPI integration](#placeholderapi-integration) section above for step-by-step
+  instructions.
 - **Other chat plugins** that use `{displayname}` or `%player_displayname%` will show the
   prefix automatically without PlaceholderAPI.
 - **Nameplates** (the name above the player's head in-game) are not affected; those require
