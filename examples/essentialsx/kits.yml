@@ -1,0 +1,68 @@
+# LastActivePlayers - EssentialsX kit definitions
+#
+# Paste the content below into the `kits:` section of
+# plugins/Essentials/config.yml, then restart or run /ess reload.
+#
+# These kits are claimed through the DeluxeMenus awards menu
+# (see ../deluxemenus/awards_menu.yml), which handles permission
+# gating. The kits themselves carry no essentials.kits.* permission
+# requirement so that the console can issue them on the player's
+# behalf without requiring extra LuckPerms configuration.
+#
+# Cooldowns are in seconds:
+#   86400  = 24 hours
+#   604800 = 7 days
+#
+# Customise the item lists and cooldowns freely.
+# EssentialsX item format: <material> <amount> [meta...]
+# See: https://essentialsx.net/wiki/Kits.html
+
+kits:
+
+  # Claimed by the current MVP (most playtime in the rolling 30-day window).
+  # Permission node: lastactiveplayers.mvp
+  mvp-daily:
+    delay: 86400
+    items:
+      - diamond 5
+      - enchanted_golden_apple 1
+      - experience_bottle 32
+
+  # Streak milestone kits - one per tier.
+  # Only the player's highest active milestone is shown in the awards menu,
+  # so only one of these kits is claimable at a time per player.
+  # Permission nodes: lastactiveplayers.streak.3 / .7 / .14 / .30 / .60
+
+  streak-3:
+    delay: 86400
+    items:
+      - iron_ingot 16
+      - bread 16
+
+  streak-7:
+    delay: 86400
+    items:
+      - gold_ingot 8
+      - cooked_beef 16
+
+  streak-14:
+    delay: 86400
+    items:
+      - diamond 2
+      - gold_ingot 8
+      - experience_bottle 16
+
+  streak-30:
+    delay: 86400
+    items:
+      - diamond 5
+      - emerald 4
+      - experience_bottle 32
+
+  streak-60:
+    delay: 86400
+    items:
+      - netherite_scrap 2
+      - diamond 8
+      - experience_bottle 64
+      - enchanted_golden_apple 1
