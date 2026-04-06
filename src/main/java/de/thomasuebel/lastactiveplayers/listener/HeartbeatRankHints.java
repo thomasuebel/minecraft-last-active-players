@@ -2,7 +2,7 @@ package de.thomasuebel.lastactiveplayers.listener;
 
 import de.thomasuebel.lastactiveplayers.ranking.Leaderboard;
 import de.thomasuebel.lastactiveplayers.ranking.LeaderboardEntry;
-import de.thomasuebel.lastactiveplayers.ranking.OnlineRanks;
+import de.thomasuebel.lastactiveplayers.ranking.TrackedRanks;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -31,7 +31,7 @@ public final class HeartbeatRankHints implements Listener {
     /** Fetch the full leaderboard so no player is excluded from rank calculation. */
     private static final int MAX_LEADERBOARD_SIZE = Integer.MAX_VALUE;
 
-    private final OnlineRanks onlineRanks;
+    private final TrackedRanks onlineRanks;
     private final Leaderboard leaderboard;
     private final Plugin plugin;
 
@@ -43,7 +43,7 @@ public final class HeartbeatRankHints implements Listener {
      * @param plugin      the plugin instance used to resolve online players; never null
      */
     public HeartbeatRankHints(
-        final OnlineRanks onlineRanks,
+        final TrackedRanks onlineRanks,
         final Leaderboard leaderboard,
         final Plugin plugin
     ) {

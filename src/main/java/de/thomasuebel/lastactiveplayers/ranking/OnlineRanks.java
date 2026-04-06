@@ -17,7 +17,7 @@ import java.util.function.BiConsumer;
  * <p>First appearance on the leaderboard -- when a player's stored rank is unknown -- is
  * treated as a baseline, not an improvement, so no notification fires.
  */
-public final class OnlineRanks {
+public final class OnlineRanks implements TrackedRanks {
 
     /** Sentinel value for players not yet present on the leaderboard. */
     private static final int UNRANKED = Integer.MAX_VALUE;
