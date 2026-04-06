@@ -309,6 +309,12 @@ public final class LastActivePlayers extends JavaPlugin {
             onlineRanks, this.mvpBoard, this
         );
         getServer().getPluginManager().registerEvents(heartbeatRankHints, this);
+        // Seed currently online players so they receive rank-up notifications after a reload.
+        // lastSnapshot is empty at this point; players are seeded as UNRANKED and will be
+        // promoted to their real rank on the first heartbeat without a spurious notification.
+        for (final Player online : getServer().getOnlinePlayers()) {
+            onlineRanks.joined(online.getUniqueId(), java.util.List.of());
+        }
 
         final Heartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
         final long intervalTicks = heartbeatMinutes * TICKS_PER_MINUTE;
