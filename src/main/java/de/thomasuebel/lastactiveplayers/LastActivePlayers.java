@@ -6,12 +6,7 @@ import de.thomasuebel.lastactiveplayers.db.DatabaseException;
 import de.thomasuebel.lastactiveplayers.db.InitialSchema;
 import de.thomasuebel.lastactiveplayers.db.SqliteDatabase;
 import de.thomasuebel.lastactiveplayers.db.SqliteMigrations;
-import de.thomasuebel.lastactiveplayers.command.AwardPreviewLines;
-import de.thomasuebel.lastactiveplayers.command.CommandLines;
 import de.thomasuebel.lastactiveplayers.command.LastActiveCommand;
-import de.thomasuebel.lastactiveplayers.command.LastActiveLines;
-import de.thomasuebel.lastactiveplayers.command.MvpLines;
-import de.thomasuebel.lastactiveplayers.command.StreakLines;
 import de.thomasuebel.lastactiveplayers.display.DateLabel;
 import de.thomasuebel.lastactiveplayers.display.JoinMessage;
 import de.thomasuebel.lastactiveplayers.display.LeaderboardJoinMessage;
@@ -31,20 +26,18 @@ import de.thomasuebel.lastactiveplayers.ranking.Leaderboard;
 import de.thomasuebel.lastactiveplayers.ranking.SqliteLastLeaveLeaderboard;
 import de.thomasuebel.lastactiveplayers.ranking.SqlitePlaytimeLeaderboard;
 import de.thomasuebel.lastactiveplayers.session.ActiveSessions;
-import de.thomasuebel.lastactiveplayers.session.BukkitHeartbeat;
-import de.thomasuebel.lastactiveplayers.session.Heartbeat;
 import de.thomasuebel.lastactiveplayers.session.InMemoryActiveSessions;
 import de.thomasuebel.lastactiveplayers.session.SessionHeartbeat;
 import de.thomasuebel.lastactiveplayers.session.Sessions;
 import de.thomasuebel.lastactiveplayers.session.SqliteSessions;
 import de.thomasuebel.lastactiveplayers.session.TrackedSession;
-import de.thomasuebel.lastactiveplayers.stats.BStatsStatistics;
-import de.thomasuebel.lastactiveplayers.stats.Statistics;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.IOException;
@@ -85,7 +78,6 @@ public final class LastActivePlayers extends JavaPlugin {
     private static final String MSG_RELOAD_FAILED = "Reload failed: invalid display.date-format. "
         + "Check the server console for details.";
 
-    private Statistics statistics;
     private Database database;
     private Sessions sessions;
     private Players players;
@@ -98,8 +90,7 @@ public final class LastActivePlayers extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        this.statistics = new BStatsStatistics(this, BSTATS_PLUGIN_ID);
-        this.statistics.register();
+        new Metrics(this, BSTATS_PLUGIN_ID);
 
         try {
             this.database = new SqliteDatabase(
@@ -316,12 +307,16 @@ public final class LastActivePlayers extends JavaPlugin {
             onlineRanks.joined(online.getUniqueId(), java.util.List.of());
         }
 
-        final Heartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
+        final SessionHeartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
         final long intervalTicks = heartbeatMinutes * TICKS_PER_MINUTE;
-        this.heartbeatTask = new BukkitHeartbeat(heartbeat, () -> {
-            this.awardLifecycle.broadcastIfChanged();
-            heartbeatRankHints.pulse();
-        }).runTaskTimer(this, intervalTicks, intervalTicks);
+        this.heartbeatTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                heartbeat.pulse(java.time.Instant.now());
+                LastActivePlayers.this.awardLifecycle.broadcastIfChanged();
+                heartbeatRankHints.pulse();
+            }
+        }.runTaskTimer(this, intervalTicks, intervalTicks);
 
         final DateLabel dateLabel = new RelativeDateLabel(
             Clock.systemDefaultZone(), ZoneId.systemDefault(),
@@ -339,16 +334,6 @@ public final class LastActivePlayers extends JavaPlugin {
             this
         );
 
-        final CommandLines list = new LastActiveLines(
-            joinMessage, this.mvpBoard, this.players, mvpTemplate, streakTemplate
-        );
-        final CommandLines mvpLines = new MvpLines(this.mvpBoard, mvpTemplate, mvpTieTemplate);
-        final CommandLines streakLines = new StreakLines(
-            this.players, streakTemplate, streakTieTemplate
-        );
-        final CommandLines preview = new AwardPreviewLines(
-            this.mvpBoard, this.players, mvpPrefix, streakPrefix
-        );
         final Supplier<Set<UUID>> online = () -> {
             final Set<UUID> uuids = new HashSet<>();
             for (final Player p : getServer().getOnlinePlayers()) {
@@ -359,7 +344,11 @@ public final class LastActivePlayers extends JavaPlugin {
         final PluginCommand lastActive = getCommand("lastactive");
         if (lastActive != null) {
             lastActive.setExecutor(
-                new LastActiveCommand(list, mvpLines, streakLines, preview, this::reload, online)
+                new LastActiveCommand(
+                    joinMessage, this.mvpBoard, this.players,
+                    mvpTemplate, mvpTieTemplate, streakTemplate, streakTieTemplate,
+                    mvpPrefix, streakPrefix, this::reload, online
+                )
             );
             return true;
         } else {

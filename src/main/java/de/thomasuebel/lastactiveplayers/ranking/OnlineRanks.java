@@ -21,7 +21,7 @@ import java.util.function.BiConsumer;
  * <p><strong>Thread safety:</strong> This class is not thread-safe. All methods must be called
  * from the Bukkit main thread. Do not schedule calls on async threads.
  */
-public final class OnlineRanks implements TrackedRanks {
+public final class OnlineRanks {
 
     /** Sentinel value for players not yet present on the leaderboard. */
     private static final int UNRANKED = Integer.MAX_VALUE;
@@ -48,7 +48,6 @@ public final class OnlineRanks implements TrackedRanks {
      * @param uuid   the joining player's UUID; never null
      * @param ranked the current leaderboard, best first; never null
      */
-    @Override
     public void joined(final UUID uuid, final List<LeaderboardEntry> ranked) {
         this.lastRank.put(uuid, trueRank(uuid, ranked));
     }
@@ -58,7 +57,6 @@ public final class OnlineRanks implements TrackedRanks {
      *
      * @param uuid the player's UUID; never null
      */
-    @Override
     public void quit(final UUID uuid) {
         this.lastRank.remove(uuid);
     }
@@ -66,7 +64,6 @@ public final class OnlineRanks implements TrackedRanks {
     /**
      * Clears rank tracking for all players. Used on plugin reload.
      */
-    @Override
     public void reset() {
         this.lastRank.clear();
     }
@@ -80,7 +77,6 @@ public final class OnlineRanks implements TrackedRanks {
      * @param ranked the current leaderboard, best first; never null
      * @param notify callback that receives the player UUID and a formatted hint message; never null
      */
-    @Override
     public void pulse(
         final List<LeaderboardEntry> ranked, final BiConsumer<UUID, String> notify
     ) {

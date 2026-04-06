@@ -22,7 +22,7 @@ class SessionHeartbeatTest {
 
     private FakeSessions fakeSessions;
     private ActiveSessions activeSessions;
-    private Heartbeat heartbeat;
+    private SessionHeartbeat heartbeat;
 
     @BeforeEach
     void setUp() {
