@@ -1,18 +1,115 @@
 # LastActivePlayers — Integration Examples
 
-Drop-in configurations that wire LastActivePlayers award permissions into
-common server plugins.
+Drop-in configurations that wire LastActivePlayers award permissions and
+PlaceholderAPI placeholders into common server plugins.
 
 ## Contents
 
 | Path | Description |
 |------|-------------|
 | `essentialsx/kits.yml` | Kit definitions to paste into EssentialsX `config.yml` |
+| `essentialsx/chat-format.yml` | EssentialsXChat format snippet — shows the award prefix in chat |
 | `deluxemenus/awards_menu.yml` | DeluxeMenus GUI menu — players claim rewards via `/rewards` |
 
 ---
 
+## PlaceholderAPI integration
+
+LastActivePlayers registers a PlaceholderAPI expansion automatically when
+PlaceholderAPI is present on the server. No configuration is required on the
+LastActivePlayers side.
+
+### Requirements
+
+- [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) installed
+  and running on the same server
+- LastActivePlayers 1.0.7+
+
+### Available placeholders
+
+| Placeholder | Returns | Example value |
+|-------------|---------|---------------|
+| `%lastactiveplayers_prefix%` | The configured award prefix for the player, or empty string | `[Crown] ` |
+| `%lastactiveplayers_award%` | `mvp`, `streak`, or empty string | `mvp` |
+
+Both placeholders reflect the **live in-memory award state** at the time of the
+request. Award state is updated on every player join, on player quit, and after
+each heartbeat flush (every N minutes, configurable). The values are always
+current; no caching layer is involved.
+
+For players who hold no active award both placeholders return an empty string,
+so they are safe to embed directly in chat formats and menu lore without any
+conditional logic.
+
+### Prefix values
+
+`%lastactiveplayers_prefix%` returns exactly the string configured in
+`config.yml`:
+
+- `prefix.mvp` (default `[Crown] `) for the current MVP
+- `prefix.streak` (default `[Fire] `) for the current streak leader
+- `""` for everyone else
+
+If you customise the prefixes with colour codes (e.g. `&6[Crown]&r `) the
+placeholder returns those codes verbatim. Add a reset code (`&r`) after the
+placeholder in your chat format if you want to prevent colour bleed into the
+player name that follows.
+
+### What happens without PlaceholderAPI
+
+If PlaceholderAPI is not installed the plugin starts normally and all core
+features work as usual. The placeholders are simply not registered, and no
+warning is logged. You can install PlaceholderAPI at any time and restart
+(or reload) to activate them.
+
+---
+
+## EssentialsXChat chat format
+
+**File:** `essentialsx/chat-format.yml`
+
+**Requires:** EssentialsX, EssentialsXChat, PlaceholderAPI
+
+Open `plugins/Essentials/config.yml`, find the `chat:` section, and replace
+(or set) the `format:` value. Then run `/ess reload` or restart.
+
+```yaml
+chat:
+  format: '<%lastactiveplayers_prefix%{DISPLAYNAME}> {MESSAGE}'
+```
+
+**Why this works**
+
+EssentialsXChat formats chat using its own `{DISPLAYNAME}` token, which reads
+from EssentialsX's internal nickname store. Bukkit's `player.setDisplayName()`
+-- which LastActivePlayers uses for Bukkit display name -- is a separate system
+that EssentialsXChat ignores. Using the PlaceholderAPI placeholder sidesteps
+that entirely: the prefix is injected directly into the format string before
+EssentialsXChat renders the message.
+
+**Colour codes in the prefix**
+
+The default prefixes (`[Crown] `, `[Fire] `) contain no colour codes, so the
+format above works out of the box. If you add colour codes to `prefix.mvp` or
+`prefix.streak` in LastActivePlayers `config.yml`, add `&r` after the
+placeholder:
+
+```yaml
+  format: '<%lastactiveplayers_prefix%&r{DISPLAYNAME}> {MESSAGE}'
+```
+
+**Tab list**
+
+`%lastactiveplayers_prefix%` does not affect the Tab list automatically.
+If you also want the prefix in the Tab list, use the
+[TAB plugin](https://www.spigotmc.org/resources/tab-list-and-name-tags.57806/)
+and reference `%lastactiveplayers_prefix%` in its tab name format.
+
+---
+
 ## EssentialsX kits
+
+**File:** `essentialsx/kits.yml`
 
 **Requires:** EssentialsX 2.20+
 
@@ -42,6 +139,8 @@ Customise the item lists and cooldown values freely.
 
 ## DeluxeMenus awards menu
 
+**File:** `deluxemenus/awards_menu.yml`
+
 **Requires:** DeluxeMenus 1.13+, PlaceholderAPI
 
 Copy `deluxemenus/awards_menu.yml` to `plugins/DeluxeMenus/gui_menus/` and
@@ -58,11 +157,11 @@ M = MVP reward slot
 S = Streak reward slot
 ```
 
-**MVP slot** — shows a gold block when the player holds
+**MVP slot** -- shows a gold block when the player holds
 `lastactiveplayers.mvp`. Clicking claims `kit mvp-daily`. Shows a locked
 placeholder otherwise.
 
-**Streak slot** — shows the item and lore for the player's highest active
+**Streak slot** -- shows the item and lore for the player's highest active
 streak milestone (streak.60 down to streak.3, checked in priority order).
 Shows a locked placeholder when no milestone is active. Because LastActivePlayers
 only grants the highest milestone node, each player sees exactly one claimable
@@ -102,4 +201,4 @@ Because the permissions are transient, the DeluxeMenus `view_requirement` and
 which is always current.
 
 Only the highest streak milestone permission is held at any time. A player on a
-30-day streak holds `lastactiveplayers.streak.30` only — not the lower tiers.
+30-day streak holds `lastactiveplayers.streak.30` only -- not the lower tiers.
