@@ -220,4 +220,21 @@ class SqlitePlaytimeLeaderboardTest {
 
         assertTrue(tied.isEmpty());
     }
+
+    @Test
+    void topOrderIsStableWhenScoresAreEqual() {
+        final long aliceId = sessions.open(aliceUuid, JOIN_ALICE);
+        sessions.heartbeat(aliceId, LEAVE_ALICE, ONE_HOUR_SECONDS);
+        sessions.close(aliceId, LEAVE_ALICE);
+        final long bobId = sessions.open(bobUuid, JOIN_BOB);
+        sessions.heartbeat(bobId, LEAVE_BOB, ONE_HOUR_SECONDS);
+        sessions.close(bobId, LEAVE_BOB);
+
+        final Leaderboard board = new SqlitePlaytimeLeaderboard(this.db, CLOCK, THIRTY_DAYS);
+        final List<LeaderboardEntry> first = board.top(10, Set.of());
+        final List<LeaderboardEntry> second = board.top(10, Set.of());
+
+        assertEquals(first.get(0).uuid(), second.get(0).uuid());
+        assertEquals(first.get(1).uuid(), second.get(1).uuid());
+    }
 }

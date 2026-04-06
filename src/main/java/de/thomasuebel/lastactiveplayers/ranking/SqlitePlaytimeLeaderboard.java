@@ -41,7 +41,7 @@ public final class SqlitePlaytimeLeaderboard implements Leaderboard {
         WHERE s.leave_time >= ?
         GROUP BY p.uuid, p.username
         HAVING total_seconds > 0
-        ORDER BY total_seconds DESC
+        ORDER BY total_seconds DESC, p.uuid ASC
         """;
 
     private final Database database;

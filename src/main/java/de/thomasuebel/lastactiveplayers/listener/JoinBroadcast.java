@@ -1,7 +1,7 @@
 package de.thomasuebel.lastactiveplayers.listener;
 
 import de.thomasuebel.lastactiveplayers.display.JoinMessage;
-import de.thomasuebel.lastactiveplayers.display.RankHint;
+import de.thomasuebel.lastactiveplayers.ranking.RankHint;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
