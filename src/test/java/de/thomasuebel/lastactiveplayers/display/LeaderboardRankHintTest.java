@@ -16,6 +16,7 @@ class LeaderboardRankHintTest {
 
     private static final UUID ALICE = UUID.randomUUID();
     private static final UUID BOB = UUID.randomUUID();
+    private static final UUID CAROL = UUID.randomUUID();
     private static final long TWO_HOURS_SECONDS = 7200L;
     private static final long ONE_HOUR_SECONDS = 3600L;
     // 7200 - 59 = 7141; a delta of 59s whose ceiling in minutes is 1 (not 0)
@@ -85,28 +86,73 @@ class LeaderboardRankHintTest {
     }
 
     @Test
-    void showsZeroMinutesWhenTiedWithRankAbove() {
-        // When delta is 0 seconds, ceiling(0/60) = 0 minutes shown.
+    void tiedPlayersAtRankOneReturnEmpty() {
+        // Both players have identical scores; both share rank #1 -- no hint shown.
         final RankHint hint = new LeaderboardRankHint(
             (l, e) -> List.of(entry(BOB, ONE_HOUR_SECONDS), entry(ALICE, ONE_HOUR_SECONDS)),
             TEMPLATE
         );
+        assertTrue(hint.text(ALICE, Set.of()).isEmpty());
+    }
+
+    @Test
+    void tiedForSecondShowsSharedRankNumber() {
+        // Three players: BOB leads; CAROL and ALICE are tied.
+        // ALICE's true rank is #2 (one player strictly above), not #3 (index-based).
+        final RankHint hint = new LeaderboardRankHint(
+            (l, e) -> List.of(
+                entry(BOB, TWO_HOURS_SECONDS),
+                entry(CAROL, ONE_HOUR_SECONDS),
+                entry(ALICE, ONE_HOUR_SECONDS)
+            ),
+            TEMPLATE
+        );
         final Optional<String> text = hint.text(ALICE, Set.of());
         assertTrue(text.isPresent());
-        assertEquals("Rank #2. 0m to #1.", text.get());
+        assertEquals("Rank #2. 60m to #1.", text.get());
+    }
+
+    @Test
+    void gapForTiedSecondIsToLeaderNotTiedPeer() {
+        // ALICE is tied with CAROL at rank #2; the gap must be computed against BOB (rank #1),
+        // not against CAROL (0 seconds difference would give 0m, which is wrong).
+        final RankHint hint = new LeaderboardRankHint(
+            (l, e) -> List.of(
+                entry(BOB, TWO_HOURS_SECONDS),
+                entry(CAROL, ONE_HOUR_SECONDS),
+                entry(ALICE, ONE_HOUR_SECONDS)
+            ),
+            TEMPLATE
+        );
+        final Optional<String> text = hint.text(ALICE, Set.of());
+        assertTrue(text.isPresent());
+        assertEquals("Rank #2. 60m to #1.", text.get());
+    }
+
+    @Test
+    void tiedAtFirstAmongManyReturnsEmpty() {
+        // All three players tied -- all share rank #1 -- no hint for any of them.
+        final RankHint hint = new LeaderboardRankHint(
+            (l, e) -> List.of(
+                entry(BOB, ONE_HOUR_SECONDS),
+                entry(CAROL, ONE_HOUR_SECONDS),
+                entry(ALICE, ONE_HOUR_SECONDS)
+            ),
+            TEMPLATE
+        );
+        assertTrue(hint.text(ALICE, Set.of()).isEmpty());
     }
 
     @Test
     void excludesOtherOnlinePlayersButNotJoiner() {
-        final UUID carol = UUID.randomUUID();
-        // Carol is online (should be excluded); Alice is the joiner (should not be excluded)
+        // CAROL is online (should be excluded); ALICE is the joiner (should not be excluded)
         final RankHint hint = new LeaderboardRankHint(
-            (l, exclude) -> exclude.contains(carol) && !exclude.contains(ALICE)
+            (l, exclude) -> exclude.contains(CAROL) && !exclude.contains(ALICE)
                 ? List.of(entry(BOB, TWO_HOURS_SECONDS), entry(ALICE, ONE_HOUR_SECONDS))
                 : List.of(),
             TEMPLATE
         );
-        final Optional<String> text = hint.text(ALICE, Set.of(ALICE, carol));
+        final Optional<String> text = hint.text(ALICE, Set.of(ALICE, CAROL));
         assertTrue(text.isPresent());
         assertEquals("Rank #2. 60m to #1.", text.get());
     }

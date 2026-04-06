@@ -46,24 +46,40 @@ public final class LeaderboardRankHint implements RankHint {
         excludeOthers.remove(playerUuid);
         final List<LeaderboardEntry> ranked =
             this.leaderboard.top(MAX_SEARCH_RANK, excludeOthers);
-        for (int i = 0; i < ranked.size(); i++) {
-            if (ranked.get(i).uuid().equals(playerUuid)) {
-                if (i == 0) {
-                    return Optional.empty();
-                }
-                final long above = ranked.get(i - 1).totalSeconds();
-                final long mine = ranked.get(i).totalSeconds();
-                final long minutes =
-                    (above - mine + SECONDS_PER_MINUTE - 1) / SECONDS_PER_MINUTE;
-                final int rank = i + 1;
-                return Optional.of(
-                    this.template
-                        .replace(TOKEN_RANK, String.valueOf(rank))
-                        .replace(TOKEN_NEXT_RANK, String.valueOf(rank - 1))
-                        .replace(TOKEN_MINUTES, String.valueOf(minutes))
-                );
+        boolean found = false;
+        long playerSeconds = 0L;
+        for (final LeaderboardEntry entry : ranked) {
+            if (entry.uuid().equals(playerUuid)) {
+                playerSeconds = entry.totalSeconds();
+                found = true;
+                break;
             }
         }
-        return Optional.empty();
+        if (!found) {
+            return Optional.empty();
+        }
+        // True shared rank: count players with strictly more seconds.
+        // The list is sorted DESC, so the last strictly-above entry holds the minimum
+        // score strictly above the player -- this is the score of the rank just above.
+        int strictlyAbove = 0;
+        long nextRankScore = playerSeconds;
+        for (final LeaderboardEntry entry : ranked) {
+            if (entry.totalSeconds() > playerSeconds) {
+                strictlyAbove++;
+                nextRankScore = entry.totalSeconds();
+            }
+        }
+        final int rank = strictlyAbove + 1;
+        if (rank == 1) {
+            return Optional.empty();
+        }
+        final long gap = nextRankScore - playerSeconds;
+        final long minutes = (gap + SECONDS_PER_MINUTE - 1) / SECONDS_PER_MINUTE;
+        return Optional.of(
+            this.template
+                .replace(TOKEN_RANK, String.valueOf(rank))
+                .replace(TOKEN_NEXT_RANK, String.valueOf(rank - 1))
+                .replace(TOKEN_MINUTES, String.valueOf(minutes))
+        );
     }
 }
