@@ -9,11 +9,19 @@ All notable changes to this project will be documented in this file.
 ### Added
 - `{duration}` token in `messages.join-entry`: shows each listed player's total playtime in
   the rolling 30-day window. Displays zero if the player has not played in the last 30 days.
+- Relative date labels for `{date}` in `messages.join-entry`: shows `today`, `yesterday`, or
+  `{days} days ago` for dates within the last 6 days. Older dates fall back to the
+  `display.date-format` pattern. Labels are configurable via `messages.date-today`,
+  `messages.date-yesterday`, and `messages.date-days-ago`.
 
 ### Fixed
 - The join list could return fewer entries than `display.list-size` when online (excluded)
   players appeared near the top of the query result; the limit is now applied after the
   exclusion filter.
+- `RelativeDateLabel` treated future instants (clock skew, sub-second races) as negative days;
+  they are now clamped to `today`.
+- `RelativeDateLabel` used UTC midnight boundaries instead of the server's default timezone;
+  day boundaries now match the server clock.
 
 ## [1.0.5] - 2026-04-05
 
