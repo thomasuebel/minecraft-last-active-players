@@ -6,12 +6,7 @@ import de.thomasuebel.lastactiveplayers.db.DatabaseException;
 import de.thomasuebel.lastactiveplayers.db.InitialSchema;
 import de.thomasuebel.lastactiveplayers.db.SqliteDatabase;
 import de.thomasuebel.lastactiveplayers.db.SqliteMigrations;
-import de.thomasuebel.lastactiveplayers.command.AwardPreviewLines;
-import de.thomasuebel.lastactiveplayers.command.CommandLines;
 import de.thomasuebel.lastactiveplayers.command.LastActiveCommand;
-import de.thomasuebel.lastactiveplayers.command.LastActiveLines;
-import de.thomasuebel.lastactiveplayers.command.MvpLines;
-import de.thomasuebel.lastactiveplayers.command.StreakLines;
 import de.thomasuebel.lastactiveplayers.display.DateLabel;
 import de.thomasuebel.lastactiveplayers.display.JoinMessage;
 import de.thomasuebel.lastactiveplayers.display.LeaderboardJoinMessage;
@@ -339,16 +334,6 @@ public final class LastActivePlayers extends JavaPlugin {
             this
         );
 
-        final CommandLines list = new LastActiveLines(
-            joinMessage, this.mvpBoard, this.players, mvpTemplate, streakTemplate
-        );
-        final CommandLines mvpLines = new MvpLines(this.mvpBoard, mvpTemplate, mvpTieTemplate);
-        final CommandLines streakLines = new StreakLines(
-            this.players, streakTemplate, streakTieTemplate
-        );
-        final CommandLines preview = new AwardPreviewLines(
-            this.mvpBoard, this.players, mvpPrefix, streakPrefix
-        );
         final Supplier<Set<UUID>> online = () -> {
             final Set<UUID> uuids = new HashSet<>();
             for (final Player p : getServer().getOnlinePlayers()) {
@@ -359,7 +344,11 @@ public final class LastActivePlayers extends JavaPlugin {
         final PluginCommand lastActive = getCommand("lastactive");
         if (lastActive != null) {
             lastActive.setExecutor(
-                new LastActiveCommand(list, mvpLines, streakLines, preview, this::reload, online)
+                new LastActiveCommand(
+                    joinMessage, this.mvpBoard, this.players,
+                    mvpTemplate, mvpTieTemplate, streakTemplate, streakTieTemplate,
+                    mvpPrefix, streakPrefix, this::reload, online
+                )
             );
             return true;
         } else {
