@@ -4,13 +4,13 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Pure-Java implementation of {@link Heartbeat}.
+ * Flushes active session time deltas to persistent storage.
  *
  * <p>Delegates to {@link ActiveSessions#flush(Instant)} to obtain elapsed-second deltas
  * for every in-flight session, then persists each delta via {@link Sessions#heartbeat}.
  * Contains no Bukkit dependencies so it can be unit-tested without a server environment.
  */
-public final class SessionHeartbeat implements Heartbeat {
+public final class SessionHeartbeat {
 
     private final ActiveSessions activeSessions;
     private final Sessions sessions;
@@ -26,7 +26,11 @@ public final class SessionHeartbeat implements Heartbeat {
         this.sessions = sessions;
     }
 
-    @Override
+    /**
+     * Flushes all active sessions to the persistent store at the given instant.
+     *
+     * @param now the current wall-clock time; never null
+     */
     public void pulse(final Instant now) {
         final List<HeartbeatEntry> entries = this.activeSessions.flush(now);
         for (final HeartbeatEntry entry : entries) {

@@ -31,8 +31,6 @@ import de.thomasuebel.lastactiveplayers.ranking.Leaderboard;
 import de.thomasuebel.lastactiveplayers.ranking.SqliteLastLeaveLeaderboard;
 import de.thomasuebel.lastactiveplayers.ranking.SqlitePlaytimeLeaderboard;
 import de.thomasuebel.lastactiveplayers.session.ActiveSessions;
-import de.thomasuebel.lastactiveplayers.session.BukkitHeartbeat;
-import de.thomasuebel.lastactiveplayers.session.Heartbeat;
 import de.thomasuebel.lastactiveplayers.session.InMemoryActiveSessions;
 import de.thomasuebel.lastactiveplayers.session.SessionHeartbeat;
 import de.thomasuebel.lastactiveplayers.session.Sessions;
@@ -44,6 +42,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.IOException;
@@ -313,12 +312,16 @@ public final class LastActivePlayers extends JavaPlugin {
             onlineRanks.joined(online.getUniqueId(), java.util.List.of());
         }
 
-        final Heartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
+        final SessionHeartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
         final long intervalTicks = heartbeatMinutes * TICKS_PER_MINUTE;
-        this.heartbeatTask = new BukkitHeartbeat(heartbeat, () -> {
-            this.awardLifecycle.broadcastIfChanged();
-            heartbeatRankHints.pulse();
-        }).runTaskTimer(this, intervalTicks, intervalTicks);
+        this.heartbeatTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                heartbeat.pulse(java.time.Instant.now());
+                LastActivePlayers.this.awardLifecycle.broadcastIfChanged();
+                heartbeatRankHints.pulse();
+            }
+        }.runTaskTimer(this, intervalTicks, intervalTicks);
 
         final DateLabel dateLabel = new RelativeDateLabel(
             Clock.systemDefaultZone(), ZoneId.systemDefault(),
