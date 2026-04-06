@@ -19,9 +19,11 @@ import de.thomasuebel.lastactiveplayers.display.LeaderboardRankHint;
 import de.thomasuebel.lastactiveplayers.display.RelativeDateLabel;
 import de.thomasuebel.lastactiveplayers.display.RankHint;
 import de.thomasuebel.lastactiveplayers.listener.AwardLifecycle;
+import de.thomasuebel.lastactiveplayers.listener.HeartbeatRankHints;
 import de.thomasuebel.lastactiveplayers.placeholder.AwardPlaceholders;
 import de.thomasuebel.lastactiveplayers.listener.JoinBroadcast;
 import de.thomasuebel.lastactiveplayers.listener.SessionLifecycle;
+import de.thomasuebel.lastactiveplayers.ranking.OnlineRanks;
 import de.thomasuebel.lastactiveplayers.player.Players;
 import de.thomasuebel.lastactiveplayers.player.SqlitePlayers;
 import de.thomasuebel.lastactiveplayers.player.StreakMilestones;
@@ -302,10 +304,18 @@ public final class LastActivePlayers extends JavaPlugin {
             getLogger().info("PlaceholderAPI found -- award placeholders registered.");
         }
 
+        final OnlineRanks onlineRanks = new OnlineRanks(rankHintTemplate);
+        final HeartbeatRankHints heartbeatRankHints = new HeartbeatRankHints(
+            onlineRanks, this.mvpBoard, this
+        );
+        getServer().getPluginManager().registerEvents(heartbeatRankHints, this);
+
         final Heartbeat heartbeat = new SessionHeartbeat(this.activeSessions, this.sessions);
         final long intervalTicks = heartbeatMinutes * TICKS_PER_MINUTE;
-        this.heartbeatTask = new BukkitHeartbeat(heartbeat, this.awardLifecycle::broadcastIfChanged)
-            .runTaskTimer(this, intervalTicks, intervalTicks);
+        this.heartbeatTask = new BukkitHeartbeat(heartbeat, () -> {
+            this.awardLifecycle.broadcastIfChanged();
+            heartbeatRankHints.pulse();
+        }).runTaskTimer(this, intervalTicks, intervalTicks);
 
         final DateLabel dateLabel = new RelativeDateLabel(
             Clock.systemDefaultZone(), ZoneId.systemDefault(),
