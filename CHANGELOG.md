@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.6] - 2026-04-06
+
+### Added
+- `{duration}` token in `messages.join-entry`: shows each listed player's total playtime in
+  the rolling 30-day window. Displays zero if the player has not played in the last 30 days.
+
+### Fixed
+- The join list could return fewer entries than `display.list-size` when online (excluded)
+  players appeared near the top of the query result; the limit is now applied after the
+  exclusion filter.
+
 ## [1.0.5] - 2026-04-05
 
 ### Added
