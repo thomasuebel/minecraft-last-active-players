@@ -1,7 +1,4 @@
-package de.thomasuebel.lastactiveplayers.display;
-
-import de.thomasuebel.lastactiveplayers.ranking.Leaderboard;
-import de.thomasuebel.lastactiveplayers.ranking.LeaderboardEntry;
+package de.thomasuebel.lastactiveplayers.ranking;
 
 import java.util.HashSet;
 import java.util.List;
@@ -12,8 +9,8 @@ import java.util.UUID;
 /**
  * {@link RankHint} backed by a {@link Leaderboard}.
  *
- * <p>Queries the leaderboard excluding all online players except the joining player, so
- * the joiner's own accumulated play time is visible in the ranking. Returns empty if the
+ * <p>Queries the leaderboard excluding all online players except the target player, so
+ * the player's own accumulated play time is visible in the ranking. Returns empty if the
  * player has no closed sessions or is already ranked first.
  */
 public final class LeaderboardRankHint implements RankHint {

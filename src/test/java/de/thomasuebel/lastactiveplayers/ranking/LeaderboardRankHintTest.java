@@ -1,6 +1,5 @@
-package de.thomasuebel.lastactiveplayers.display;
+package de.thomasuebel.lastactiveplayers.ranking;
 
-import de.thomasuebel.lastactiveplayers.ranking.LeaderboardEntry;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -96,26 +95,10 @@ class LeaderboardRankHintTest {
     }
 
     @Test
-    void tiedForSecondShowsSharedRankNumber() {
+    void tiedForSecondShowsSharedRankAndGapToLeader() {
         // Three players: BOB leads; CAROL and ALICE are tied.
         // ALICE's true rank is #2 (one player strictly above), not #3 (index-based).
-        final RankHint hint = new LeaderboardRankHint(
-            (l, e) -> List.of(
-                entry(BOB, TWO_HOURS_SECONDS),
-                entry(CAROL, ONE_HOUR_SECONDS),
-                entry(ALICE, ONE_HOUR_SECONDS)
-            ),
-            TEMPLATE
-        );
-        final Optional<String> text = hint.text(ALICE, Set.of());
-        assertTrue(text.isPresent());
-        assertEquals("Rank #2. 60m to #1.", text.get());
-    }
-
-    @Test
-    void gapForTiedSecondIsToLeaderNotTiedPeer() {
-        // ALICE is tied with CAROL at rank #2; the gap must be computed against BOB (rank #1),
-        // not against CAROL (0 seconds difference would give 0m, which is wrong).
+        // Gap is to BOB (rank #1), not to CAROL (a tied peer at 0s difference).
         final RankHint hint = new LeaderboardRankHint(
             (l, e) -> List.of(
                 entry(BOB, TWO_HOURS_SECONDS),

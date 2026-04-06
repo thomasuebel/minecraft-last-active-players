@@ -3,6 +3,7 @@ package de.thomasuebel.lastactiveplayers.ranking;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 
@@ -16,16 +17,15 @@ import java.util.function.BiConsumer;
  *
  * <p>First appearance on the leaderboard -- when a player's stored rank is unknown -- is
  * treated as a baseline, not an improvement, so no notification fires.
+ *
+ * <p><strong>Thread safety:</strong> This class is not thread-safe. All methods must be called
+ * from the Bukkit main thread. Do not schedule calls on async threads.
  */
 public final class OnlineRanks implements TrackedRanks {
 
     /** Sentinel value for players not yet present on the leaderboard. */
     private static final int UNRANKED = Integer.MAX_VALUE;
     private static final int RANK_ONE = 1;
-    private static final long SECONDS_PER_MINUTE = 60L;
-    private static final String TOKEN_RANK = "{rank}";
-    private static final String TOKEN_NEXT_RANK = "{next_rank}";
-    private static final String TOKEN_MINUTES = "{minutes}";
 
     private final Map<UUID, Integer> lastRank = new HashMap<>();
     private final String template;
@@ -48,6 +48,7 @@ public final class OnlineRanks implements TrackedRanks {
      * @param uuid   the joining player's UUID; never null
      * @param ranked the current leaderboard, best first; never null
      */
+    @Override
     public void joined(final UUID uuid, final List<LeaderboardEntry> ranked) {
         this.lastRank.put(uuid, trueRank(uuid, ranked));
     }
@@ -57,6 +58,7 @@ public final class OnlineRanks implements TrackedRanks {
      *
      * @param uuid the player's UUID; never null
      */
+    @Override
     public void quit(final UUID uuid) {
         this.lastRank.remove(uuid);
     }
@@ -64,6 +66,7 @@ public final class OnlineRanks implements TrackedRanks {
     /**
      * Clears rank tracking for all players. Used on plugin reload.
      */
+    @Override
     public void reset() {
         this.lastRank.clear();
     }
@@ -77,9 +80,11 @@ public final class OnlineRanks implements TrackedRanks {
      * @param ranked the current leaderboard, best first; never null
      * @param notify callback that receives the player UUID and a formatted hint message; never null
      */
+    @Override
     public void pulse(
         final List<LeaderboardEntry> ranked, final BiConsumer<UUID, String> notify
     ) {
+        final RankHint hint = new LeaderboardRankHint(new ListLeaderboard(ranked), this.template);
         final Map<UUID, Integer> updates = new HashMap<>();
         for (final Map.Entry<UUID, Integer> tracked : this.lastRank.entrySet()) {
             final UUID uuid = tracked.getKey();
@@ -89,7 +94,7 @@ public final class OnlineRanks implements TrackedRanks {
             }
             final int stored = tracked.getValue();
             if (stored != UNRANKED && current < stored && current != RANK_ONE) {
-                notify.accept(uuid, hintText(uuid, ranked, current));
+                hint.text(uuid, Set.of()).ifPresent(text -> notify.accept(uuid, text));
             }
             updates.put(uuid, current);
         }
@@ -116,31 +121,5 @@ public final class OnlineRanks implements TrackedRanks {
             }
         }
         return strictlyAbove + 1;
-    }
-
-    private String hintText(
-        final UUID uuid, final List<LeaderboardEntry> ranked, final int rank
-    ) {
-        long playerSeconds = 0L;
-        for (final LeaderboardEntry entry : ranked) {
-            if (entry.uuid().equals(uuid)) {
-                playerSeconds = entry.totalSeconds();
-                break;
-            }
-        }
-        // List is sorted DESC; last entry with strictly more seconds is the minimum score
-        // strictly above the player -- the score of the rank just above.
-        long nextRankScore = playerSeconds;
-        for (final LeaderboardEntry entry : ranked) {
-            if (entry.totalSeconds() > playerSeconds) {
-                nextRankScore = entry.totalSeconds();
-            }
-        }
-        final long gap = nextRankScore - playerSeconds;
-        final long minutes = (gap + SECONDS_PER_MINUTE - 1) / SECONDS_PER_MINUTE;
-        return this.template
-            .replace(TOKEN_RANK, String.valueOf(rank))
-            .replace(TOKEN_NEXT_RANK, String.valueOf(rank - 1))
-            .replace(TOKEN_MINUTES, String.valueOf(minutes));
     }
 }
