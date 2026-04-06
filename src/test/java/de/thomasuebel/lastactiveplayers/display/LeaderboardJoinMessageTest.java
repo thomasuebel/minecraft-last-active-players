@@ -4,8 +4,6 @@ import de.thomasuebel.lastactiveplayers.ranking.LeaderboardEntry;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -19,7 +17,7 @@ class LeaderboardJoinMessageTest {
     private static final long TWO_HOURS_SECONDS = 7200L;
     private static final long ONE_HOUR_SECONDS = 3600L;
     private static final Instant LAST_LEAVE = Instant.parse("2026-03-10T12:00:00Z");
-    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateLabel DATE_LABEL = instant -> "2026-03-10";
 
     private static LeaderboardEntry entry(final String username, final long seconds) {
         return new LeaderboardEntry() {
@@ -49,7 +47,7 @@ class LeaderboardJoinMessageTest {
             entry("Bob", ONE_HOUR_SECONDS)
         );
         final JoinMessage msg = new LeaderboardJoinMessage(
-            (limit, exclude) -> entries, entries.size(), "{n}. {player}", DATE_FMT, ZoneOffset.UTC
+            (limit, exclude) -> entries, entries.size(), "{n}. {player}", DATE_LABEL
         );
         final List<String> lines = msg.lines(Set.of());
         assertEquals(2, lines.size());
@@ -64,8 +62,7 @@ class LeaderboardJoinMessageTest {
             entry("Bob", ONE_HOUR_SECONDS)
         );
         final JoinMessage msg = new LeaderboardJoinMessage(
-            (limit, exclude) -> entries.subList(0, limit),
-            1, "{n}. {player}", DATE_FMT, ZoneOffset.UTC
+            (limit, exclude) -> entries.subList(0, limit), 1, "{n}. {player}", DATE_LABEL
         );
         assertEquals(1, msg.lines(Set.of()).size());
     }
@@ -73,7 +70,7 @@ class LeaderboardJoinMessageTest {
     @Test
     void returnsEmptyListWhenNoEntries() {
         final JoinMessage msg = new LeaderboardJoinMessage(
-            (limit, exclude) -> List.of(), 3, "{n}. {player}", DATE_FMT, ZoneOffset.UTC
+            (limit, exclude) -> List.of(), 3, "{n}. {player}", DATE_LABEL
         );
         assertTrue(msg.lines(Set.of()).isEmpty());
     }
@@ -85,7 +82,7 @@ class LeaderboardJoinMessageTest {
             (limit, exclude) -> exclude.isEmpty()
                 ? List.of(entry("Alice", ONE_HOUR_SECONDS))
                 : List.of(),
-            3, "{n}. {player}", DATE_FMT, ZoneOffset.UTC
+            3, "{n}. {player}", DATE_LABEL
         );
         assertTrue(msg.lines(Set.of(excluded)).isEmpty());
         assertEquals(1, msg.lines(Set.of()).size());

@@ -12,9 +12,11 @@ import de.thomasuebel.lastactiveplayers.command.LastActiveCommand;
 import de.thomasuebel.lastactiveplayers.command.LastActiveLines;
 import de.thomasuebel.lastactiveplayers.command.MvpLines;
 import de.thomasuebel.lastactiveplayers.command.StreakLines;
+import de.thomasuebel.lastactiveplayers.display.DateLabel;
 import de.thomasuebel.lastactiveplayers.display.JoinMessage;
 import de.thomasuebel.lastactiveplayers.display.LeaderboardJoinMessage;
 import de.thomasuebel.lastactiveplayers.display.LeaderboardRankHint;
+import de.thomasuebel.lastactiveplayers.display.RelativeDateLabel;
 import de.thomasuebel.lastactiveplayers.display.RankHint;
 import de.thomasuebel.lastactiveplayers.listener.AwardLifecycle;
 import de.thomasuebel.lastactiveplayers.listener.JoinBroadcast;
@@ -265,8 +267,13 @@ public final class LastActivePlayers extends JavaPlugin {
         );
         final String entryTemplate = getConfig().getString(
             "messages.join-entry",
-            "Last Active: {n}. {player} was here on {date} for {duration}"
+            "Last Active: {n}. {player} was last seen on {date} ({duration} last 30 days)"
         );
+        final String dateLabelToday = getConfig().getString("messages.date-today", "today");
+        final String dateLabelYesterday =
+            getConfig().getString("messages.date-yesterday", "yesterday");
+        final String dateLabelDaysAgo =
+            getConfig().getString("messages.date-days-ago", "{days} days ago");
         final int joinDelaySeconds =
             getConfig().getInt("display.join-delay-seconds", DEFAULT_JOIN_DELAY_SECONDS);
         final long joinDelayTicks = (long) joinDelaySeconds * TICKS_PER_SECOND;
@@ -294,9 +301,14 @@ public final class LastActivePlayers extends JavaPlugin {
         this.heartbeatTask = new BukkitHeartbeat(heartbeat, this.awardLifecycle::broadcastIfChanged)
             .runTaskTimer(this, intervalTicks, intervalTicks);
 
+        final DateLabel dateLabel = new RelativeDateLabel(
+            Clock.systemDefaultZone(), ZoneId.systemDefault(),
+            dateLabelToday, dateLabelYesterday, dateLabelDaysAgo,
+            dateFormatter.withZone(ZoneId.systemDefault())
+        );
         final JoinMessage joinMessage = new LeaderboardJoinMessage(
             new SqliteLastLeaveLeaderboard(this.database, Clock.systemUTC(), THIRTY_DAYS),
-            listSize, entryTemplate, dateFormatter, ZoneId.systemDefault()
+            listSize, entryTemplate, dateLabel
         );
         final RankHint rankHint = new LeaderboardRankHint(this.mvpBoard, rankHintTemplate);
         getServer().getPluginManager().registerEvents(
