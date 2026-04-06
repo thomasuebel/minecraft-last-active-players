@@ -103,7 +103,7 @@ public final class SqliteLastLeaveLeaderboard implements Leaderboard {
             if (result.size() >= limit) {
                 break;
             }
-            result.add(new StoredEntry(
+            result.add(new LeaderboardEntry(
                 uuid,
                 rs.getString("username"),
                 rs.getLong("total_seconds"),
@@ -133,7 +133,7 @@ public final class SqliteLastLeaveLeaderboard implements Leaderboard {
             } else if (!lastLeave.equals(topLeave)) {
                 break;
             }
-            result.add(new StoredEntry(
+            result.add(new LeaderboardEntry(
                 uuid,
                 rs.getString("username"),
                 rs.getLong("total_seconds"),

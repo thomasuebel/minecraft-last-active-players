@@ -136,7 +136,7 @@ public final class SqliteSessions implements Sessions {
         final List<Session> result = new ArrayList<>();
         while (rs.next()) {
             final String leaveTimeStr = rs.getString("leave_time");
-            result.add(new StoredSession(
+            result.add(new Session(
                 rs.getLong("id"),
                 UUID.fromString(rs.getString("player_uuid")),
                 Instant.parse(rs.getString("join_time")),

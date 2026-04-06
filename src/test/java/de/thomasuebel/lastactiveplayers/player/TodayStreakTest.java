@@ -18,87 +18,63 @@ class TodayStreakTest {
 
     @Test
     void firstLoginStartsStreakAtOne() {
-        final Player player = playerWith(0, Optional.empty());
+        final PlayerRecord player = playerWith(0, Optional.empty());
         final Streak streak = new TodayStreak(player, TODAY);
         assertEquals(1, streak.days());
     }
 
     @Test
     void firstLoginSetsLastDayToToday() {
-        final Player player = playerWith(0, Optional.empty());
+        final PlayerRecord player = playerWith(0, Optional.empty());
         final Streak streak = new TodayStreak(player, TODAY);
         assertEquals(TODAY, streak.lastDay());
     }
 
     @Test
     void consecutiveDayExtendsStreak() {
-        final Player player = playerWith(EXISTING_STREAK, Optional.of(YESTERDAY));
+        final PlayerRecord player = playerWith(EXISTING_STREAK, Optional.of(YESTERDAY));
         final Streak streak = new TodayStreak(player, TODAY);
         assertEquals(EXISTING_STREAK + 1, streak.days());
     }
 
     @Test
     void consecutiveDaySetsLastDayToToday() {
-        final Player player = playerWith(EXISTING_STREAK, Optional.of(YESTERDAY));
+        final PlayerRecord player = playerWith(EXISTING_STREAK, Optional.of(YESTERDAY));
         final Streak streak = new TodayStreak(player, TODAY);
         assertEquals(TODAY, streak.lastDay());
     }
 
     @Test
     void sameDayLoginPreservesStreak() {
-        final Player player = playerWith(EXISTING_STREAK, Optional.of(TODAY));
+        final PlayerRecord player = playerWith(EXISTING_STREAK, Optional.of(TODAY));
         final Streak streak = new TodayStreak(player, TODAY);
         assertEquals(EXISTING_STREAK, streak.days());
     }
 
     @Test
     void sameDayLoginKeepsLastDay() {
-        final Player player = playerWith(EXISTING_STREAK, Optional.of(TODAY));
+        final PlayerRecord player = playerWith(EXISTING_STREAK, Optional.of(TODAY));
         final Streak streak = new TodayStreak(player, TODAY);
         assertEquals(TODAY, streak.lastDay());
     }
 
     @Test
     void lapsedStreakResetsToOne() {
-        final Player player = playerWith(EXISTING_STREAK, Optional.of(TWO_DAYS_AGO));
+        final PlayerRecord player = playerWith(EXISTING_STREAK, Optional.of(TWO_DAYS_AGO));
         final Streak streak = new TodayStreak(player, TODAY);
         assertEquals(1, streak.days());
     }
 
     @Test
     void lapsedStreakSetsLastDayToToday() {
-        final Player player = playerWith(EXISTING_STREAK, Optional.of(TWO_DAYS_AGO));
+        final PlayerRecord player = playerWith(EXISTING_STREAK, Optional.of(TWO_DAYS_AGO));
         final Streak streak = new TodayStreak(player, TODAY);
         assertEquals(TODAY, streak.lastDay());
     }
 
-    private static Player playerWith(final int streakDays, final Optional<LocalDate> lastDay) {
-        return new Player() {
-
-            @Override
-            public boolean exists() {
-                return true;
-            }
-
-            @Override
-            public UUID uuid() {
-                return UUID.randomUUID();
-            }
-
-            @Override
-            public String username() {
-                return "TestPlayer";
-            }
-
-            @Override
-            public int streakDays() {
-                return streakDays;
-            }
-
-            @Override
-            public Optional<LocalDate> streakLastDay() {
-                return lastDay;
-            }
-        };
+    private static PlayerRecord playerWith(
+        final int streakDays, final Optional<LocalDate> lastDay
+    ) {
+        return new PlayerRecord(UUID.randomUUID(), "TestPlayer", streakDays, lastDay);
     }
 }

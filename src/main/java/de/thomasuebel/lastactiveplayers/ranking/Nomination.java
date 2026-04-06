@@ -3,39 +3,11 @@ package de.thomasuebel.lastactiveplayers.ranking;
 import java.util.UUID;
 
 /**
- * The current holder of a server title (MVP or Streak Leader).
+ * The identity and streak data for a player nominated as MVP or Streak Leader.
  *
- * <p>When no qualifying player exists, implementations should return {@link NoNomination}
- * rather than {@code null}.
+ * @param uuid       the nominated player's UUID; never null
+ * @param username   the nominated player's last-known username; never null
+ * @param streakDays the player's current streak in days; 0 for MVP nominations
  */
-public interface Nomination {
-
-    /**
-     * Returns {@code true} if a title holder was found.
-     *
-     * @return true when this nomination represents a real player
-     */
-    boolean exists();
-
-    /**
-     * Returns the title holder's UUID.
-     *
-     * @return the UUID; never null (returns zero UUID for {@link NoNomination})
-     */
-    UUID uuid();
-
-    /**
-     * Returns the title holder's last-known username.
-     *
-     * @return username; never null, empty for {@link NoNomination}
-     */
-    String username();
-
-    /**
-     * Returns the title holder's current streak day count, or {@code 0} if not applicable
-     * (e.g. an MVP nomination, or a {@link NoNomination}).
-     *
-     * @return non-negative streak days
-     */
-    int streakDays();
+public record Nomination(UUID uuid, String username, int streakDays) {
 }

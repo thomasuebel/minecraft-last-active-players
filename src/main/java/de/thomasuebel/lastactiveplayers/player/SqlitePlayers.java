@@ -102,20 +102,20 @@ public final class SqlitePlayers implements Players {
     }
 
     @Override
-    public Player withUuid(final UUID uuid) {
+    public Optional<PlayerRecord> withUuid(final UUID uuid) {
         try (PreparedStatement stmt = this.database.connection().prepareStatement(SELECT_BY_UUID)) {
             stmt.setString(1, uuid.toString());
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     final String dateStr = rs.getString("streak_last_day");
-                    return new StoredPlayer(
+                    return Optional.of(new PlayerRecord(
                         UUID.fromString(rs.getString("uuid")),
                         rs.getString("username"),
                         rs.getInt("streak_days"),
                         Optional.ofNullable(dateStr).map(LocalDate::parse)
-                    );
+                    ));
                 }
-                return new NoPlayer();
+                return Optional.empty();
             }
         } catch (final SQLException exception) {
             throw new DatabaseException(exception);
@@ -123,20 +123,20 @@ public final class SqlitePlayers implements Players {
     }
 
     @Override
-    public Player withHighestStreak() {
+    public Optional<PlayerRecord> withHighestStreak() {
         try (PreparedStatement stmt =
                  this.database.connection().prepareStatement(SELECT_HIGHEST_STREAK)) {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     final String dateStr = rs.getString("streak_last_day");
-                    return new StoredPlayer(
+                    return Optional.of(new PlayerRecord(
                         UUID.fromString(rs.getString("uuid")),
                         rs.getString("username"),
                         rs.getInt("streak_days"),
                         Optional.ofNullable(dateStr).map(LocalDate::parse)
-                    );
+                    ));
                 }
-                return new NoPlayer();
+                return Optional.empty();
             }
         } catch (final SQLException exception) {
             throw new DatabaseException(exception);
@@ -144,14 +144,14 @@ public final class SqlitePlayers implements Players {
     }
 
     @Override
-    public List<Player> withTopStreak() {
+    public List<PlayerRecord> withTopStreak() {
         try (PreparedStatement stmt =
                  this.database.connection().prepareStatement(SELECT_TOP_STREAK)) {
             try (ResultSet rs = stmt.executeQuery()) {
-                final List<Player> result = new ArrayList<>();
+                final List<PlayerRecord> result = new ArrayList<>();
                 while (rs.next()) {
                     final String dateStr = rs.getString("streak_last_day");
-                    result.add(new StoredPlayer(
+                    result.add(new PlayerRecord(
                         UUID.fromString(rs.getString("uuid")),
                         rs.getString("username"),
                         rs.getInt("streak_days"),

@@ -2,7 +2,6 @@ package de.thomasuebel.lastactiveplayers.ranking;
 
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -20,24 +19,7 @@ class OnlineRanksTest {
     private static final String TEMPLATE = "Rank #{rank}. {minutes}m to #{next_rank}.";
 
     private static LeaderboardEntry entry(final UUID uuid, final long seconds) {
-        return new LeaderboardEntry() {
-            @Override
-            public UUID uuid() {
-                return uuid;
-            }
-            @Override
-            public String username() {
-                return "Player";
-            }
-            @Override
-            public long totalSeconds() {
-                return seconds;
-            }
-            @Override
-            public Optional<Instant> lastLeave() {
-                return Optional.empty();
-            }
-        };
+        return new LeaderboardEntry(uuid, "Player", seconds, Optional.empty());
     }
 
     @Test

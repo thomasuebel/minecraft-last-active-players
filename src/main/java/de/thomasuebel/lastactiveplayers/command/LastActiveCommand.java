@@ -1,7 +1,7 @@
 package de.thomasuebel.lastactiveplayers.command;
 
 import de.thomasuebel.lastactiveplayers.display.JoinMessage;
-import de.thomasuebel.lastactiveplayers.player.Player;
+import de.thomasuebel.lastactiveplayers.player.PlayerRecord;
 import de.thomasuebel.lastactiveplayers.player.Players;
 import de.thomasuebel.lastactiveplayers.ranking.Leaderboard;
 import de.thomasuebel.lastactiveplayers.ranking.LeaderboardEntry;
@@ -131,14 +131,13 @@ public final class LastActiveCommand implements CommandExecutor {
         if (!top.isEmpty()) {
             result.add(this.mvpTemplate.replace(TOKEN_PLAYER, top.get(0).username()));
         }
-        final Player streakLeader = this.players.withHighestStreak();
-        if (streakLeader.exists()) {
+        this.players.withHighestStreak().ifPresent(streakLeader ->
             result.add(
                 this.streakTemplate
                     .replace(TOKEN_PLAYER, streakLeader.username())
                     .replace(TOKEN_STREAK, String.valueOf(streakLeader.streakDays()))
-            );
-        }
+            )
+        );
         return Collections.unmodifiableList(result);
     }
 
@@ -162,7 +161,7 @@ public final class LastActiveCommand implements CommandExecutor {
     }
 
     private List<String> streakLines() {
-        final List<Player> candidates = this.players.withTopStreak();
+        final List<PlayerRecord> candidates = this.players.withTopStreak();
         if (candidates.isEmpty()) {
             return Collections.emptyList();
         }
@@ -175,7 +174,7 @@ public final class LastActiveCommand implements CommandExecutor {
             );
         }
         final List<String> names = new ArrayList<>();
-        for (final Player player : candidates) {
+        for (final PlayerRecord player : candidates) {
             names.add(player.username());
         }
         return Collections.singletonList(
@@ -191,13 +190,12 @@ public final class LastActiveCommand implements CommandExecutor {
         if (!top.isEmpty()) {
             result.add(this.mvpPrefix + top.get(0).username());
         }
-        final Player streakLeader = this.players.withHighestStreak();
-        if (streakLeader.exists()) {
+        this.players.withHighestStreak().ifPresent(streakLeader ->
             result.add(
                 this.streakPrefix + streakLeader.username()
                 + " (" + streakLeader.streakDays() + " days)"
-            );
-        }
+            )
+        );
         return Collections.unmodifiableList(result);
     }
 

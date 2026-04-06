@@ -1,7 +1,7 @@
 package de.thomasuebel.lastactiveplayers.listener;
 
 import de.thomasuebel.lastactiveplayers.player.Milestones;
-import de.thomasuebel.lastactiveplayers.player.NoPlayer;
+import de.thomasuebel.lastactiveplayers.player.PlayerRecord;
 import de.thomasuebel.lastactiveplayers.player.StreakMilestones;
 import de.thomasuebel.lastactiveplayers.session.ActiveSessions;
 import de.thomasuebel.lastactiveplayers.session.Sessions;
@@ -50,38 +50,20 @@ class SessionLifecycleMilestoneTitleTest {
             ) { }
 
             @Override
-            public de.thomasuebel.lastactiveplayers.player.Player withUuid(final UUID uuid) {
-                return new de.thomasuebel.lastactiveplayers.player.Player() {
-                    @Override
-                    public boolean exists() {
-                        return true;
-                    }
-                    @Override
-                    public UUID uuid() {
-                        return uuid;
-                    }
-                    @Override
-                    public String username() {
-                        return PLAYER_NAME;
-                    }
-                    @Override
-                    public int streakDays() {
-                        return 2;
-                    }
-                    @Override
-                    public Optional<LocalDate> streakLastDay() {
-                        return Optional.of(LocalDate.now().minusDays(1));
-                    }
-                };
+            public Optional<PlayerRecord> withUuid(final UUID uuid) {
+                return Optional.of(new PlayerRecord(
+                    uuid, PLAYER_NAME, 2,
+                    Optional.of(LocalDate.now().minusDays(1))
+                ));
             }
 
             @Override
-            public de.thomasuebel.lastactiveplayers.player.Player withHighestStreak() {
-                return new NoPlayer();
+            public Optional<PlayerRecord> withHighestStreak() {
+                return Optional.empty();
             }
 
             @Override
-            public List<de.thomasuebel.lastactiveplayers.player.Player> withTopStreak() {
+            public List<PlayerRecord> withTopStreak() {
                 return List.of();
             }
 
@@ -349,38 +331,20 @@ class SessionLifecycleMilestoneTitleTest {
             ) { }
 
             @Override
-            public de.thomasuebel.lastactiveplayers.player.Player withUuid(final UUID uuid) {
-                return new de.thomasuebel.lastactiveplayers.player.Player() {
-                    @Override
-                    public boolean exists() {
-                        return true;
-                    }
-                    @Override
-                    public UUID uuid() {
-                        return uuid;
-                    }
-                    @Override
-                    public String username() {
-                        return PLAYER_NAME;
-                    }
-                    @Override
-                    public int streakDays() {
-                        return STREAK_DAYS_BEFORE_SEVEN;
-                    }
-                    @Override
-                    public Optional<LocalDate> streakLastDay() {
-                        return Optional.of(LocalDate.now().minusDays(1));
-                    }
-                };
+            public Optional<PlayerRecord> withUuid(final UUID uuid) {
+                return Optional.of(new PlayerRecord(
+                    uuid, PLAYER_NAME, STREAK_DAYS_BEFORE_SEVEN,
+                    Optional.of(LocalDate.now().minusDays(1))
+                ));
             }
 
             @Override
-            public de.thomasuebel.lastactiveplayers.player.Player withHighestStreak() {
-                return new NoPlayer();
+            public Optional<PlayerRecord> withHighestStreak() {
+                return Optional.empty();
             }
 
             @Override
-            public List<de.thomasuebel.lastactiveplayers.player.Player> withTopStreak() {
+            public List<PlayerRecord> withTopStreak() {
                 return List.of();
             }
 
