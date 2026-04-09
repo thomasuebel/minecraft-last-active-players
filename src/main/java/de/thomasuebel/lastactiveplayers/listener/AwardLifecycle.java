@@ -7,7 +7,6 @@ import de.thomasuebel.lastactiveplayers.ranking.Awards;
 import de.thomasuebel.lastactiveplayers.ranking.Leaderboard;
 import de.thomasuebel.lastactiveplayers.ranking.LeaderboardEntry;
 import de.thomasuebel.lastactiveplayers.ranking.Nomination;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Server;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -27,14 +26,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Bukkit event listener that manages MVP and Streak Leader permissions, display name
- * prefixes, and on-join and on-change broadcasts.
+ * Bukkit event listener that manages MVP and Streak Leader permissions
+ * and on-join and on-change broadcasts.
  *
  * <p>On every player join ({@link EventPriority#MONITOR} so streak and session writes
  * are already complete), this listener re-elects the current MVP and Streak Leader,
- * refreshes their permission attachments and display name prefixes immediately, then
- * broadcasts both results after a configurable delay so the message appears after the
- * initial join noise has settled.
+ * refreshes their permission attachments immediately, then broadcasts both results
+ * after a configurable delay so the message appears after the initial join noise
+ * has settled.
  *
  * <p>On quit, and after each heartbeat flush (via {@link #broadcastIfChanged}), the
  * election is repeated and the results are broadcast only when the set of leaders changed.
@@ -79,8 +78,8 @@ public final class AwardLifecycle implements Listener, Awards {
      * @param players           the player store used to find the streak leader; never null
      * @param milestones        the streak milestone thresholds; never null
      * @param plugin            owning plugin, used to create permission attachments; never null
-     * @param mvpPrefix         display name prefix applied to the current MVP(s); never null
-     * @param streakPrefix      display name prefix applied to streak leader(s); never null
+     * @param mvpPrefix         prefix for the current MVP(s), exposed via PAPI; never null
+     * @param streakPrefix      prefix for streak leader(s), exposed via PAPI; never null
      * @param mvpTemplate       broadcast template for a sole MVP; use {player}; never null
      * @param mvpTieTemplate    broadcast template for tied MVPs; use {players}; never null
      * @param streakTemplate    broadcast template for a sole streak leader;
@@ -149,8 +148,6 @@ public final class AwardLifecycle implements Listener, Awards {
         if (existing != null) {
             existing.remove();
         }
-        player.setDisplayName(player.getName());
-        player.displayName(Component.text(player.getName()));
         broadcastIfChanged();
     }
 
@@ -205,8 +202,6 @@ public final class AwardLifecycle implements Listener, Awards {
             if (attachment != null) {
                 attachment.remove();
             }
-            bukkit.setDisplayName(bukkit.getName());
-            bukkit.displayName(Component.text(bukkit.getName()));
         }
     }
 
@@ -276,25 +271,18 @@ public final class AwardLifecycle implements Listener, Awards {
             if (old != null) {
                 old.remove();
             }
-            bukkit.setDisplayName(bukkit.getName());
-            bukkit.displayName(Component.text(bukkit.getName()));
-
             final PermissionAttachment attachment = bukkit.addAttachment(this.plugin);
             this.attachments.put(bukkit.getUniqueId(), attachment);
 
             final UUID uuid = bukkit.getUniqueId();
             if (mvpUuids.contains(uuid)) {
                 attachment.setPermission(MVP_PERMISSION, true);
-                bukkit.setDisplayName(this.mvpPrefix + bukkit.getName());
-                bukkit.displayName(Component.text(this.mvpPrefix + bukkit.getName()));
             }
             if (streakUuids.contains(uuid) && streakDays > 0) {
                 final List<Integer> crossed = this.milestones.crossedBy(0, streakDays);
                 if (!crossed.isEmpty()) {
                     final int highest = crossed.get(crossed.size() - 1);
                     attachment.setPermission(STREAK_PERMISSION_PREFIX + highest, true);
-                    bukkit.setDisplayName(this.streakPrefix + bukkit.getName());
-                    bukkit.displayName(Component.text(this.streakPrefix + bukkit.getName()));
                 }
             }
         }
