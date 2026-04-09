@@ -134,7 +134,7 @@ group-formats:
 
 **Requires:** [EternalChatFormatter](https://hangar.papermc.io/EternalCodeTeam/EternalChatFormatter)
 
-Open `plugins/EternalChatFormatter/config.yml`:
+Open `plugins/ChatFormatter/config.yml`:
 
 Using displayName:
 
