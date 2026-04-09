@@ -7,7 +7,6 @@ import de.thomasuebel.lastactiveplayers.ranking.Awards;
 import de.thomasuebel.lastactiveplayers.ranking.Leaderboard;
 import de.thomasuebel.lastactiveplayers.ranking.LeaderboardEntry;
 import de.thomasuebel.lastactiveplayers.ranking.Nomination;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Server;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -149,8 +148,6 @@ public final class AwardLifecycle implements Listener, Awards {
         if (existing != null) {
             existing.remove();
         }
-        player.setDisplayName(player.getName());
-        player.displayName(Component.text(player.getName()));
         broadcastIfChanged();
     }
 
@@ -205,8 +202,6 @@ public final class AwardLifecycle implements Listener, Awards {
             if (attachment != null) {
                 attachment.remove();
             }
-            bukkit.setDisplayName(bukkit.getName());
-            bukkit.displayName(Component.text(bukkit.getName()));
         }
     }
 
@@ -276,25 +271,18 @@ public final class AwardLifecycle implements Listener, Awards {
             if (old != null) {
                 old.remove();
             }
-            bukkit.setDisplayName(bukkit.getName());
-            bukkit.displayName(Component.text(bukkit.getName()));
-
             final PermissionAttachment attachment = bukkit.addAttachment(this.plugin);
             this.attachments.put(bukkit.getUniqueId(), attachment);
 
             final UUID uuid = bukkit.getUniqueId();
             if (mvpUuids.contains(uuid)) {
                 attachment.setPermission(MVP_PERMISSION, true);
-                bukkit.setDisplayName(this.mvpPrefix + bukkit.getName());
-                bukkit.displayName(Component.text(this.mvpPrefix + bukkit.getName()));
             }
             if (streakUuids.contains(uuid) && streakDays > 0) {
                 final List<Integer> crossed = this.milestones.crossedBy(0, streakDays);
                 if (!crossed.isEmpty()) {
                     final int highest = crossed.get(crossed.size() - 1);
                     attachment.setPermission(STREAK_PERMISSION_PREFIX + highest, true);
-                    bukkit.setDisplayName(this.streakPrefix + bukkit.getName());
-                    bukkit.displayName(Component.text(this.streakPrefix + bukkit.getName()));
                 }
             }
         }
