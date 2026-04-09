@@ -15,8 +15,8 @@ value objects, no static state, constructor injection throughout.
 +----------------------------+
             |
 +----------------------------+
-|  Domain objects            |  ActiveSessions, Leaderboard, Players, Statistics ...
-|  Display objects           |  JoinMessage, RankHint, CommandLines, HumanDuration ...
+|  Domain objects            |  ActiveSessions, Leaderboard, Players, Awards ...
+|  Display objects           |  JoinMessage, RankHint, HumanDuration ...
 +----------------------------+
             |
 +----------------------------+
@@ -37,7 +37,7 @@ value objects, no static state, constructor injection throughout.
 | `RankHint` | Private message showing a player their rank and minutes to next rank |
 | `Awards` | Current MVP and streak leader state; consumed by listeners and PlaceholderAPI |
 | `DateLabel` | Relative date formatting ("today", "yesterday", "N days ago") |
-| `Streak` | Computes the current consecutive daily login streak for a player |
+| `Streak` | Represents a player's current consecutive daily login streak (days and last active day) |
 | `Milestones` | Defines streak milestone thresholds and checks whether a streak qualifies |
 
 ## Persistence
