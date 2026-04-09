@@ -95,6 +95,82 @@ nametag:
 
 ---
 
+## Chat prefix
+
+Paper 1.21's vanilla chat renderer uses `player.name()` (the profile username),
+not `player.displayName()`. A lightweight chat formatter plugin is needed to
+show the award prefix in chat messages.
+
+LastActivePlayers sets both the legacy `player.setDisplayName()` and the
+Adventure `player.displayName(Component)` on every award election, so any chat
+formatter that supports `{displayname}` picks up the prefix automatically
+regardless of which API it reads. Alternatively, the PlaceholderAPI placeholder
+`%lastactiveplayers_prefix%` can be embedded directly in the chat format.
+
+### LPC-Plus (recommended if you use LuckPerms)
+
+**Requires:** [LPC-Plus](https://hangar.papermc.io/EmmaTheSigma/LPC-Plus),
+[LuckPerms](https://luckperms.net/)
+
+Open `plugins/LPCPlus/config.yml`:
+
+Using displayName (picks up the prefix automatically):
+
+```yaml
+chat-format: "<{displayname}&r> {message}"
+group-formats:
+  default: "<{displayname}&r> {message}"
+```
+
+Using the PAPI placeholder (requires PlaceholderAPI):
+
+```yaml
+chat-format: "<%lastactiveplayers_prefix%{name}&r> {message}"
+group-formats:
+  default: "<%lastactiveplayers_prefix%{name}&r> {message}"
+```
+
+### EternalChatFormatter (no extra dependencies for the displayName path)
+
+**Requires:** [EternalChatFormatter](https://hangar.papermc.io/EternalCodeTeam/EternalChatFormatter)
+
+Open `plugins/EternalChatFormatter/config.yml`:
+
+Using displayName:
+
+```yaml
+defaultFormat: "<{displayname}&r> {message}"
+format:
+  default: "<{displayname}&r> {message}"
+placeholders:
+  "{displayname}": "<displayname>"
+  "{message}": "<message>"
+```
+
+Using the PAPI placeholder (requires PlaceholderAPI):
+
+```yaml
+defaultFormat: "<{mvpPrefix}{name}&r> {message}"
+format:
+  default: "<{mvpPrefix}{name}&r> {message}"
+placeholders:
+  "{mvpPrefix}": "%lastactiveplayers_prefix%"
+  "{name}": "<name>"
+  "{message}": "<message>"
+```
+
+### Why not built into LastActivePlayers?
+
+Registering a custom `ChatRenderer` inside the plugin would conflict with any
+chat formatting plugin the server operator already uses. `AsyncChatEvent`
+carries a single renderer slot -- the last plugin to call `event.renderer()`
+wins, so a built-in renderer would either override the operator's chat format
+or be overridden and do nothing. The correct integration
+pattern is to provide the data (displayName + PAPI placeholder) and let the
+chat formatter render it.
+
+---
+
 ## Holograms
 
 **Requires:** [DecentHolograms](https://modrinth.com/plugin/decentholograms) or
