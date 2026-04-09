@@ -11,7 +11,7 @@
 ./gradlew build
 ```
 
-The shadow JAR is produced at `build/libs/minecraft-last-active-players-*.jar`.
+The shadow JAR is produced at `build/libs/last-active-players-*.jar`.
 
 ## Running tests
 
@@ -54,11 +54,15 @@ Key rules:
 
 - Classes are named as nouns (what they ARE, not what they DO). No `-er`, `-or`, `-Helper`,
   `-Manager`, `-Service` suffixes.
-- Every public type is backed by an interface.
+- Create an interface only when at least one of: (1) a second implementation exists or is
+  concretely planned; (2) a test uses a substitutable fake or stub; (3) decorator composition
+  is actually applied. Data carriers use Java records. See `docs/adr/005-proportionate-abstraction.md`.
 - No getters or setters. Objects expose behaviour, not data.
 - All fields are `final`. Objects are immutable by default.
 - Constructors only assign; no logic.
-- No `null` -- use the Null Object pattern.
+- Never return or pass `null`. Use `Optional<T>` for look-up methods that may find nothing.
+  Use the Null Object pattern only when the null-object participates in decorator composition
+  or is used polymorphically in tests.
 - No static methods or utility classes.
 - No implementation inheritance (`extends` is only for implementing interfaces or the
   JavaPlugin framework constraint).

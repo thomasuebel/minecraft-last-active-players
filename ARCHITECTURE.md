@@ -10,13 +10,13 @@ value objects, no static state, constructor injection throughout.
 
 ```
 +----------------------------+
-|  Bukkit event listeners    |  SessionLifecycle, AwardLifecycle, JoinBroadcast
+|  Bukkit event listeners    |  SessionLifecycle, AwardLifecycle, JoinBroadcast, HeartbeatRankHints
 |  Command executor          |  LastActiveCommand
 +----------------------------+
             |
 +----------------------------+
-|  Domain objects            |  ActiveSessions, Leaderboard, Players, Statistics ...
-|  Display objects           |  JoinMessage, RankHint, CommandLines, HumanDuration ...
+|  Domain objects            |  ActiveSessions, Leaderboard, Players, Awards ...
+|  Display objects           |  JoinMessage, RankHint, HumanDuration ...
 +----------------------------+
             |
 +----------------------------+
@@ -35,8 +35,10 @@ value objects, no static state, constructor injection throughout.
 | `ActiveSessions` | In-memory map of currently open sessions; snapshotted for heartbeat flush |
 | `JoinMessage` | Builds the last-active player list shown on join and via `/lastactive` |
 | `RankHint` | Private message showing a player their rank and minutes to next rank |
-| `CommandLines` | Lines to send in response to a `/lastactive` subcommand invocation |
-| `Statistics` | Registers the plugin with an external metrics platform (bStats) |
+| `Awards` | Current MVP and streak leader state; consumed by listeners and PlaceholderAPI |
+| `DateLabel` | Relative date formatting ("today", "yesterday", "N days ago") |
+| `Streak` | Represents a player's current consecutive daily login streak (days and last active day) |
+| `Milestones` | Defines streak milestone thresholds and checks whether a streak qualifies |
 
 ## Persistence
 
@@ -50,7 +52,8 @@ CREATE TABLE players (
     uuid            TEXT PRIMARY KEY,
     username        TEXT NOT NULL,
     streak_days     INTEGER NOT NULL DEFAULT 0,
-    streak_last_day TEXT
+    streak_last_day TEXT,
+    streak_shields  INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE sessions (
@@ -97,4 +100,4 @@ constructors into the objects that need them.
 - All Bukkit event callbacks and the heartbeat timer run on the main server thread.
 - SQLite writes run on the main thread (connection is not thread-safe).
 - `onDisable` flushes all open sessions synchronously on the main thread.
-- The heartbeat timer (`BukkitHeartbeat`) uses `runTaskTimer` (not async) for the same reason.
+- The heartbeat timer uses `runTaskTimer` (not async) for the same reason.
