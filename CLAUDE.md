@@ -28,21 +28,26 @@ A milestone broadcast fires to all online players when a streak is newly reached
 |-----|---------|-------------|
 | `display.list-size` | `3` | Number of last-active players shown on join |
 | `display.date-format` | `yyyy-MM-dd` | Java DateTimeFormatter pattern for {date} fallback (dates older than 6 days) |
+| `display.join-delay-seconds` | `10` | Stagger delay; milestones at 1x, MVP/streak at 2x, last-active list at 3x |
 | `messages.join-entry` | `"Last Active: {n}. {player} was last seen {date} ({duration} last 30 days)"` | Per-player line; `{duration}` is rolling 30-day playtime |
 | `messages.date-today` | `"today"` | {date} label when the player left today |
 | `messages.date-yesterday` | `"yesterday"` | {date} label when the player left yesterday |
 | `messages.date-days-ago` | `"{days} days ago"` | {date} label for 2-6 days ago; token: {days} |
-| `messages.mvp` | `"[Crown] Most active player (last 30 days): {player}"` | MVP broadcast |
-| `messages.streak` | `"[Fire] Longest daily login streak: {player} ({streak} days)"` | Streak broadcast |
+| `messages.mvp` | `"[Crown] Most active player (last 30 days): {player}"` | MVP broadcast; token: {player} |
+| `messages.mvp-tie` | `"[Crown] {players} are tied for MVP (last 30 days)!"` | Broadcast when multiple MVPs are tied; token: {players} |
+| `messages.streak` | `"[Fire] Longest daily login streak: {player} ({streak} days)"` | Streak broadcast; tokens: {player}, {streak} |
+| `messages.streak-tie` | `"[Fire] {players} are tied for longest daily login streak ({streak} days)!"` | Broadcast when multiple streak leaders tie; tokens: {players}, {streak} |
 | `messages.rank-hint` | `"You are rank #{rank}. {minutes} more minutes to reach #{next_rank}."` | Private hint to joining player based on 30-day playtime rank |
-| `session.heartbeat-interval-minutes` | `10` | How often active session time is flushed to DB |
-| `data.purge-inactive-days` | `60` | Days of inactivity before a player record is purged |
+| `messages.streak-milestone` | `"[Fire] {player} has reached a {streak}-day login streak!"` | Broadcast when a streak milestone is newly reached; tokens: {player}, {streak} |
+| `messages.streak-milestone-title` | `"{streak}-Day Streak!"` | Full-screen title when a milestone is crossed; tokens: {player}, {streak} |
+| `messages.streak-milestone-subtitle` | `"A new milestone reached!"` | Subtitle alongside the milestone title; tokens: {player}, {streak} |
+| `messages.streak-shield-used` | `"[Shield] Streak protected! ({streak} days) Shields remaining: {shields_remaining}"` | Private message when a shield is consumed; tokens: {streak}, {shields_remaining} |
+| `messages.streak-shield-earned` | `"[Shield] You earned a streak shield! Total shields: {shields}"` | Private message when shields are awarded at a milestone; token: {shields} |
 | `prefix.mvp` | `"[Crown] "` | Display name prefix for current MVP |
 | `prefix.streak` | `"[Fire] "` | Display name prefix for streak leader |
 | `streak.max-shields` | `3` | Maximum streak shields a player can hold |
-| `messages.streak-milestone-title` | `"[Fire] {streak}-Day Streak!"` | Full-screen title when a milestone is crossed; tokens: {player}, {streak} |
-| `messages.streak-milestone-subtitle` | `"A new personal best!"` | Subtitle alongside the milestone title; tokens: {player}, {streak} |
-| `messages.streak-shield-used` | `"[Shield] Streak protected! ({streak} days) Shields remaining: {shields_remaining}"` | Private message when a shield is consumed; tokens: {streak}, {shields_remaining} |
+| `session.heartbeat-interval-minutes` | `10` | How often active session time is flushed to DB |
+| `data.purge-inactive-days` | `60` | Days of inactivity before a player record is purged |
 
 ## /lastactive Command
 
@@ -50,12 +55,15 @@ A milestone broadcast fires to all online players when a streak is newly reached
 - Behaviour: lists the {n} last active players (same as join message) plus current MVP and Streak Leader
 - Subcommands:
   - `/lastactive help` -- show command usage
+  - `/lastactive mvp` -- show the current MVP (or tied MVPs)
+  - `/lastactive streak` -- show the current streak leader(s)
 - Subcommands (ops only):
   - `/lastactive test` -- preview MVP/streak display names in chat
+  - `/lastactive reload` -- reload config.yml without restarting
 
 ## Persistence
 
-- Engine: SQLite, stored at `plugins/LastActivePlayers/data.db`
+- Engine: SQLite, stored at `plugins/LastActivePlayers/lastactiveplayers.db`
 - DB and schema created on first plugin enable if not present
 - Heartbeat: active sessions flushed to DB every N minutes (configurable); final flush on leave and server stop
 - Crash recovery: on startup, any session with no leave timestamp is closed at its last heartbeat timestamp
