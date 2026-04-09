@@ -101,9 +101,10 @@ Paper 1.21's vanilla chat renderer uses `player.name()` (the profile username),
 not `player.displayName()`. A lightweight chat formatter plugin is needed to
 show the award prefix in chat messages.
 
-LastActivePlayers already sets `player.setDisplayName()` on every award election,
-so any chat formatter that supports `{displayname}` picks up the prefix
-automatically. Alternatively, the PlaceholderAPI placeholder
+LastActivePlayers sets both the legacy `player.setDisplayName()` and the
+Adventure `player.displayName(Component)` on every award election, so any chat
+formatter that supports `{displayname}` picks up the prefix automatically
+regardless of which API it reads. Alternatively, the PlaceholderAPI placeholder
 `%lastactiveplayers_prefix%` can be embedded directly in the chat format.
 
 ### LPC-Plus (recommended if you use LuckPerms)
@@ -129,7 +130,7 @@ group-formats:
   default: "<%lastactiveplayers_prefix%{name}&r> {message}"
 ```
 
-### EternalChatFormatter (no dependencies required)
+### EternalChatFormatter (no extra dependencies for the displayName path)
 
 **Requires:** [EternalChatFormatter](https://hangar.papermc.io/EternalCodeTeam/EternalChatFormatter)
 
@@ -161,9 +162,10 @@ placeholders:
 ### Why not built into LastActivePlayers?
 
 Registering a custom `ChatRenderer` inside the plugin would conflict with any
-chat formatting plugin the server operator already uses. Only one renderer wins
-per `AsyncChatEvent`, so a built-in renderer would either override the
-operator's chat format or be overridden and do nothing. The correct integration
+chat formatting plugin the server operator already uses. `AsyncChatEvent`
+carries a single renderer slot -- the last plugin to call `event.renderer()`
+wins, so a built-in renderer would either override the operator's chat format
+or be overridden and do nothing. The correct integration
 pattern is to provide the data (displayName + PAPI placeholder) and let the
 chat formatter render it.
 
