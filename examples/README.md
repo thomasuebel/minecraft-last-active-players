@@ -97,9 +97,9 @@ nametag:
 
 ## Chat prefix
 
-Paper 1.21's vanilla chat renderer uses the player's immutable Mojang username,
-not `displayName()`. A lightweight chat formatter plugin is needed to show the
-award prefix in chat messages.
+Paper 1.21's vanilla chat renderer uses `player.name()` (the profile username),
+not `player.displayName()`. A lightweight chat formatter plugin is needed to
+show the award prefix in chat messages.
 
 LastActivePlayers already sets `player.setDisplayName()` on every award election,
 so any chat formatter that supports `{displayname}` picks up the prefix
@@ -133,7 +133,7 @@ group-formats:
 
 **Requires:** [EternalChatFormatter](https://hangar.papermc.io/EternalCodeTeam/EternalChatFormatter)
 
-Open `plugins/ChatFormatter/config.yml`:
+Open `plugins/EternalChatFormatter/config.yml`:
 
 Using displayName:
 
