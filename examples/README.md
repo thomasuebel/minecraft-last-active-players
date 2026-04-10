@@ -108,9 +108,11 @@ if another plugin sets it.
 ### LPC-Plus (recommended if you use LuckPerms)
 
 **Requires:** [LPC-Plus](https://hangar.papermc.io/EmmaTheSigma/LPC-Plus),
-[LuckPerms](https://luckperms.net/), PlaceholderAPI
+[LuckPerms](https://luckperms.net/)
 
 Open `plugins/LPCPlus/config.yml`:
+
+Using the PAPI placeholder (requires PlaceholderAPI):
 
 ```yaml
 chat-format: "<%lastactiveplayers_prefix%{name}&r> {message}"
@@ -118,12 +120,21 @@ group-formats:
   default: "<%lastactiveplayers_prefix%{name}&r> {message}"
 ```
 
+Using displayName (if another plugin sets the display name):
+
+```yaml
+chat-format: "<{displayname}&r> {message}"
+group-formats:
+  default: "<{displayname}&r> {message}"
+```
+
 ### EternalChatFormatter
 
-**Requires:** [EternalChatFormatter](https://hangar.papermc.io/EternalCodeTeam/EternalChatFormatter),
-PlaceholderAPI
+**Requires:** [EternalChatFormatter](https://hangar.papermc.io/EternalCodeTeam/EternalChatFormatter)
 
 Open `plugins/EternalChatFormatter/config.yml`:
+
+Using the PAPI placeholder (requires PlaceholderAPI):
 
 ```yaml
 defaultFormat: "<{mvpPrefix}{name}&r> {message}"
@@ -132,6 +143,17 @@ format:
 placeholders:
   "{mvpPrefix}": "%lastactiveplayers_prefix%"
   "{name}": "<name>"
+  "{message}": "<message>"
+```
+
+Using displayName (if another plugin sets the display name):
+
+```yaml
+defaultFormat: "<{displayname}&r> {message}"
+format:
+  default: "<{displayname}&r> {message}"
+placeholders:
+  "{displayname}": "<displayname>"
   "{message}": "<message>"
 ```
 
