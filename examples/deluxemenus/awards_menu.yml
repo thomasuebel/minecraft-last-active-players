@@ -66,7 +66,7 @@ items:
       deny_commands:
         - '[message] &cYou are no longer the current MVP.'
     left_click_commands:
-      - '[console] kit mvp-daily %player_name%'
+      - '[console] essentials:kit mvp-daily %player_name%'
       - '[close]'
 
   # Shown when the player is not the MVP.
@@ -107,7 +107,7 @@ items:
       deny_commands:
         - '[message] &cYour streak reward is no longer available.'
     left_click_commands:
-      - '[console] kit streak-60 %player_name%'
+      - '[console] essentials:kit streak-60 %player_name%'
       - '[close]'
 
   streak_30:
@@ -132,7 +132,7 @@ items:
       deny_commands:
         - '[message] &cYour streak reward is no longer available.'
     left_click_commands:
-      - '[console] kit streak-30 %player_name%'
+      - '[console] essentials:kit streak-30 %player_name%'
       - '[close]'
 
   streak_14:
@@ -157,7 +157,7 @@ items:
       deny_commands:
         - '[message] &cYour streak reward is no longer available.'
     left_click_commands:
-      - '[console] kit streak-14 %player_name%'
+      - '[console] essentials:kit streak-14 %player_name%'
       - '[close]'
 
   streak_7:
@@ -182,7 +182,7 @@ items:
       deny_commands:
         - '[message] &cYour streak reward is no longer available.'
     left_click_commands:
-      - '[console] kit streak-7 %player_name%'
+      - '[console] essentials:kit streak-7 %player_name%'
       - '[close]'
 
   streak_3:
@@ -207,7 +207,7 @@ items:
       deny_commands:
         - '[message] &cYour streak reward is no longer available.'
     left_click_commands:
-      - '[console] kit streak-3 %player_name%'
+      - '[console] essentials:kit streak-3 %player_name%'
       - '[close]'
 
   # Fallback: no active streak milestone.
