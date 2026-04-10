@@ -66,8 +66,8 @@ items:
       deny_commands:
         - '[message] &cYou are no longer the current MVP.'
     left_click_commands:
-      - '[console] essentials:kit mvp-daily %player_name%'
       - '[close]'
+      - '[console] essentials:kit mvp-daily %player_name%'
 
   # Shown when the player is not the MVP.
   mvp_inactive:
@@ -107,8 +107,8 @@ items:
       deny_commands:
         - '[message] &cYour streak reward is no longer available.'
     left_click_commands:
-      - '[console] essentials:kit streak-60 %player_name%'
       - '[close]'
+      - '[console] essentials:kit streak-60 %player_name%'
 
   streak_30:
     material: emerald
@@ -132,8 +132,8 @@ items:
       deny_commands:
         - '[message] &cYour streak reward is no longer available.'
     left_click_commands:
-      - '[console] essentials:kit streak-30 %player_name%'
       - '[close]'
+      - '[console] essentials:kit streak-30 %player_name%'
 
   streak_14:
     material: diamond
@@ -157,8 +157,8 @@ items:
       deny_commands:
         - '[message] &cYour streak reward is no longer available.'
     left_click_commands:
-      - '[console] essentials:kit streak-14 %player_name%'
       - '[close]'
+      - '[console] essentials:kit streak-14 %player_name%'
 
   streak_7:
     material: gold_ingot
@@ -182,8 +182,8 @@ items:
       deny_commands:
         - '[message] &cYour streak reward is no longer available.'
     left_click_commands:
-      - '[console] essentials:kit streak-7 %player_name%'
       - '[close]'
+      - '[console] essentials:kit streak-7 %player_name%'
 
   streak_3:
     material: iron_ingot
@@ -207,8 +207,8 @@ items:
       deny_commands:
         - '[message] &cYour streak reward is no longer available.'
     left_click_commands:
-      - '[console] essentials:kit streak-3 %player_name%'
       - '[close]'
+      - '[console] essentials:kit streak-3 %player_name%'
 
   # Fallback: no active streak milestone.
   streak_none:
