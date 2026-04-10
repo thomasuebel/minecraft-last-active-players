@@ -13,7 +13,6 @@ A Minecraft Paper plugin (1.21.x, Java 21) that tracks join/leave events per pla
 
 - MVP and Streak Leader receive permission nodes (`lastactiveplayers.mvp`, `lastactiveplayers.streak.<milestone>`) so server operators can wire these into their own rewards plugin.
 - A configurable prefix (default: crown emoji for MVP, fire emoji for streak leader) is exposed via PlaceholderAPI.
-- A server-op subcommand (`/lastactive test`) to preview how the display looks in-game.
 - On join, all players are broadcast who the MVP and Streak Leader are.
 
 ### Streak Milestones
@@ -58,7 +57,6 @@ A milestone broadcast fires to all online players when a streak is newly reached
   - `/lastactive mvp` -- show the current MVP (or tied MVPs)
   - `/lastactive streak` -- show the current streak leader(s)
 - Subcommands (ops only):
-  - `/lastactive test` -- preview MVP/streak display names in chat
   - `/lastactive reload` -- reload config.yml without restarting
 
 ## Persistence

@@ -20,7 +20,7 @@ members of your community.
   bridges exactly one missed calendar day, keeping the streak alive.
 - **Streak milestone broadcasts** -- a server-wide message and a personal full-screen title are
   shown when a player reaches a new streak milestone.
-- `/lastactive` command available to all players; admin subcommand `/lastactive test` for operators.
+- `/lastactive` command available to all players.
 - Reload configuration without restarting: `/lastactive reload` (ops only).
 - bStats integration (plugin ID 30553).
 
@@ -70,10 +70,10 @@ Apply changes without restarting by running `/lastactive reload` (requires `last
 
 ### Prefixes
 
-The prefix values are exposed via PlaceholderAPI (`%lastactiveplayers_prefix%`) and used
-by the `/lastactive test` preview command. The plugin does **not** modify the player's
-display name directly -- integrating the prefix into chat, tab list, or nameplates is
-left to a chat formatting plugin of your choice (see [integration examples](examples/)).
+The prefix values are exposed via PlaceholderAPI (`%lastactiveplayers_prefix%`). The plugin
+does **not** modify the player's display name directly -- integrating the prefix into chat,
+tab list, or nameplates is left to a chat formatting plugin of your choice (see
+[integration examples](examples/)).
 
 | Key | Default | Description |
 |-----|---------|-------------|
@@ -101,7 +101,6 @@ left to a chat formatting plugin of your choice (see [integration examples](exam
 | `/lastactive help` | Everyone | Shows command usage |
 | `/lastactive mvp` | Everyone | Shows the current MVP (or tied MVPs) |
 | `/lastactive streak` | Everyone | Shows the current streak leader(s) |
-| `/lastactive test` | Ops (`lastactiveplayers.admin`) | Previews how MVP and streak leader display names look in chat |
 | `/lastactive reload` | Ops (`lastactiveplayers.admin`) | Reloads `config.yml` without restarting the server |
 
 ## Permissions
@@ -109,7 +108,7 @@ left to a chat formatting plugin of your choice (see [integration examples](exam
 | Node | Default | Description |
 |------|---------|-------------|
 | `lastactiveplayers.use` | true | Use `/lastactive` and its player subcommands |
-| `lastactiveplayers.admin` | op | Use `/lastactive test` and `/lastactive reload` |
+| `lastactiveplayers.admin` | op | Use `/lastactive reload` |
 | `lastactiveplayers.mvp` | false | Dynamically granted to the current MVP(s) |
 | `lastactiveplayers.streak.3` | false | Dynamically granted at a 3-day consecutive login streak |
 | `lastactiveplayers.streak.7` | false | Dynamically granted at a 7-day streak |

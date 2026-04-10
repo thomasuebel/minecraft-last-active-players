@@ -68,4 +68,3 @@ Streak Leader. Subcommands:
 | `mvp` | all | Show the current MVP |
 | `streak` | all | Show the current Streak Leader |
 | `reload` | op | Reload `config.yml` without restarting |
-| `test` | op | Preview MVP and Streak Leader display name prefixes in chat |
