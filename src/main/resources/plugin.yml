@@ -20,7 +20,7 @@ permissions:
     description: Allows using the /lastactive command.
     default: true
   lastactiveplayers.admin:
-    description: Allows admin subcommands such as /lastactive reload and /lastactive test.
+    description: Allows admin subcommands such as /lastactive reload.
     default: op
   lastactiveplayers.mvp:
     description: Granted to the current MVP (highest playtime in 30 days).

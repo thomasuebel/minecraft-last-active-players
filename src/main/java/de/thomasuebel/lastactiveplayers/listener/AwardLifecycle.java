@@ -78,8 +78,8 @@ public final class AwardLifecycle implements Listener, Awards {
      * @param players           the player store used to find the streak leader; never null
      * @param milestones        the streak milestone thresholds; never null
      * @param plugin            owning plugin, used to create permission attachments; never null
-     * @param mvpPrefix         display name prefix applied to the current MVP(s); never null
-     * @param streakPrefix      display name prefix applied to streak leader(s); never null
+     * @param mvpPrefix         prefix for the MVP via {@code currentPrefix()}; never null
+     * @param streakPrefix      prefix for streak leaders via {@code currentPrefix()}; never null
      * @param mvpTemplate       broadcast template for a sole MVP; use {player}; never null
      * @param mvpTieTemplate    broadcast template for tied MVPs; use {players}; never null
      * @param streakTemplate    broadcast template for a sole streak leader;

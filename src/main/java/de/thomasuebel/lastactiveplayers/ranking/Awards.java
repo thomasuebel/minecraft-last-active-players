@@ -11,12 +11,13 @@ import java.util.UUID;
 public interface Awards {
 
     /**
-     * Returns the configured display-name prefix for the award this player currently holds,
+     * Returns the configured prefix for the award this player currently holds,
      * or an empty string if the player holds no active award.
      *
-     * <p>The returned value matches the prefix that was applied to the player's display
-     * name: {@code prefix.mvp} for the current MVP, {@code prefix.streak} for the current
-     * streak leader, or {@code ""} for everyone else.
+     * <p>The returned value is {@code prefix.mvp} for the current MVP,
+     * {@code prefix.streak} for the current streak leader, or {@code ""} for
+     * everyone else. Exposed via PlaceholderAPI as
+     * {@code %lastactiveplayers_prefix%}.
      *
      * @param uuid the player's unique ID; never null
      * @return the prefix string, or {@code ""} if no award is held; never null

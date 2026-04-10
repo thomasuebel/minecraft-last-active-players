@@ -21,7 +21,7 @@ next rank up. Players already ranked first see no hint.
 The player with the highest total playtime in the last 30 days is the MVP.
 
 - Broadcast to all online players on each join.
-- Display name gets a configurable prefix (default: `[Crown] `).
+- A configurable prefix (default: `[Crown] `) is exposed via PlaceholderAPI.
 - Granted the `lastactiveplayers.mvp` permission node while they hold the title.
 
 ## Streak Leader
@@ -29,7 +29,7 @@ The player with the highest total playtime in the last 30 days is the MVP.
 The player with the longest active consecutive daily login streak is the Streak Leader.
 
 - Broadcast to all online players on each join.
-- Display name gets a configurable prefix (default: `[Fire] `).
+- A configurable prefix (default: `[Fire] `) is exposed via PlaceholderAPI.
 - Granted the `lastactiveplayers.streak.<days>` permission node for their highest
   milestone reached (3, 7, 14, 30, or 60 days).
 
