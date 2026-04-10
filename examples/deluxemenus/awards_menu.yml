@@ -1,6 +1,13 @@
 # LastActivePlayers - DeluxeMenus awards menu
 #
-# Drop this file into plugins/DeluxeMenus/gui_menus/ and run /dm reload.
+# 1. Drop this file into plugins/DeluxeMenus/gui_menus/
+# 2. Add the following to your plugins/DeluxeMenus/config.yml under gui_menus:
+#
+#      gui_menus:
+#        awards_menu:
+#          file: 'awards_menu.yml'
+#
+# 3. Restart the server (a /dm reload is not enough to register the /rewards command).
 # Players open the menu with /rewards.
 #
 # Requirements:
