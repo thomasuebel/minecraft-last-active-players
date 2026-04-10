@@ -12,7 +12,7 @@
 #
 # Requirements:
 #   - DeluxeMenus 1.13+
-#   - PlaceholderAPI (required by DeluxeMenus)
+#   - PlaceholderAPI with the Player expansion (/papi ecloud download Player)
 #   - EssentialsX with the kits defined in ../essentialsx/kits.yml
 #
 # The menu has two reward slots:
