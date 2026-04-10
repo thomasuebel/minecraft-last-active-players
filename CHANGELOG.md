@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.8] - 2026-04-10
+
+### Added
+- GitHub wiki with full documentation: configuration reference, commands and
+  permissions, PlaceholderAPI details, chat prefix setup (LPC-Plus,
+  EternalChatFormatter), tab list and hologram integration, rewards integration
+  (EssentialsX kits, DeluxeMenus), data/backups/troubleshooting.
+
+### Changed
+- The plugin no longer modifies the player's display name (`setDisplayName()` /
+  `displayName()`). The award prefix is now exclusively exposed via the
+  PlaceholderAPI placeholder `%lastactiveplayers_prefix%`. Chat formatting,
+  tab list, and hologram integrations should use this placeholder instead.
+- README slimmed down in favour of the GitHub wiki; all detailed documentation
+  now lives in wiki pages linked from the README.
+
+### Removed
+- `/lastactive test` subcommand. The command previewed prefixed display names,
+  which the plugin no longer sets. Use `/lastactive mvp` and `/lastactive streak`
+  to check current award holders.
+
+### Fixed
+- Join and leave console messages no longer show a leading space caused by the
+  display name prefix (emoji invisible in console, trailing space visible).
+
 ## [1.0.7] - 2026-04-06
 
 ### Added
