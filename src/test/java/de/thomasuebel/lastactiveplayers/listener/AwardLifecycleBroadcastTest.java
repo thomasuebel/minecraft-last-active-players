@@ -218,14 +218,13 @@ class AwardLifecycleBroadcastTest {
 
     /**
      * Builds a proxy Bukkit {@link org.bukkit.entity.Player} that captures
-     * permission and display name operations. The player creates a real
+     * permission operations. The player creates a real
      * {@link PermissionAttachment} on {@code addAttachment()}, and captures
      * {@code setPermission()} calls made on any returned attachment.
      *
      * @param uuid           the player UUID
      * @param name           the player name
      * @param permissions    list that captures setPermission calls
-     * @param displayNames   list that captures setDisplayName calls
      * @param plugin         plugin used for addAttachment
      * @return a player proxy
      */
@@ -233,7 +232,6 @@ class AwardLifecycleBroadcastTest {
         final UUID uuid,
         final String name,
         final List<String> permissions,
-        final List<String> displayNames,
         final Plugin plugin
     ) {
         final InvocationHandler handler = (proxy, method, args) -> {
@@ -259,12 +257,6 @@ class AwardLifecycleBroadcastTest {
                             return true;
                         }
                     };
-                case "setDisplayName":
-                    if (args != null && args.length == 1
-                        && args[0] instanceof String) {
-                        displayNames.add((String) args[0]);
-                    }
-                    return null;
                 case "isOnline":
                     return true;
                 case "removeAttachment":
@@ -442,11 +434,10 @@ class AwardLifecycleBroadcastTest {
     void grantsMvpPermissionToOnlinePlayer() {
         final List<String> broadcasts = new ArrayList<>();
         final List<String> permissions = new ArrayList<>();
-        final List<String> displayNames = new ArrayList<>();
         final Server serverForPlugin = stubServer(broadcasts);
         final Plugin plugin = stubPlugin(serverForPlugin);
         final org.bukkit.entity.Player onlinePlayer = stubOnlinePlayer(
-            MVP_UUID, MVP_NAME, permissions, displayNames, plugin
+            MVP_UUID, MVP_NAME, permissions, plugin
         );
         final Server serverWithPlayer = stubServer(
             broadcasts, List.of(onlinePlayer)
@@ -464,29 +455,4 @@ class AwardLifecycleBroadcastTest {
         assertTrue(permissions.contains("lastactiveplayers.mvp"));
     }
 
-    @Test
-    void setsDisplayNamePrefixForMvp() {
-        final List<String> broadcasts = new ArrayList<>();
-        final List<String> permissions = new ArrayList<>();
-        final List<String> displayNames = new ArrayList<>();
-        final Server serverForPlugin = stubServer(broadcasts);
-        final Plugin plugin = stubPlugin(serverForPlugin);
-        final org.bukkit.entity.Player onlinePlayer = stubOnlinePlayer(
-            MVP_UUID, MVP_NAME, permissions, displayNames, plugin
-        );
-        final Server serverWithPlayer = stubServer(
-            broadcasts, List.of(onlinePlayer)
-        );
-        final Plugin pluginWithPlayer = stubPlugin(serverWithPlayer);
-        final AwardLifecycle awards = lifecycle(
-            stubLeaderboard(List.of(new LeaderboardEntry(
-                MVP_UUID, MVP_NAME,
-                ONE_HOUR_SECONDS, Optional.empty()
-            ))),
-            stubPlayers(List.of()),
-            pluginWithPlayer
-        );
-        awards.broadcastIfChanged();
-        assertTrue(displayNames.contains("[Crown] MvpPlayer"));
-    }
 }
