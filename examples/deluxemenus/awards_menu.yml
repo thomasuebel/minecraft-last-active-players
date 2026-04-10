@@ -24,6 +24,7 @@
 
 menu_title: '&6&lCommunity Awards'
 open_command: rewards
+register_command: true
 size: 27
 update_interval: 20
 
