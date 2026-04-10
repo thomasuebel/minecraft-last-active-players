@@ -347,7 +347,7 @@ public final class LastActivePlayers extends JavaPlugin {
                 new LastActiveCommand(
                     joinMessage, this.mvpBoard, this.players,
                     mvpTemplate, mvpTieTemplate, streakTemplate, streakTieTemplate,
-                    mvpPrefix, streakPrefix, this::reload, online
+                    this::reload, online
                 )
             );
             return true;

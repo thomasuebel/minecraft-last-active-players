@@ -12,7 +12,7 @@ softdepend:
 commands:
   lastactive:
     description: List last active players, current MVP, and streak leader.
-    usage: /lastactive [help|mvp|streak|reload|test]
+    usage: /lastactive [help|mvp|streak|reload]
     permission: lastactiveplayers.use
 
 permissions:
