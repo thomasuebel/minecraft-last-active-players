@@ -21,8 +21,8 @@ import java.util.function.Supplier;
  * Handles the {@code /lastactive} command and its subcommands.
  *
  * <p>The base command and the {@code mvp} and {@code streak} subcommands are available to
- * any {@link CommandSender}. The {@code reload} and {@code test} subcommands are gated
- * behind the {@code lastactiveplayers.admin} permission.
+ * any {@link CommandSender}. The {@code reload} subcommand is gated behind the
+ * {@code lastactiveplayers.admin} permission.
  */
 public final class LastActiveCommand implements CommandExecutor {
 
@@ -30,7 +30,6 @@ public final class LastActiveCommand implements CommandExecutor {
     private static final String SUBCOMMAND_MVP = "mvp";
     private static final String SUBCOMMAND_STREAK = "streak";
     private static final String SUBCOMMAND_RELOAD = "reload";
-    private static final String SUBCOMMAND_TEST = "test";
     private static final String PERM_ADMIN = "lastactiveplayers.admin";
     private static final String MSG_NO_PERMISSION =
         "You do not have permission to use this subcommand.";
@@ -45,8 +44,6 @@ public final class LastActiveCommand implements CommandExecutor {
     private final String mvpTieTemplate;
     private final String streakTemplate;
     private final String streakTieTemplate;
-    private final String mvpPrefix;
-    private final String streakPrefix;
     private final Consumer<CommandSender> reloadAction;
     private final Supplier<Set<UUID>> online;
 
@@ -62,8 +59,6 @@ public final class LastActiveCommand implements CommandExecutor {
      *                          tokens; never null
      * @param streakTieTemplate broadcast template for tied streak leaders; {players}, {streak}
      *                          tokens; never null
-     * @param mvpPrefix         display name prefix for the MVP; never null
-     * @param streakPrefix      display name prefix for the streak leader; never null
      * @param reloadAction      invoked with the sender when the reload subcommand is executed;
      *                          never null
      * @param online            supplies the current set of online player UUIDs; never null
@@ -76,8 +71,6 @@ public final class LastActiveCommand implements CommandExecutor {
         final String mvpTieTemplate,
         final String streakTemplate,
         final String streakTieTemplate,
-        final String mvpPrefix,
-        final String streakPrefix,
         final Consumer<CommandSender> reloadAction,
         final Supplier<Set<UUID>> online
     ) {
@@ -88,8 +81,6 @@ public final class LastActiveCommand implements CommandExecutor {
         this.mvpTieTemplate = mvpTieTemplate;
         this.streakTemplate = streakTemplate;
         this.streakTieTemplate = streakTieTemplate;
-        this.mvpPrefix = mvpPrefix;
-        this.streakPrefix = streakPrefix;
         this.reloadAction = reloadAction;
         this.online = online;
     }
@@ -113,12 +104,6 @@ public final class LastActiveCommand implements CommandExecutor {
                 return true;
             }
             this.reloadAction.accept(sender);
-        } else if (args.length > 0 && SUBCOMMAND_TEST.equals(args[0])) {
-            if (!sender.hasPermission(PERM_ADMIN)) {
-                sender.sendMessage(MSG_NO_PERMISSION);
-                return true;
-            }
-            sendLines(sender, previewLines());
         } else {
             sendLines(sender, listLines(this.online.get()));
         }
@@ -182,21 +167,6 @@ public final class LastActiveCommand implements CommandExecutor {
                 .replace(TOKEN_PLAYERS, String.join(", ", names))
                 .replace(TOKEN_STREAK, days)
         );
-    }
-
-    private List<String> previewLines() {
-        final List<String> result = new ArrayList<>();
-        final List<LeaderboardEntry> top = this.mvpBoard.top(1, Set.of());
-        if (!top.isEmpty()) {
-            result.add(this.mvpPrefix + top.get(0).username());
-        }
-        this.players.withHighestStreak().ifPresent(streakLeader ->
-            result.add(
-                this.streakPrefix + streakLeader.username()
-                + " (" + streakLeader.streakDays() + " days)"
-            )
-        );
-        return Collections.unmodifiableList(result);
     }
 
     private void sendLines(final CommandSender sender, final List<String> lines) {

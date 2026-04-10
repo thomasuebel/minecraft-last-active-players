@@ -14,13 +14,13 @@ members of your community.
 - Broadcasts the **Streak Leader** -- the player with the longest consecutive daily login streak.
 - Grants permission nodes to the MVP and streak leaders at milestone thresholds (3, 7, 14, 30, 60
   days) so operators can hook into any rewards plugin.
-- Applies a configurable display name prefix (crown / fire emoji by default) to the MVP and streak
-  leader.
+- Exposes a configurable prefix (crown / fire emoji by default) for the MVP and streak leader
+  via PlaceholderAPI for use in chat formatting, tab list, and hologram plugins.
 - **Streak shields** -- players earn a shield on each streak milestone. A shield automatically
   bridges exactly one missed calendar day, keeping the streak alive.
 - **Streak milestone broadcasts** -- a server-wide message and a personal full-screen title are
   shown when a player reaches a new streak milestone.
-- `/lastactive` command available to all players; admin subcommand `/lastactive test` for operators.
+- `/lastactive` command available to all players.
 - Reload configuration without restarting: `/lastactive reload` (ops only).
 - bStats integration (plugin ID 30553).
 
@@ -70,19 +70,15 @@ Apply changes without restarting by running `/lastactive reload` (requires `last
 
 ### Prefixes
 
-Display name prefixes are applied to the current MVP and streak leader while they are online.
-The prefix is set on join and removed on leave or when the player is dethroned.
+The prefix values are exposed via PlaceholderAPI (`%lastactiveplayers_prefix%`). The plugin
+does **not** modify the player's display name directly -- integrating the prefix into chat,
+tab list, or nameplates is left to a chat formatting plugin of your choice (see
+[integration examples](examples/)).
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `prefix.mvp` | `"[Crown] "` | Prepended to the MVP's display name |
-| `prefix.streak` | `"[Fire] "` | Prepended to the streak leader's display name |
-
-The prefix is applied via both Paper's Adventure `displayName()` component and the legacy
-Bukkit `setDisplayName()`, so it appears in **chat messages** and **death messages** on
-Paper 1.21+ servers out of the box -- no chat plugin required. It does not appear on the
-nameplate above the player's head in-game (that requires a scoreboard team, which this
-plugin does not manage).
+| `prefix.mvp` | `"[Crown] "` | Prefix returned by `%lastactiveplayers_prefix%` for the MVP |
+| `prefix.streak` | `"[Fire] "` | Prefix returned by `%lastactiveplayers_prefix%` for the streak leader |
 
 ### Streak shields
 
@@ -105,7 +101,6 @@ plugin does not manage).
 | `/lastactive help` | Everyone | Shows command usage |
 | `/lastactive mvp` | Everyone | Shows the current MVP (or tied MVPs) |
 | `/lastactive streak` | Everyone | Shows the current streak leader(s) |
-| `/lastactive test` | Ops (`lastactiveplayers.admin`) | Previews how MVP and streak leader display names look in chat |
 | `/lastactive reload` | Ops (`lastactiveplayers.admin`) | Reloads `config.yml` without restarting the server |
 
 ## Permissions
@@ -113,7 +108,7 @@ plugin does not manage).
 | Node | Default | Description |
 |------|---------|-------------|
 | `lastactiveplayers.use` | true | Use `/lastactive` and its player subcommands |
-| `lastactiveplayers.admin` | op | Use `/lastactive test` and `/lastactive reload` |
+| `lastactiveplayers.admin` | op | Use `/lastactive reload` |
 | `lastactiveplayers.mvp` | false | Dynamically granted to the current MVP(s) |
 | `lastactiveplayers.streak.3` | false | Dynamically granted at a 3-day consecutive login streak |
 | `lastactiveplayers.streak.7` | false | Dynamically granted at a 7-day streak |
@@ -146,9 +141,8 @@ safe to embed in formats without conditional guards.
 
 ### Use cases
 
-The award prefix appears in chat automatically on Paper 1.21+ via the Adventure
-`displayName()` component. PlaceholderAPI placeholders are useful for integrations where
-the display name is not used directly:
+**Chat** -- use `%lastactiveplayers_prefix%` in your chat formatting plugin's format
+string. See the [integration examples](examples/) for LPC-Plus and EternalChatFormatter.
 
 **Tab list** -- use the [TAB plugin](https://www.spigotmc.org/resources/tab-list-and-name-tags.57806/)
 and add `%lastactiveplayers_prefix%` to its tab name format to show the award prefix next
@@ -225,22 +219,13 @@ Check the server log for a line containing `SEVERE` and `[LastActivePlayers]`. I
   populated.
 - Confirm the server has been running long enough for at least one player to have session data.
 
-**Display name prefixes are not showing in chat**
+**Award prefix is not showing in chat**
 
-LastActivePlayers sets both the Paper Adventure `displayName()` component and the legacy
-Bukkit `setDisplayName()`. On a vanilla Paper 1.21+ server the prefix appears in chat
-automatically via Paper's default chat renderer.
-
-If you use a chat plugin that overrides the default renderer, the prefix may not appear.
-Check whether your chat plugin supports `{displayname}` or `%player_displayname%` tokens --
-if so, the prefix will work automatically. If not, use `%lastactiveplayers_prefix%` via
-PlaceholderAPI in your chat plugin's format string.
-
-**Nameplates** (the name above the player's head in-game) are not affected; those require
-scoreboard team management, which this plugin does not do. Use the TAB plugin with
-`%lastactiveplayers_prefix%` to show the prefix in the Tab list and above players' heads.
-
-The prefix is only applied while the award holder is online and is reapplied on each join.
+LastActivePlayers does not modify the player's display name. The prefix is available via
+the PlaceholderAPI placeholder `%lastactiveplayers_prefix%`. To show it in chat, configure
+your chat formatting plugin to include this placeholder. See the
+[integration examples](examples/) for LPC-Plus, EternalChatFormatter, TAB, and hologram
+setups.
 
 ## Anonymous statistics
 
