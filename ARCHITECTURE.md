@@ -86,8 +86,7 @@ On each player join:
 1. Query `sessions` for total `duration_seconds` per player in the last 30 days -- elect MVP.
 2. Query `players` for `streak_days` -- elect Streak Leader.
 3. Grant/revoke permission nodes via `PermissionAttachment`.
-4. Apply display name prefix to elected players.
-5. Build and send join messages to the joining player and broadcast MVP/streak messages to all.
+4. Build and send join messages to the joining player and broadcast MVP/streak messages to all.
 
 ## Configuration
 
