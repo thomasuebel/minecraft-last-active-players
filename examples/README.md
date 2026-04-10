@@ -120,13 +120,17 @@ group-formats:
   default: "<%lastactiveplayers_prefix%{name}&r> {message}"
 ```
 
-Using displayName (if another plugin sets the display name):
-
-```yaml
-chat-format: "<{displayname}&r> {message}"
-group-formats:
-  default: "<{displayname}&r> {message}"
-```
+> **Spacing tip:** The default prefix values (`[Crown] `, `[Fire] `) already
+> include a trailing space. Do not add another space between the placeholder and
+> the player name, or award holders will see a double space.
+>
+> ```yaml
+> # BAD -- double space before player name for award holders
+> chat-format: "<%lastactiveplayers_prefix% {name}&r> {message}"
+>
+> # GOOD -- placeholder sits directly against {name}
+> chat-format: "<%lastactiveplayers_prefix%{name}&r> {message}"
+> ```
 
 ### EternalChatFormatter
 
@@ -145,16 +149,17 @@ placeholders:
   "{message}": "<message>"
 ```
 
-Using displayName (if another plugin sets the display name):
-
-```yaml
-defaultFormat: "<{displayname}&r> {message}"
-format:
-  default: "<{displayname}&r> {message}"
-placeholders:
-  "{displayname}": "<displayname>"
-  "{message}": "<message>"
-```
+> **Spacing tip:** The default prefix values (`[Crown] `, `[Fire] `) already
+> include a trailing space. Do not add another space between `{mvpPrefix}` and
+> `{name}`, or award holders will see a double space.
+>
+> ```yaml
+> # BAD -- double space before player name for award holders
+> defaultFormat: "<{mvpPrefix} {name}&r> {message}"
+>
+> # GOOD -- placeholder sits directly against {name}
+> defaultFormat: "<{mvpPrefix}{name}&r> {message}"
+> ```
 
 ### Why not built into LastActivePlayers?
 
