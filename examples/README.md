@@ -68,8 +68,9 @@ warning is logged. You can install PlaceholderAPI at any time and restart
 **Requires:** [TAB plugin](https://www.spigotmc.org/resources/tab-list-and-name-tags.57806/)
 1.4+, PlaceholderAPI
 
-The award prefix does not appear in the Tab list automatically. To show the
-prefix in the Tab list and above players' heads, use the TAB plugin.
+The award prefix does not appear in the Tab list automatically because Paper's
+`displayName()` only affects chat and death messages. To show the prefix in the
+Tab list and above players' heads, use the TAB plugin.
 
 Open `plugins/TAB/config.yml` and add `%lastactiveplayers_prefix%` to the
 tab name format:
@@ -97,22 +98,21 @@ nametag:
 ## Chat prefix
 
 Paper 1.21's vanilla chat renderer uses `player.name()` (the profile username),
-not `player.displayName()`. A chat formatter plugin is needed to show the
-award prefix in chat messages.
+not `player.displayName()`. A lightweight chat formatter plugin is needed to
+show the award prefix in chat messages.
 
-LastActivePlayers does not modify the player's display name. Use the
-PlaceholderAPI placeholder `%lastactiveplayers_prefix%` in your chat plugin's
-format string, or configure your chat plugin to read the player's display name
-if another plugin sets it.
+LastActivePlayers provides the prefix via the PlaceholderAPI placeholder
+`%lastactiveplayers_prefix%`. Any chat formatter that supports PAPI can embed
+the prefix directly in the chat format. The plugin does not set
+`player.displayName()` to avoid leaking the prefix into join/leave messages
+and interfering with other plugins.
 
-### LPC-Plus (recommended if you use LuckPerms)
+### LPC-Plus
 
 **Requires:** [LPC-Plus](https://hangar.papermc.io/EmmaTheSigma/LPC-Plus),
-[LuckPerms](https://luckperms.net/)
+[LuckPerms](https://luckperms.net/), PlaceholderAPI
 
 Open `plugins/LPCPlus/config.yml`:
-
-Using the PAPI placeholder (requires PlaceholderAPI):
 
 ```yaml
 chat-format: "<%lastactiveplayers_prefix%{name}&r> {message}"
@@ -130,11 +130,10 @@ group-formats:
 
 ### EternalChatFormatter
 
-**Requires:** [EternalChatFormatter](https://hangar.papermc.io/EternalCodeTeam/EternalChatFormatter)
+**Requires:** [EternalChatFormatter](https://hangar.papermc.io/EternalCodeTeam/EternalChatFormatter),
+PlaceholderAPI
 
 Open `plugins/EternalChatFormatter/config.yml`:
-
-Using the PAPI placeholder (requires PlaceholderAPI):
 
 ```yaml
 defaultFormat: "<{mvpPrefix}{name}&r> {message}"
@@ -163,8 +162,9 @@ Registering a custom `ChatRenderer` inside the plugin would conflict with any
 chat formatting plugin the server operator already uses. `AsyncChatEvent`
 carries a single renderer slot -- the last plugin to call `event.renderer()`
 wins, so a built-in renderer would either override the operator's chat format
-or be overridden and do nothing. The correct integration
-pattern is to provide the data (PAPI placeholder) and let the chat formatter
+or be overridden and do nothing. Similarly, setting `player.displayName()`
+leaks the prefix into join/leave messages. The correct integration pattern is
+to provide the prefix data via PlaceholderAPI and let the chat formatter
 render it.
 
 ---

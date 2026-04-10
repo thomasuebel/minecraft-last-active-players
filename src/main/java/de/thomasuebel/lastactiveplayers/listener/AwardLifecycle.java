@@ -32,8 +32,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * <p>On every player join ({@link EventPriority#MONITOR} so streak and session writes
  * are already complete), this listener re-elects the current MVP and Streak Leader,
  * refreshes their permission attachments immediately, then broadcasts both results
- * after a configurable delay so the message appears after the initial join noise has
- * settled.
+ * after a configurable delay so the message appears after the initial join noise
+ * has settled.
  *
  * <p>On quit, and after each heartbeat flush (via {@link #broadcastIfChanged}), the
  * election is repeated and the results are broadcast only when the set of leaders changed.
@@ -78,8 +78,8 @@ public final class AwardLifecycle implements Listener, Awards {
      * @param players           the player store used to find the streak leader; never null
      * @param milestones        the streak milestone thresholds; never null
      * @param plugin            owning plugin, used to create permission attachments; never null
-     * @param mvpPrefix         prefix for the MVP via {@code currentPrefix()}; never null
-     * @param streakPrefix      prefix for streak leaders via {@code currentPrefix()}; never null
+     * @param mvpPrefix         prefix for the current MVP(s), exposed via PAPI; never null
+     * @param streakPrefix      prefix for streak leader(s), exposed via PAPI; never null
      * @param mvpTemplate       broadcast template for a sole MVP; use {player}; never null
      * @param mvpTieTemplate    broadcast template for tied MVPs; use {players}; never null
      * @param streakTemplate    broadcast template for a sole streak leader;
