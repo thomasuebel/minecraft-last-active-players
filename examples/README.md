@@ -120,6 +120,18 @@ group-formats:
   default: "<%lastactiveplayers_prefix%{name}&r> {message}"
 ```
 
+> **Spacing tip:** The default prefix values (`[Crown] `, `[Fire] `) already
+> include a trailing space. Do not add another space between the placeholder and
+> the player name, or award holders will see a double space.
+>
+> ```yaml
+> # BAD -- double space before player name for award holders
+> chat-format: "<%lastactiveplayers_prefix% {name}&r> {message}"
+>
+> # GOOD -- placeholder sits directly against {name}
+> chat-format: "<%lastactiveplayers_prefix%{name}&r> {message}"
+> ```
+
 ### EternalChatFormatter
 
 **Requires:** [EternalChatFormatter](https://hangar.papermc.io/EternalCodeTeam/EternalChatFormatter),
@@ -136,6 +148,18 @@ placeholders:
   "{name}": "<name>"
   "{message}": "<message>"
 ```
+
+> **Spacing tip:** The default prefix values (`[Crown] `, `[Fire] `) already
+> include a trailing space. Do not add another space between `{mvpPrefix}` and
+> `{name}`, or award holders will see a double space.
+>
+> ```yaml
+> # BAD -- double space before player name for award holders
+> defaultFormat: "<{mvpPrefix} {name}&r> {message}"
+>
+> # GOOD -- placeholder sits directly against {name}
+> defaultFormat: "<{mvpPrefix}{name}&r> {message}"
+> ```
 
 ### Why not built into LastActivePlayers?
 
