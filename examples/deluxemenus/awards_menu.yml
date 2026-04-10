@@ -23,7 +23,8 @@
 # EssentialsX enforces the per-kit cooldown regardless of who issues the command.
 
 menu_title: '&6&lCommunity Awards'
-open_command: rewards
+open_command:
+  - rewards
 register_command: true
 size: 27
 update_interval: 20
