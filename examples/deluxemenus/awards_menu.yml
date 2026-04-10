@@ -15,201 +15,200 @@
 # Kit commands run as console so no essentials.kits.* permission is needed.
 # EssentialsX enforces the per-kit cooldown regardless of who issues the command.
 
-awards_menu:
-  menu_title: '&6&lCommunity Awards'
-  open_command: rewards
-  size: 27
-  update_interval: 20
+menu_title: '&6&lCommunity Awards'
+open_command: rewards
+size: 27
+update_interval: 20
+
+# -----------------------------------------------------------------------
+# Filler - all slots except 11 (MVP) and 15 (streak)
+# -----------------------------------------------------------------------
+items:
+  filler:
+    material: black_stained_glass_pane
+    display_name: ' '
+    slots:
+      - 0-10
+      - 12-14
+      - 16-26
 
   # -----------------------------------------------------------------------
-  # Filler - all slots except 11 (MVP) and 15 (streak)
+  # MVP slot
   # -----------------------------------------------------------------------
-  items:
-    filler:
-      material: black_stained_glass_pane
-      display_name: ' '
-      slots:
-        - 0-10
-        - 12-14
-        - 16-26
 
-    # -----------------------------------------------------------------------
-    # MVP slot
-    # -----------------------------------------------------------------------
+  # Shown when the player is the current MVP.
+  mvp_active:
+    material: gold_block
+    display_name: '&6&lMVP Daily Reward'
+    slot: 11
+    priority: 1
+    lore:
+      - '&7You are this month''s most active player!'
+      - ''
+      - '&eClick to claim your daily reward.'
+    view_requirement:
+      requirements:
+        is_mvp:
+          type: has permission
+          permission: lastactiveplayers.mvp
+    left_click_requirement:
+      requirements:
+        is_mvp:
+          type: has permission
+          permission: lastactiveplayers.mvp
+      deny_commands:
+        - '[message] &cYou are no longer the current MVP.'
+    left_click_commands:
+      - '[console] kit mvp-daily %player_name%'
+      - '[close]'
 
-    # Shown when the player is the current MVP.
-    mvp_active:
-      material: gold_block
-      display_name: '&6&lMVP Daily Reward'
-      slot: 11
-      priority: 1
-      lore:
-        - '&7You are this month''s most active player!'
-        - ''
-        - '&eClick to claim your daily reward.'
-      view_requirement:
-        requirements:
-          is_mvp:
-            type: has permission
-            permission: lastactiveplayers.mvp
-      left_click_requirement:
-        requirements:
-          is_mvp:
-            type: has permission
-            permission: lastactiveplayers.mvp
-        deny_commands:
-          - '[message] &cYou are no longer the current MVP.'
-      left_click_commands:
-        - '[console] kit mvp-daily %player_name%'
-        - '[close]'
+  # Shown when the player is not the MVP.
+  mvp_inactive:
+    material: gray_stained_glass_pane
+    display_name: '&8MVP Daily Reward'
+    slot: 11
+    priority: 2
+    lore:
+      - '&7Be the most active player in the'
+      - '&7rolling 30-day window to earn this.'
 
-    # Shown when the player is not the MVP.
-    mvp_inactive:
-      material: gray_stained_glass_pane
-      display_name: '&8MVP Daily Reward'
-      slot: 11
-      priority: 2
-      lore:
-        - '&7Be the most active player in the'
-        - '&7rolling 30-day window to earn this.'
+  # -----------------------------------------------------------------------
+  # Streak slot - shows only the player's highest active milestone.
+  # Priority 1-5 map to streak.60 down to streak.3.
+  # Priority 6 is the fallback shown when no streak milestone is active.
+  # -----------------------------------------------------------------------
 
-    # -----------------------------------------------------------------------
-    # Streak slot - shows only the player's highest active milestone.
-    # Priority 1-5 map to streak.60 down to streak.3.
-    # Priority 6 is the fallback shown when no streak milestone is active.
-    # -----------------------------------------------------------------------
+  streak_60:
+    material: netherite_ingot
+    display_name: '&d&l60-Day Streak Reward'
+    slot: 15
+    priority: 1
+    lore:
+      - '&760 consecutive days &d- legendary dedication.'
+      - ''
+      - '&eClick to claim your daily reward.'
+    view_requirement:
+      requirements:
+        has_streak:
+          type: has permission
+          permission: lastactiveplayers.streak.60
+    left_click_requirement:
+      requirements:
+        has_streak:
+          type: has permission
+          permission: lastactiveplayers.streak.60
+      deny_commands:
+        - '[message] &cYour streak reward is no longer available.'
+    left_click_commands:
+      - '[console] kit streak-60 %player_name%'
+      - '[close]'
 
-    streak_60:
-      material: netherite_ingot
-      display_name: '&d&l60-Day Streak Reward'
-      slot: 15
-      priority: 1
-      lore:
-        - '&760 consecutive days &d- legendary dedication.'
-        - ''
-        - '&eClick to claim your daily reward.'
-      view_requirement:
-        requirements:
-          has_streak:
-            type: has permission
-            permission: lastactiveplayers.streak.60
-      left_click_requirement:
-        requirements:
-          has_streak:
-            type: has permission
-            permission: lastactiveplayers.streak.60
-        deny_commands:
-          - '[message] &cYour streak reward is no longer available.'
-      left_click_commands:
-        - '[console] kit streak-60 %player_name%'
-        - '[close]'
+  streak_30:
+    material: emerald
+    display_name: '&a&l30-Day Streak Reward'
+    slot: 15
+    priority: 2
+    lore:
+      - '&730 consecutive days &a- a full month.'
+      - ''
+      - '&eClick to claim your daily reward.'
+    view_requirement:
+      requirements:
+        has_streak:
+          type: has permission
+          permission: lastactiveplayers.streak.30
+    left_click_requirement:
+      requirements:
+        has_streak:
+          type: has permission
+          permission: lastactiveplayers.streak.30
+      deny_commands:
+        - '[message] &cYour streak reward is no longer available.'
+    left_click_commands:
+      - '[console] kit streak-30 %player_name%'
+      - '[close]'
 
-    streak_30:
-      material: emerald
-      display_name: '&a&l30-Day Streak Reward'
-      slot: 15
-      priority: 2
-      lore:
-        - '&730 consecutive days &a- a full month.'
-        - ''
-        - '&eClick to claim your daily reward.'
-      view_requirement:
-        requirements:
-          has_streak:
-            type: has permission
-            permission: lastactiveplayers.streak.30
-      left_click_requirement:
-        requirements:
-          has_streak:
-            type: has permission
-            permission: lastactiveplayers.streak.30
-        deny_commands:
-          - '[message] &cYour streak reward is no longer available.'
-      left_click_commands:
-        - '[console] kit streak-30 %player_name%'
-        - '[close]'
+  streak_14:
+    material: diamond
+    display_name: '&b&l14-Day Streak Reward'
+    slot: 15
+    priority: 3
+    lore:
+      - '&714 consecutive days &b- two weeks strong.'
+      - ''
+      - '&eClick to claim your daily reward.'
+    view_requirement:
+      requirements:
+        has_streak:
+          type: has permission
+          permission: lastactiveplayers.streak.14
+    left_click_requirement:
+      requirements:
+        has_streak:
+          type: has permission
+          permission: lastactiveplayers.streak.14
+      deny_commands:
+        - '[message] &cYour streak reward is no longer available.'
+    left_click_commands:
+      - '[console] kit streak-14 %player_name%'
+      - '[close]'
 
-    streak_14:
-      material: diamond
-      display_name: '&b&l14-Day Streak Reward'
-      slot: 15
-      priority: 3
-      lore:
-        - '&714 consecutive days &b- two weeks strong.'
-        - ''
-        - '&eClick to claim your daily reward.'
-      view_requirement:
-        requirements:
-          has_streak:
-            type: has permission
-            permission: lastactiveplayers.streak.14
-      left_click_requirement:
-        requirements:
-          has_streak:
-            type: has permission
-            permission: lastactiveplayers.streak.14
-        deny_commands:
-          - '[message] &cYour streak reward is no longer available.'
-      left_click_commands:
-        - '[console] kit streak-14 %player_name%'
-        - '[close]'
+  streak_7:
+    material: gold_ingot
+    display_name: '&6&l7-Day Streak Reward'
+    slot: 15
+    priority: 4
+    lore:
+      - '&77 consecutive days &6- a full week.'
+      - ''
+      - '&eClick to claim your daily reward.'
+    view_requirement:
+      requirements:
+        has_streak:
+          type: has permission
+          permission: lastactiveplayers.streak.7
+    left_click_requirement:
+      requirements:
+        has_streak:
+          type: has permission
+          permission: lastactiveplayers.streak.7
+      deny_commands:
+        - '[message] &cYour streak reward is no longer available.'
+    left_click_commands:
+      - '[console] kit streak-7 %player_name%'
+      - '[close]'
 
-    streak_7:
-      material: gold_ingot
-      display_name: '&6&l7-Day Streak Reward'
-      slot: 15
-      priority: 4
-      lore:
-        - '&77 consecutive days &6- a full week.'
-        - ''
-        - '&eClick to claim your daily reward.'
-      view_requirement:
-        requirements:
-          has_streak:
-            type: has permission
-            permission: lastactiveplayers.streak.7
-      left_click_requirement:
-        requirements:
-          has_streak:
-            type: has permission
-            permission: lastactiveplayers.streak.7
-        deny_commands:
-          - '[message] &cYour streak reward is no longer available.'
-      left_click_commands:
-        - '[console] kit streak-7 %player_name%'
-        - '[close]'
+  streak_3:
+    material: iron_ingot
+    display_name: '&f&l3-Day Streak Reward'
+    slot: 15
+    priority: 5
+    lore:
+      - '&73 consecutive days &f- a solid start.'
+      - ''
+      - '&eClick to claim your daily reward.'
+    view_requirement:
+      requirements:
+        has_streak:
+          type: has permission
+          permission: lastactiveplayers.streak.3
+    left_click_requirement:
+      requirements:
+        has_streak:
+          type: has permission
+          permission: lastactiveplayers.streak.3
+      deny_commands:
+        - '[message] &cYour streak reward is no longer available.'
+    left_click_commands:
+      - '[console] kit streak-3 %player_name%'
+      - '[close]'
 
-    streak_3:
-      material: iron_ingot
-      display_name: '&f&l3-Day Streak Reward'
-      slot: 15
-      priority: 5
-      lore:
-        - '&73 consecutive days &f- a solid start.'
-        - ''
-        - '&eClick to claim your daily reward.'
-      view_requirement:
-        requirements:
-          has_streak:
-            type: has permission
-            permission: lastactiveplayers.streak.3
-      left_click_requirement:
-        requirements:
-          has_streak:
-            type: has permission
-            permission: lastactiveplayers.streak.3
-        deny_commands:
-          - '[message] &cYour streak reward is no longer available.'
-      left_click_commands:
-        - '[console] kit streak-3 %player_name%'
-        - '[close]'
-
-    # Fallback: no active streak milestone.
-    streak_none:
-      material: gray_stained_glass_pane
-      display_name: '&8Streak Reward'
-      slot: 15
-      priority: 6
-      lore:
-        - '&7Log in for 3 consecutive days to'
-        - '&7unlock your first streak reward.'
+  # Fallback: no active streak milestone.
+  streak_none:
+    material: gray_stained_glass_pane
+    display_name: '&8Streak Reward'
+    slot: 15
+    priority: 6
+    lore:
+      - '&7Log in for 3 consecutive days to'
+      - '&7unlock your first streak reward.'
