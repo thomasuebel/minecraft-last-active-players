@@ -31,8 +31,6 @@ class LastActiveCommandTest {
     private static final String MVP_TIE_TEMPLATE = "Tied MVPs: {players}";
     private static final String STREAK_TEMPLATE = "Streak: {player} ({streak} days)";
     private static final String STREAK_TIE_TEMPLATE = "Tied: {players} ({streak} days)";
-    private static final String MVP_PREFIX = "[MVP] ";
-    private static final String STREAK_PREFIX = "[Streak] ";
 
     private static CommandSender stubSender(
         final boolean admin, final List<String> captured
@@ -133,7 +131,6 @@ class LastActiveCommandTest {
             stubPlayers(highestStreak, topStreak),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
-            MVP_PREFIX, STREAK_PREFIX,
             sender -> { },
             Set::of
         );
@@ -158,7 +155,6 @@ class LastActiveCommandTest {
             stubPlayers(Optional.empty(), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
-            MVP_PREFIX, STREAK_PREFIX,
             sender -> { },
             Set::of
         );
@@ -177,16 +173,6 @@ class LastActiveCommandTest {
     }
 
     @Test
-    void sendsPermissionDeniedForTestSubcommandWithoutPermission() {
-        final List<String> captured = new ArrayList<>();
-        command(List.of(), List.of(), Optional.empty(), List.of())
-            .onCommand(stubSender(false, captured), stubCommand(), "lastactive",
-                new String[]{"test"});
-        assertEquals(1, captured.size());
-        assertTrue(captured.get(0).contains("permission"));
-    }
-
-    @Test
     void reloadSubcommandInvokesReloadActionWithPermission() {
         final AtomicBoolean reloadCalled = new AtomicBoolean(false);
         final List<String> captured = new ArrayList<>();
@@ -196,7 +182,6 @@ class LastActiveCommandTest {
             stubPlayers(Optional.empty(), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
-            MVP_PREFIX, STREAK_PREFIX,
             sender -> reloadCalled.set(true),
             Set::of
         );
@@ -216,7 +201,6 @@ class LastActiveCommandTest {
             stubPlayers(Optional.empty(), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
-            MVP_PREFIX, STREAK_PREFIX,
             sender -> reloadCalled.set(true),
             Set::of
         );
@@ -286,39 +270,6 @@ class LastActiveCommandTest {
         assertTrue(captured.isEmpty());
     }
 
-    // --- Test (preview) subcommand formatting tests ---
-
-    @Test
-    void testSubcommandShowsMvpWithPrefix() {
-        final List<String> captured = new ArrayList<>();
-        command(List.of(entry("Alice")), List.of(), Optional.empty(), List.of())
-            .onCommand(stubSender(true, captured), stubCommand(), "lastactive",
-                new String[]{"test"});
-        assertEquals(List.of("[MVP] Alice"), captured);
-    }
-
-    @Test
-    void testSubcommandShowsStreakWithPrefix() {
-        final List<String> captured = new ArrayList<>();
-        command(List.of(), List.of(),
-            Optional.of(player("Bob", SEVEN_DAYS)), List.of())
-            .onCommand(stubSender(true, captured), stubCommand(), "lastactive",
-                new String[]{"test"});
-        assertEquals(List.of("[Streak] Bob (7 days)"), captured);
-    }
-
-    @Test
-    void testSubcommandShowsBothWhenBothExist() {
-        final List<String> captured = new ArrayList<>();
-        command(List.of(entry("Alice")), List.of(),
-            Optional.of(player("Bob", SEVEN_DAYS)), List.of())
-            .onCommand(stubSender(true, captured), stubCommand(), "lastactive",
-                new String[]{"test"});
-        assertEquals(2, captured.size());
-        assertEquals("[MVP] Alice", captured.get(0));
-        assertEquals("[Streak] Bob (7 days)", captured.get(1));
-    }
-
     // --- Base command formatting tests ---
 
     @Test
@@ -330,7 +281,6 @@ class LastActiveCommandTest {
             stubPlayers(Optional.empty(), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
-            MVP_PREFIX, STREAK_PREFIX,
             sender -> { },
             Set::of
         );
@@ -348,7 +298,6 @@ class LastActiveCommandTest {
             stubPlayers(Optional.empty(), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
-            MVP_PREFIX, STREAK_PREFIX,
             sender -> { },
             Set::of
         );
@@ -365,7 +314,6 @@ class LastActiveCommandTest {
             stubPlayers(Optional.of(player("Bob", SEVEN_DAYS)), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
-            MVP_PREFIX, STREAK_PREFIX,
             sender -> { },
             Set::of
         );
@@ -384,7 +332,6 @@ class LastActiveCommandTest {
             stubPlayers(Optional.empty(), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
-            MVP_PREFIX, STREAK_PREFIX,
             sender -> { },
             () -> Set.of(onlineUuid)
         );
@@ -403,7 +350,6 @@ class LastActiveCommandTest {
             stubPlayers(Optional.empty(), List.of()),
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
-            MVP_PREFIX, STREAK_PREFIX,
             sender -> { },
             () -> Set.of(onlineUuid)
         );
@@ -411,12 +357,4 @@ class LastActiveCommandTest {
         assertTrue(captured.contains("MVP: Alice"));
     }
 
-    @Test
-    void testSubcommandEmptyWhenNeitherExists() {
-        final List<String> captured = new ArrayList<>();
-        command(List.of(), List.of(), Optional.empty(), List.of())
-            .onCommand(stubSender(true, captured), stubCommand(), "lastactive",
-                new String[]{"test"});
-        assertTrue(captured.isEmpty());
-    }
 }

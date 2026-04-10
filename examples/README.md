@@ -120,6 +120,14 @@ group-formats:
   default: "<%lastactiveplayers_prefix%{name}&r> {message}"
 ```
 
+Using displayName (if another plugin sets the display name):
+
+```yaml
+chat-format: "<{displayname}&r> {message}"
+group-formats:
+  default: "<{displayname}&r> {message}"
+```
+
 ### EternalChatFormatter
 
 **Requires:** [EternalChatFormatter](https://hangar.papermc.io/EternalCodeTeam/EternalChatFormatter),
@@ -134,6 +142,17 @@ format:
 placeholders:
   "{mvpPrefix}": "%lastactiveplayers_prefix%"
   "{name}": "<name>"
+  "{message}": "<message>"
+```
+
+Using displayName (if another plugin sets the display name):
+
+```yaml
+defaultFormat: "<{displayname}&r> {message}"
+format:
+  default: "<{displayname}&r> {message}"
+placeholders:
+  "{displayname}": "<displayname>"
   "{message}": "<message>"
 ```
 
