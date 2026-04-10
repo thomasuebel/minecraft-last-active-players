@@ -133,7 +133,7 @@ group-formats:
 **Requires:** [EternalChatFormatter](https://hangar.papermc.io/EternalCodeTeam/EternalChatFormatter),
 PlaceholderAPI
 
-Open `plugins/EternalChatFormatter/config.yml`:
+Open `plugins/ChatFormatter/config.yml`:
 
 ```yaml
 defaultFormat: "<{mvpPrefix}{name}&r> {message}"
