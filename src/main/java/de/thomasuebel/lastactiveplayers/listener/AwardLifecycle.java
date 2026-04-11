@@ -68,6 +68,7 @@ public final class AwardLifecycle implements Listener, Awards {
     private final String streakTemplate;
     private final String streakTieTemplate;
     private final long delayTicks;
+    private final AwardPermissions extraPermissions;
     private final Map<UUID, PermissionAttachment> attachments;
     private final AtomicReference<ElectionResult> previousResult;
 
@@ -88,6 +89,7 @@ public final class AwardLifecycle implements Listener, Awards {
      *                          use {players} and {streak}; never null
      * @param delayTicks        server ticks to wait before broadcasting on join
      *                          (0 schedules for the next tick)
+     * @param extraPermissions  extra permission nodes granted alongside awards; never null
      */
     public AwardLifecycle(
         final Leaderboard mvpBoard,
@@ -100,7 +102,8 @@ public final class AwardLifecycle implements Listener, Awards {
         final String mvpTieTemplate,
         final String streakTemplate,
         final String streakTieTemplate,
-        final long delayTicks
+        final long delayTicks,
+        final AwardPermissions extraPermissions
     ) {
         this.mvpBoard = mvpBoard;
         this.players = players;
@@ -113,6 +116,7 @@ public final class AwardLifecycle implements Listener, Awards {
         this.streakTemplate = streakTemplate;
         this.streakTieTemplate = streakTieTemplate;
         this.delayTicks = delayTicks;
+        this.extraPermissions = extraPermissions;
         this.attachments = new ConcurrentHashMap<>();
         // null initial state: first election always triggers a broadcast.
         this.previousResult = new AtomicReference<>(null);
@@ -277,12 +281,22 @@ public final class AwardLifecycle implements Listener, Awards {
             final UUID uuid = bukkit.getUniqueId();
             if (mvpUuids.contains(uuid)) {
                 attachment.setPermission(MVP_PERMISSION, true);
+                for (final String perm : this.extraPermissions.mvpExtra()) {
+                    attachment.setPermission(perm, true);
+                }
             }
             if (streakUuids.contains(uuid) && streakDays > 0) {
                 final List<Integer> crossed = this.milestones.crossedBy(0, streakDays);
                 if (!crossed.isEmpty()) {
                     final int highest = crossed.get(crossed.size() - 1);
                     attachment.setPermission(STREAK_PERMISSION_PREFIX + highest, true);
+                    final List<String> extra =
+                        this.extraPermissions.streakExtra().get(highest);
+                    if (extra != null) {
+                        for (final String perm : extra) {
+                            attachment.setPermission(perm, true);
+                        }
+                    }
                 }
             }
         }

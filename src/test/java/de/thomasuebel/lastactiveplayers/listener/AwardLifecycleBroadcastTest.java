@@ -18,11 +18,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -290,13 +292,23 @@ class AwardLifecycleBroadcastTest {
         final Players players,
         final Plugin plugin
     ) {
+        return lifecycle(leaderboard, players, plugin, AwardPermissions.NONE);
+    }
+
+    private static AwardLifecycle lifecycle(
+        final Leaderboard leaderboard,
+        final Players players,
+        final Plugin plugin,
+        final AwardPermissions extraPermissions
+    ) {
         return new AwardLifecycle(
             leaderboard, players, new StreakMilestones(),
             plugin,
             MVP_PREFIX, STREAK_PREFIX,
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
-            DELAY_TICKS
+            DELAY_TICKS,
+            extraPermissions
         );
     }
 
@@ -453,6 +465,100 @@ class AwardLifecycleBroadcastTest {
         );
         awards.broadcastIfChanged();
         assertTrue(permissions.contains("lastactiveplayers.mvp"));
+    }
+
+    @Test
+    void grantsMvpExtraPermissionsToOnlinePlayer() {
+        final List<String> broadcasts = new ArrayList<>();
+        final List<String> permissions = new ArrayList<>();
+        final Server serverForPlugin = stubServer(broadcasts);
+        final Plugin plugin = stubPlugin(serverForPlugin);
+        final org.bukkit.entity.Player onlinePlayer = stubOnlinePlayer(
+            MVP_UUID, MVP_NAME, permissions, plugin
+        );
+        final Server serverWithPlayer = stubServer(
+            broadcasts, List.of(onlinePlayer)
+        );
+        final Plugin pluginWithPlayer = stubPlugin(serverWithPlayer);
+        final AwardPermissions extra = new AwardPermissions(
+            List.of("essentials.kits.mvp-daily"),
+            Map.of()
+        );
+        final AwardLifecycle awards = lifecycle(
+            stubLeaderboard(List.of(new LeaderboardEntry(
+                MVP_UUID, MVP_NAME,
+                ONE_HOUR_SECONDS, Optional.empty()
+            ))),
+            stubPlayers(List.of()),
+            pluginWithPlayer,
+            extra
+        );
+        awards.broadcastIfChanged();
+        assertTrue(permissions.contains("lastactiveplayers.mvp"));
+        assertTrue(permissions.contains("essentials.kits.mvp-daily"));
+    }
+
+    @Test
+    void grantsStreakExtraPermissionsToOnlinePlayer() {
+        final List<String> broadcasts = new ArrayList<>();
+        final List<String> permissions = new ArrayList<>();
+        final Server serverForPlugin = stubServer(broadcasts);
+        final Plugin plugin = stubPlugin(serverForPlugin);
+        final org.bukkit.entity.Player onlinePlayer = stubOnlinePlayer(
+            STREAK_UUID, STREAK_NAME, permissions, plugin
+        );
+        final Server serverWithPlayer = stubServer(
+            broadcasts, List.of(onlinePlayer)
+        );
+        final Plugin pluginWithPlayer = stubPlugin(serverWithPlayer);
+        final AwardPermissions extra = new AwardPermissions(
+            List.of(),
+            Map.of(SEVEN_DAY_STREAK, List.of("essentials.kits.streak-7"))
+        );
+        final AwardLifecycle awards = lifecycle(
+            stubLeaderboard(List.of()),
+            stubPlayers(List.of(new PlayerRecord(
+                STREAK_UUID, STREAK_NAME,
+                SEVEN_DAY_STREAK, Optional.empty()
+            ))),
+            pluginWithPlayer,
+            extra
+        );
+        awards.broadcastIfChanged();
+        assertTrue(permissions.contains("lastactiveplayers.streak.7"));
+        assertTrue(permissions.contains("essentials.kits.streak-7"));
+    }
+
+    @Test
+    void doesNotGrantStreakExtraForUnmatchedMilestone() {
+        final int fourteen = 14;
+        final List<String> broadcasts = new ArrayList<>();
+        final List<String> permissions = new ArrayList<>();
+        final Server serverForPlugin = stubServer(broadcasts);
+        final Plugin plugin = stubPlugin(serverForPlugin);
+        final org.bukkit.entity.Player onlinePlayer = stubOnlinePlayer(
+            STREAK_UUID, STREAK_NAME, permissions, plugin
+        );
+        final Server serverWithPlayer = stubServer(
+            broadcasts, List.of(onlinePlayer)
+        );
+        final Plugin pluginWithPlayer = stubPlugin(serverWithPlayer);
+        final AwardPermissions extra = new AwardPermissions(
+            List.of(),
+            Map.of(fourteen, List.of("essentials.kits.streak-14"))
+        );
+        final AwardLifecycle awards = lifecycle(
+            stubLeaderboard(List.of()),
+            stubPlayers(List.of(new PlayerRecord(
+                STREAK_UUID, STREAK_NAME,
+                SEVEN_DAY_STREAK, Optional.empty()
+            ))),
+            pluginWithPlayer,
+            extra
+        );
+        awards.broadcastIfChanged();
+        assertTrue(permissions.contains("lastactiveplayers.streak.7"));
+        assertFalse(permissions.contains("essentials.kits.streak-14"));
     }
 
 }
