@@ -4,10 +4,11 @@
 # plugins/Essentials/config.yml, then restart or run /ess reload.
 #
 # These kits are claimed through the DeluxeMenus awards menu
-# (see ../deluxemenus/awards_menu.yml), which handles permission
-# gating. The kits themselves carry no essentials.kits.* permission
-# requirement so that the console can issue them on the player's
-# behalf without requiring extra LuckPerms configuration.
+# (see ../deluxemenus/awards_menu.yml). Each kit requires the
+# matching essentials.kits.* permission (e.g. essentials.kits.mvp-daily).
+# Grant these via the awards.*.extra-permissions config in
+# LastActivePlayers so they ride along with the transient award
+# permissions, or grant them directly via LuckPerms.
 #
 # Cooldowns are in seconds:
 #   86400  = 24 hours

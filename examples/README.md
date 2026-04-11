@@ -213,10 +213,13 @@ Six kits are defined:
 | `streak-30` | 24 h | `lastactiveplayers.streak.30` |
 | `streak-60` | 24 h | `lastactiveplayers.streak.60` |
 
-The kits carry no `essentials.kits.*` permission requirement. Access is
-controlled by the DeluxeMenus menu (below), which runs the kit command as
-console. EssentialsX still enforces the per-kit cooldown regardless of who
-issues the command.
+Each kit requires the matching `essentials.kits.*` permission
+(e.g. `essentials.kits.mvp-daily`). Grant these via the
+`awards.*.extra-permissions` config in LastActivePlayers so they ride along
+with the transient award permissions, or grant them directly via LuckPerms.
+
+The DeluxeMenus menu (below) runs the kit command as the player, so
+EssentialsX enforces its per-kit cooldown normally.
 
 Customise the item lists and cooldown values freely.
 
@@ -268,7 +271,7 @@ to `left_click_commands` for the relevant slot:
 
 ```yaml
 left_click_commands:
-  - '[console] kit mvp-daily %player_name%'
+  - '[player] essentials:kit mvp-daily'
   - '[console] eco give %player_name% 500'
   - '[close]'
 ```
