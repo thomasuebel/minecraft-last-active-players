@@ -22,7 +22,7 @@ public record AwardPermissions(
 ) {
 
     /** No extra permissions -- the default when nothing is configured. */
-    static final AwardPermissions NONE =
+    public static final AwardPermissions NONE =
         new AwardPermissions(List.of(), Map.of());
 
     /**
