@@ -290,12 +290,9 @@ public final class AwardLifecycle implements Listener, Awards {
                 if (!crossed.isEmpty()) {
                     final int highest = crossed.get(crossed.size() - 1);
                     attachment.setPermission(STREAK_PERMISSION_PREFIX + highest, true);
-                    final List<String> extra =
-                        this.extraPermissions.streakExtra().get(highest);
-                    if (extra != null) {
-                        for (final String perm : extra) {
-                            attachment.setPermission(perm, true);
-                        }
+                    for (final String perm : this.extraPermissions.streakExtra()
+                        .getOrDefault(highest, List.of())) {
+                        attachment.setPermission(perm, true);
                     }
                 }
             }
