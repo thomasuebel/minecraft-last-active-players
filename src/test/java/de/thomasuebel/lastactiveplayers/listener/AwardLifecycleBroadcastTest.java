@@ -43,6 +43,7 @@ class AwardLifecycleBroadcastTest {
         "Streak tie: {players} ({streak})";
     private static final long DELAY_TICKS = 0L;
     private static final int SEVEN_DAY_STREAK = 7;
+    private static final int FOURTEEN_DAY_STREAK = 14;
     private static final long ONE_HOUR_SECONDS = 3600L;
     private static final long TWO_HOURS_SECONDS = 7200L;
     private static final UUID MVP_UUID = UUID.randomUUID();
@@ -531,7 +532,6 @@ class AwardLifecycleBroadcastTest {
 
     @Test
     void doesNotGrantStreakExtraForUnmatchedMilestone() {
-        final int fourteen = 14;
         final List<String> broadcasts = new ArrayList<>();
         final List<String> permissions = new ArrayList<>();
         final Server serverForPlugin = stubServer(broadcasts);
@@ -545,7 +545,7 @@ class AwardLifecycleBroadcastTest {
         final Plugin pluginWithPlayer = stubPlugin(serverWithPlayer);
         final AwardPermissions extra = new AwardPermissions(
             List.of(),
-            Map.of(fourteen, List.of("essentials.kits.streak-14"))
+            Map.of(FOURTEEN_DAY_STREAK, List.of("essentials.kits.streak-14"))
         );
         final AwardLifecycle awards = lifecycle(
             stubLeaderboard(List.of()),
@@ -559,6 +559,40 @@ class AwardLifecycleBroadcastTest {
         awards.broadcastIfChanged();
         assertTrue(permissions.contains("lastactiveplayers.streak.7"));
         assertFalse(permissions.contains("essentials.kits.streak-14"));
+    }
+
+    @Test
+    void doesNotGrantMvpExtraToNonMvpPlayer() {
+        final List<String> broadcasts = new ArrayList<>();
+        final List<String> permissions = new ArrayList<>();
+        final Server serverForPlugin = stubServer(broadcasts);
+        final Plugin plugin = stubPlugin(serverForPlugin);
+        final org.bukkit.entity.Player onlinePlayer = stubOnlinePlayer(
+            STREAK_UUID, STREAK_NAME, permissions, plugin
+        );
+        final Server serverWithPlayer = stubServer(
+            broadcasts, List.of(onlinePlayer)
+        );
+        final Plugin pluginWithPlayer = stubPlugin(serverWithPlayer);
+        final AwardPermissions extra = new AwardPermissions(
+            List.of("essentials.kits.mvp-daily"),
+            Map.of()
+        );
+        final AwardLifecycle awards = lifecycle(
+            stubLeaderboard(List.of(new LeaderboardEntry(
+                MVP_UUID, MVP_NAME,
+                ONE_HOUR_SECONDS, Optional.empty()
+            ))),
+            stubPlayers(List.of(new PlayerRecord(
+                STREAK_UUID, STREAK_NAME,
+                SEVEN_DAY_STREAK, Optional.empty()
+            ))),
+            pluginWithPlayer,
+            extra
+        );
+        awards.broadcastIfChanged();
+        assertFalse(permissions.contains("lastactiveplayers.mvp"));
+        assertFalse(permissions.contains("essentials.kits.mvp-daily"));
     }
 
 }
