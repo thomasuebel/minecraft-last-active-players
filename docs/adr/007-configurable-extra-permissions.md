@@ -47,7 +47,8 @@ awards:
 The default is empty lists, preserving backwards compatibility.
 
 The extra permissions are represented as an `AwardPermissions` record (per
-ADR-005: records for data-carrying types with no substitutable behaviour).
+ADR-005: Proportionate Abstraction -- records for data-carrying types with no
+substitutable behaviour).
 
 ## Consequences
 
