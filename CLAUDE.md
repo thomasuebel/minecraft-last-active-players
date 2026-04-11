@@ -45,6 +45,8 @@ A milestone broadcast fires to all online players when a streak is newly reached
 | `prefix.mvp` | `"[Crown] "` | Display name prefix for current MVP |
 | `prefix.streak` | `"[Fire] "` | Display name prefix for streak leader |
 | `streak.max-shields` | `3` | Maximum streak shields a player can hold |
+| `awards.mvp.extra-permissions` | `[]` | Extra permission nodes granted alongside `lastactiveplayers.mvp` |
+| `awards.streak.<N>.extra-permissions` | `[]` | Extra permission nodes granted alongside `lastactiveplayers.streak.<N>` (N = 3, 7, 14, 30, 60) |
 | `session.heartbeat-interval-minutes` | `10` | How often active session time is flushed to DB |
 | `data.purge-inactive-days` | `60` | Days of inactivity before a player record is purged |
 
