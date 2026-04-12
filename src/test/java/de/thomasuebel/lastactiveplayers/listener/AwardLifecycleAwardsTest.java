@@ -187,7 +187,8 @@ class AwardLifecycleAwardsTest {
             MVP_PREFIX, STREAK_PREFIX,
             MVP_TEMPLATE, MVP_TIE_TEMPLATE,
             STREAK_TEMPLATE, STREAK_TIE_TEMPLATE,
-            DELAY_TICKS
+            DELAY_TICKS,
+            AwardPermissions.NONE
         );
     }
 

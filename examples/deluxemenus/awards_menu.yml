@@ -19,8 +19,9 @@
 #   - MVP reward    (slot 11): active when the player holds lastactiveplayers.mvp
 #   - Streak reward (slot 15): active at the player's highest active streak tier
 #
-# Kit commands run as console so no essentials.kits.* permission is needed.
-# EssentialsX enforces the per-kit cooldown regardless of who issues the command.
+# Kit commands run as the player so that EssentialsX enforces its per-kit
+# cooldown. Grant the matching essentials.kits.* permission for each kit via
+# the awards.*.extra-permissions config in LastActivePlayers, or via LuckPerms.
 
 menu_title: '&6&lCommunity Awards'
 open_command:
@@ -69,7 +70,7 @@ items:
         - '[message] &cYou are no longer the current MVP.'
     left_click_commands:
       - '[close]'
-      - '[console] essentials:kit mvp-daily %player_name%'
+      - '[player] essentials:kit mvp-daily'
 
   # Shown when the player is not the MVP.
   mvp_inactive:
@@ -110,7 +111,7 @@ items:
         - '[message] &cYour streak reward is no longer available.'
     left_click_commands:
       - '[close]'
-      - '[console] essentials:kit streak-60 %player_name%'
+      - '[player] essentials:kit streak-60'
 
   streak_30:
     material: emerald
@@ -135,7 +136,7 @@ items:
         - '[message] &cYour streak reward is no longer available.'
     left_click_commands:
       - '[close]'
-      - '[console] essentials:kit streak-30 %player_name%'
+      - '[player] essentials:kit streak-30'
 
   streak_14:
     material: diamond
@@ -160,7 +161,7 @@ items:
         - '[message] &cYour streak reward is no longer available.'
     left_click_commands:
       - '[close]'
-      - '[console] essentials:kit streak-14 %player_name%'
+      - '[player] essentials:kit streak-14'
 
   streak_7:
     material: gold_ingot
@@ -185,7 +186,7 @@ items:
         - '[message] &cYour streak reward is no longer available.'
     left_click_commands:
       - '[close]'
-      - '[console] essentials:kit streak-7 %player_name%'
+      - '[player] essentials:kit streak-7'
 
   streak_3:
     material: iron_ingot
@@ -210,7 +211,7 @@ items:
         - '[message] &cYour streak reward is no longer available.'
     left_click_commands:
       - '[close]'
-      - '[console] essentials:kit streak-3 %player_name%'
+      - '[player] essentials:kit streak-3'
 
   # Fallback: no active streak milestone.
   streak_none:

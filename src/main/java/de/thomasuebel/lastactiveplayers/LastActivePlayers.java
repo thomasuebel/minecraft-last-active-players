@@ -14,6 +14,7 @@ import de.thomasuebel.lastactiveplayers.display.RelativeDateLabel;
 import de.thomasuebel.lastactiveplayers.ranking.LeaderboardRankHint;
 import de.thomasuebel.lastactiveplayers.ranking.RankHint;
 import de.thomasuebel.lastactiveplayers.listener.AwardLifecycle;
+import de.thomasuebel.lastactiveplayers.listener.AwardPermissions;
 import de.thomasuebel.lastactiveplayers.listener.HeartbeatRankHints;
 import de.thomasuebel.lastactiveplayers.placeholder.AwardPlaceholders;
 import de.thomasuebel.lastactiveplayers.listener.JoinBroadcast;
@@ -47,7 +48,10 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -74,6 +78,7 @@ public final class LastActivePlayers extends JavaPlugin {
     private static final long AWARD_BROADCAST_DELAY_MULTIPLIER = 2L;
     private static final long JOIN_BROADCAST_DELAY_MULTIPLIER = 3L;
     private static final int DEFAULT_MAX_SHIELDS = 3;
+    private static final List<Integer> STREAK_THRESHOLDS = List.of(3, 7, 14, 30, 60);
     private static final String MSG_RELOADED = "Configuration reloaded.";
     private static final String MSG_RELOAD_FAILED = "Reload failed: invalid display.date-format. "
         + "Check the server console for details.";
@@ -283,10 +288,25 @@ public final class LastActivePlayers extends JavaPlugin {
             this
         );
 
+        final List<String> mvpExtraPerms =
+            getConfig().getStringList("awards.mvp.extra-permissions");
+        final Map<Integer, List<String>> streakExtraPerms = new HashMap<>();
+        for (final int threshold : STREAK_THRESHOLDS) {
+            final List<String> perms = getConfig().getStringList(
+                "awards.streak." + threshold + ".extra-permissions"
+            );
+            if (!perms.isEmpty()) {
+                streakExtraPerms.put(threshold, perms);
+            }
+        }
+        final AwardPermissions extraPermissions =
+            new AwardPermissions(mvpExtraPerms, streakExtraPerms);
+
         this.awardLifecycle = new AwardLifecycle(
             this.mvpBoard, this.players, this.milestones, this,
             mvpPrefix, streakPrefix, mvpTemplate, mvpTieTemplate, streakTemplate, streakTieTemplate,
-            joinDelayTicks * AWARD_BROADCAST_DELAY_MULTIPLIER
+            joinDelayTicks * AWARD_BROADCAST_DELAY_MULTIPLIER,
+            extraPermissions
         );
         getServer().getPluginManager().registerEvents(this.awardLifecycle, this);
 

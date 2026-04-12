@@ -59,6 +59,25 @@ session:
   # How often (in minutes) active session time is flushed to the database.
   heartbeat-interval-minutes: 10
 
+awards:
+  # Extra permission nodes granted alongside award permissions.
+  # Useful for granting kit permissions (e.g. essentials.kits.mvp-daily)
+  # so that EssentialsX enforces its per-kit cooldown when players claim
+  # rewards via a menu plugin.
+  mvp:
+    extra-permissions: []
+  streak:
+    3:
+      extra-permissions: []
+    7:
+      extra-permissions: []
+    14:
+      extra-permissions: []
+    30:
+      extra-permissions: []
+    60:
+      extra-permissions: []
+
 data:
   # Players inactive for this many days will have their data purged on startup.
   purge-inactive-days: 60
